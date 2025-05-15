@@ -2,12 +2,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Plus } from 'lucide-react';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { companies } from '@/data/mockData';
 import { Company } from '@/data/types';
+import { toast } from "@/components/ui/use-toast";
+import CompanyForm from '@/components/forms/CompanyForm';
 
 const Companies = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredCompanies, setFilteredCompanies] = useState<Company[]>(companies);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     if (searchQuery.trim() === '') {
@@ -23,6 +27,15 @@ const Companies = () => {
       );
     }
   }, [searchQuery]);
+
+  const handleAddCompany = (companyData: Partial<Company>) => {
+    console.log('New company:', companyData);
+    toast({
+      title: "Company Added",
+      description: `${companyData.name} has been added successfully.`,
+    });
+    setIsDialogOpen(false);
+  };
 
   return (
     <div className="animate-fade-in">
@@ -41,10 +54,23 @@ const Companies = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <button className="bg-primary text-white px-4 py-2 rounded-lg inline-flex items-center">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Company
-          </button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <button className="bg-primary text-white px-4 py-2 rounded-lg inline-flex items-center">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Company
+              </button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Add New Company</DialogTitle>
+                <DialogDescription>
+                  Fill in the details below to add a new company.
+                </DialogDescription>
+              </DialogHeader>
+              <CompanyForm onSubmit={handleAddCompany} />
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 

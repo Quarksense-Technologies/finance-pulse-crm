@@ -1,16 +1,21 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Search, Plus, Calendar, Users } from 'lucide-react';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { projects, companies } from '@/data/mockData';
 import { Project } from '@/data/types';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { formatDate, getProjectStatusColor, calculateProjectProfit } from '@/utils/financialUtils';
+import { toast } from "@/components/ui/use-toast";
+import ProjectForm from '@/components/forms/ProjectForm';
 
 const Projects = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredProjects, setFilteredProjects] = useState<Project[]>(projects);
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     // Apply filters
@@ -39,6 +44,15 @@ const Projects = () => {
     return company ? company.name : 'Unknown Company';
   };
 
+  const handleAddProject = (projectData: Partial<Project>) => {
+    console.log('New project:', projectData);
+    toast({
+      title: "Project Added",
+      description: `${projectData.name} has been added successfully.`,
+    });
+    setIsDialogOpen(false);
+  };
+
   return (
     <div className="animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
@@ -56,10 +70,23 @@ const Projects = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <button className="bg-primary text-white px-4 py-2 rounded-lg inline-flex items-center">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Project
-          </button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <button className="bg-primary text-white px-4 py-2 rounded-lg inline-flex items-center">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Project
+              </button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Add New Project</DialogTitle>
+                <DialogDescription>
+                  Fill in the details below to add a new project.
+                </DialogDescription>
+              </DialogHeader>
+              <ProjectForm onSubmit={handleAddProject} />
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 

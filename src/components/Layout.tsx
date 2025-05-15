@@ -1,11 +1,15 @@
 
 import React, { useState } from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Briefcase, DollarSign, Menu, X } from 'lucide-react';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, Users, Briefcase, DollarSign, Menu, X, LogOut } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from "@/components/ui/use-toast";
 
 const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   const menuItems = [
     { 
@@ -35,6 +39,15 @@ const Layout = () => {
     }
   ];
 
+  const handleLogout = () => {
+    logout();
+    toast({
+      title: "Logged out",
+      description: "You have been logged out successfully",
+    });
+    navigate('/login');
+  };
+
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
@@ -53,13 +66,29 @@ const Layout = () => {
       <aside 
         className={`${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } fixed md:relative z-40 md:translate-x-0 w-64 h-screen transition-transform duration-300 ease-in-out bg-white border-r border-gray-200 md:shadow-sm`}
+        } fixed md:relative z-40 md:translate-x-0 w-64 h-screen transition-transform duration-300 ease-in-out bg-white border-r border-gray-200 md:shadow-sm flex flex-col`}
       >
         <div className="p-6">
           <h1 className="text-2xl font-bold text-primary">Business CRM</h1>
         </div>
-        <nav className="px-4 pb-4">
-          <ul className="space-y-1">
+        
+        {/* User info */}
+        {user && (
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center">
+              <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-semibold">
+                {user.name.slice(0, 1)}
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium">{user.name}</p>
+                <p className="text-xs text-gray-500">{user.role}</p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        <nav className="px-4 pb-4 flex-1 overflow-y-auto">
+          <ul className="space-y-1 mt-4">
             {menuItems.map((item) => (
               <li key={item.path}>
                 <Link
@@ -77,6 +106,17 @@ const Layout = () => {
             ))}
           </ul>
         </nav>
+        
+        {/* Logout button */}
+        <div className="p-4 border-t border-gray-200">
+          <button
+            onClick={handleLogout}
+            className="flex items-center w-full px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-md"
+          >
+            <LogOut className="w-5 h-5" />
+            <span className="ml-3">Logout</span>
+          </button>
+        </div>
       </aside>
 
       {/* Main content */}

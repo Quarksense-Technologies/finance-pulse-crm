@@ -7,10 +7,14 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import Companies from "./pages/Companies";
+import CompanyDetails from "./pages/CompanyDetails";
 import Projects from "./pages/Projects";
+import ProjectDetails from "./pages/ProjectDetails";
 import Finances from "./pages/Finances";
 import Resources from "./pages/Resources";
+import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -21,10 +25,13 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Layout />}>
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Dashboard />} />
             <Route path="companies" element={<Companies />} />
+            <Route path="companies/:companyId" element={<CompanyDetails />} />
             <Route path="projects" element={<Projects />} />
+            <Route path="projects/:projectId" element={<ProjectDetails />} />
             <Route path="finances" element={<Finances />} />
             <Route path="resources" element={<Resources />} />
           </Route>

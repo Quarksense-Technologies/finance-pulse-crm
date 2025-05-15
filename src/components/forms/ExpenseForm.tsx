@@ -1,0 +1,145 @@
+
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { projects } from '@/data/mockData';
+import { Expense } from '@/data/types';
+
+interface ExpenseFormProps {
+  preselectedProjectId?: string;
+  onSubmit: (data: Partial<Expense>) => void;
+}
+
+const ExpenseForm: React.FC<ExpenseFormProps> = ({ preselectedProjectId, onSubmit }) => {
+  const form = useForm({
+    defaultValues: {
+      projectId: preselectedProjectId || '',
+      amount: '',
+      date: new Date().toISOString().slice(0, 10),
+      category: 'materials',
+      description: '',
+    },
+  });
+
+  const handleSubmit = (data: any) => {
+    onSubmit({
+      id: `expense-${Date.now()}`,
+      projectId: data.projectId,
+      amount: parseFloat(data.amount),
+      date: data.date,
+      category: data.category as 'manpower' | 'materials' | 'services' | 'other',
+      description: data.description,
+    });
+    form.reset();
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 mt-4">
+        <FormField
+          control={form.control}
+          name="projectId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Project</FormLabel>
+              <Select 
+                disabled={!!preselectedProjectId}
+                onValueChange={field.onChange} 
+                defaultValue={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a project" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {projects.map((project) => (
+                    <SelectItem key={project.id} value={project.id}>
+                      {project.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="amount"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Amount ($)</FormLabel>
+              <FormControl>
+                <Input {...field} type="number" min="0" step="0.01" placeholder="0.00" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="date"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Date</FormLabel>
+              <FormControl>
+                <Input {...field} type="date" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="category"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Category</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="manpower">Manpower</SelectItem>
+                  <SelectItem value="materials">Materials</SelectItem>
+                  <SelectItem value="services">Services</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="Expense description..." />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="flex justify-end">
+          <Button type="submit">Save Expense</Button>
+        </div>
+      </form>
+    </Form>
+  );
+};
+
+export default ExpenseForm;
