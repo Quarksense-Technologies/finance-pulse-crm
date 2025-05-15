@@ -4,16 +4,19 @@ import { cn } from '@/lib/utils';
 
 interface StatusBadgeProps {
   status: string;
-  colorClassName: string;
+  colorClassName?: string; // Make this optional instead of required
   className?: string;
 }
 
 const StatusBadge = ({ status, colorClassName, className }: StatusBadgeProps) => {
+  // Use the provided colorClassName or get it from the helper function
+  const statusColor = colorClassName || getStatusColor(status);
+  
   return (
     <span
       className={cn(
         "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize",
-        colorClassName,
+        statusColor,
         className
       )}
     >
