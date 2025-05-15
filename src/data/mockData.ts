@@ -1,5 +1,4 @@
-
-import { Company, Project, Payment, Expense, FinancialSummary, ManpowerSummary } from './types';
+import { Company, Project, Payment, Expense, FinancialSummary, ManpowerSummary, Resource } from './types';
 
 // Mock Companies
 export const companies: Company[] = [
@@ -44,7 +43,8 @@ export const projects: Project[] = [
     status: 'active',
     payments: [],
     expenses: [],
-    manpowerAllocated: 320
+    manpowerAllocated: 320,
+    resources: []
   },
   {
     id: 'proj-2',
@@ -56,7 +56,8 @@ export const projects: Project[] = [
     status: 'active',
     payments: [],
     expenses: [],
-    manpowerAllocated: 480
+    manpowerAllocated: 480,
+    resources: []
   },
   {
     id: 'proj-3',
@@ -68,7 +69,8 @@ export const projects: Project[] = [
     status: 'completed',
     payments: [],
     expenses: [],
-    manpowerAllocated: 250
+    manpowerAllocated: 250,
+    resources: []
   },
   {
     id: 'proj-4',
@@ -80,7 +82,8 @@ export const projects: Project[] = [
     status: 'active',
     payments: [],
     expenses: [],
-    manpowerAllocated: 600
+    manpowerAllocated: 600,
+    resources: []
   },
   {
     id: 'proj-5',
@@ -92,7 +95,8 @@ export const projects: Project[] = [
     status: 'on-hold',
     payments: [],
     expenses: [],
-    manpowerAllocated: 180
+    manpowerAllocated: 180,
+    resources: []
   }
 ];
 
@@ -296,7 +300,71 @@ export const expenses: Expense[] = [
   }
 ];
 
-// Associate payments and expenses with projects
+// Mock Resources
+export const resources: Resource[] = [
+  {
+    id: 'res-1',
+    projectId: 'proj-1',
+    name: 'Alex Johnson',
+    role: 'Senior Developer',
+    hoursAllocated: 120,
+    hourlyRate: 75,
+    startDate: '2025-01-15',
+    endDate: '2025-04-30'
+  },
+  {
+    id: 'res-2',
+    projectId: 'proj-1',
+    name: 'Sarah Chen',
+    role: 'UI/UX Designer',
+    hoursAllocated: 80,
+    hourlyRate: 65,
+    startDate: '2025-01-20',
+    endDate: '2025-03-15'
+  },
+  {
+    id: 'res-3',
+    projectId: 'proj-2',
+    name: 'Michael Rodriguez',
+    role: 'Mobile Developer',
+    hoursAllocated: 160,
+    hourlyRate: 70,
+    startDate: '2025-02-01',
+    endDate: null
+  },
+  {
+    id: 'res-4',
+    projectId: 'proj-2',
+    name: 'Jessica White',
+    role: 'QA Engineer',
+    hoursAllocated: 120,
+    hourlyRate: 60,
+    startDate: '2025-02-15',
+    endDate: null
+  },
+  {
+    id: 'res-5',
+    projectId: 'proj-3',
+    name: 'David Lee',
+    role: 'Cloud Architect',
+    hoursAllocated: 100,
+    hourlyRate: 85,
+    startDate: '2024-11-01',
+    endDate: '2025-03-15'
+  },
+  {
+    id: 'res-6',
+    projectId: 'proj-4',
+    name: 'Emily Clark',
+    role: 'Full Stack Developer',
+    hoursAllocated: 200,
+    hourlyRate: 75,
+    startDate: '2025-03-01',
+    endDate: null
+  }
+];
+
+// Associate payments, expenses and resources with projects
 export const initializeData = () => {
   // Add payments to projects
   payments.forEach(payment => {
@@ -314,11 +382,20 @@ export const initializeData = () => {
     }
   });
 
+  // Add resources to projects
+  resources.forEach(resource => {
+    const project = projects.find(p => p.id === resource.projectId);
+    if (project) {
+      project.resources.push(resource);
+    }
+  });
+
   return {
     companies,
     projects,
     payments,
-    expenses
+    expenses,
+    resources
   };
 };
 
@@ -346,21 +423,27 @@ export const calculateFinancialSummary = (): FinancialSummary => {
 
 // Calculate manpower summary
 export const calculateManpowerSummary = (): ManpowerSummary => {
-  const totalAllocated = projects.reduce((sum, project) => 
-    sum + project.manpowerAllocated, 0);
+  const totalAllocated = resources.reduce((sum, resource) => 
+    sum + resource.hoursAllocated, 0);
   
   const byCompany: Record<string, number> = {};
   const byProject: Record<string, number> = {};
   
-  projects.forEach(project => {
+  resources.forEach(resource => {
     // Add to project summary
-    byProject[project.id] = project.manpowerAllocated;
-    
-    // Add to company summary
-    if (!byCompany[project.companyId]) {
-      byCompany[project.companyId] = 0;
+    if (!byProject[resource.projectId]) {
+      byProject[resource.projectId] = 0;
     }
-    byCompany[project.companyId] += project.manpowerAllocated;
+    byProject[resource.projectId] += resource.hoursAllocated;
+    
+    // Find project to get company ID
+    const project = projects.find(p => p.id === resource.projectId);
+    if (project) {
+      if (!byCompany[project.companyId]) {
+        byCompany[project.companyId] = 0;
+      }
+      byCompany[project.companyId] += resource.hoursAllocated;
+    }
   });
   
   return {

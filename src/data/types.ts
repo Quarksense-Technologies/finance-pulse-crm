@@ -20,6 +20,7 @@ export interface Project {
   payments: Payment[];
   expenses: Expense[];
   manpowerAllocated: number; // Hours
+  resources: Resource[]; // Added resources array
 }
 
 export interface Payment {
@@ -38,6 +39,17 @@ export interface Expense {
   date: string;
   category: 'manpower' | 'materials' | 'services' | 'other';
   description: string;
+}
+
+export interface Resource {
+  id: string;
+  projectId: string;
+  name: string;
+  role: string;
+  hoursAllocated: number;
+  hourlyRate: number;
+  startDate: string;
+  endDate: string | null;
 }
 
 export interface FinancialSummary {
