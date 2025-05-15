@@ -27,6 +27,11 @@ const Layout = () => {
       path: '/finances', 
       name: 'Finances', 
       icon: <DollarSign className="w-5 h-5" /> 
+    },
+    { 
+      path: '/resources', 
+      name: 'Manpower', 
+      icon: <Users className="w-5 h-5" /> 
     }
   ];
 

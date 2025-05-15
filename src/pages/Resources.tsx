@@ -59,9 +59,7 @@ const Resources = () => {
             </div>
             <div className="ml-4">
               <h3 className="text-sm font-medium text-gray-500">Average Hourly Cost</h3>
-              <p className="text-2xl font-semibold">
-                {formatCurrency(71.25)} {/* This would be calculated dynamically in a real app */}
-              </p>
+              <p className="text-2xl font-semibold">{formatCurrency(71.25)}</p>
             </div>
           </div>
         </div>
