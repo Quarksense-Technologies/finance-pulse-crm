@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, Briefcase, DollarSign, Menu, X, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, Briefcase, DollarSign, Menu, X, LogOut, UserPlus, Check, Shield } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from "@/components/ui/use-toast";
 
@@ -9,33 +9,50 @@ const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, hasPermission } = useAuth();
 
   const menuItems = [
     { 
       path: '/', 
       name: 'Dashboard', 
-      icon: <LayoutDashboard className="w-5 h-5" /> 
+      icon: <LayoutDashboard className="w-5 h-5" />,
+      permission: null // Everyone can see dashboard
     },
     { 
       path: '/companies', 
       name: 'Companies', 
-      icon: <Users className="w-5 h-5" /> 
+      icon: <Users className="w-5 h-5" />,
+      permission: null // Everyone can see companies
     },
     { 
       path: '/projects', 
       name: 'Projects', 
-      icon: <Briefcase className="w-5 h-5" /> 
+      icon: <Briefcase className="w-5 h-5" />,
+      permission: null // Everyone can see projects
     },
     { 
       path: '/finances', 
       name: 'Finances', 
-      icon: <DollarSign className="w-5 h-5" /> 
+      icon: <DollarSign className="w-5 h-5" />,
+      permission: null // Everyone can see finances
     },
     { 
       path: '/resources', 
       name: 'Manpower', 
-      icon: <Users className="w-5 h-5" /> 
+      icon: <Users className="w-5 h-5" />,
+      permission: null // Everyone can see manpower
+    },
+    { 
+      path: '/approvals', 
+      name: 'Approvals', 
+      icon: <Check className="w-5 h-5" />,
+      permission: 'approve_transactions' // Only managers and admins
+    },
+    { 
+      path: '/users', 
+      name: 'User Management', 
+      icon: <UserPlus className="w-5 h-5" />,
+      permission: 'manage_users' // Only admins
     }
   ];
 
@@ -81,7 +98,10 @@ const Layout = () => {
               </div>
               <div className="ml-3">
                 <p className="text-sm font-medium">{user.name}</p>
-                <p className="text-xs text-gray-500">{user.role}</p>
+                <p className="text-xs text-gray-500 flex items-center gap-1">
+                  <Shield className="w-3 h-3" />
+                  {user.role}
+                </p>
               </div>
             </div>
           </div>
@@ -89,21 +109,28 @@ const Layout = () => {
         
         <nav className="px-4 pb-4 flex-1 overflow-y-auto">
           <ul className="space-y-1 mt-4">
-            {menuItems.map((item) => (
-              <li key={item.path}>
-                <Link
-                  to={item.path}
-                  className={`flex items-center px-4 py-3 rounded-md ${
-                    location.pathname === item.path
-                      ? 'bg-primary text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  {item.icon}
-                  <span className="ml-3">{item.name}</span>
-                </Link>
-              </li>
-            ))}
+            {menuItems.map((item) => {
+              // Check permission if required
+              if (item.permission && !hasPermission(item.permission)) {
+                return null;
+              }
+              
+              return (
+                <li key={item.path}>
+                  <Link
+                    to={item.path}
+                    className={`flex items-center px-4 py-3 rounded-md ${
+                      location.pathname === item.path
+                        ? 'bg-primary text-white'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    {item.icon}
+                    <span className="ml-3">{item.name}</span>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </nav>
         

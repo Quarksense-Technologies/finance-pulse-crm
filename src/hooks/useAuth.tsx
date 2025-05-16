@@ -1,20 +1,33 @@
 
 import * as React from 'react';
 
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'manager' | 'user';
+  managerId?: string;
+}
+
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  hasPermission: (permission: Permission) => boolean;
 }
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'user';
-}
+type Permission = 
+  | 'manage_users'
+  | 'approve_transactions'
+  | 'add_company'
+  | 'edit_company'
+  | 'add_project'
+  | 'edit_project'
+  | 'add_payment'
+  | 'add_expense'
+  | 'view_reports';
 
 const AuthContext = React.createContext<AuthContextType | undefined>(undefined);
 
@@ -29,10 +42,19 @@ const mockUsers = [
   },
   {
     id: '2',
+    name: 'Manager User',
+    email: 'manager@example.com',
+    password: 'manager123',
+    role: 'manager' as const,
+    managerId: '1',
+  },
+  {
+    id: '3',
     name: 'Regular User',
     email: 'user@example.com',
     password: 'user123',
     role: 'user' as const,
+    managerId: '2',
   },
 ];
 
@@ -74,6 +96,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('user');
   };
 
+  const hasPermission = (permission: Permission): boolean => {
+    if (!user) return false;
+
+    // Role-based permissions
+    switch (user.role) {
+      case 'admin':
+        return true; // Admin has all permissions
+      case 'manager':
+        // Managers can do everything except manage users
+        if (permission === 'manage_users') return false;
+        return true;
+      case 'user':
+        // Users have limited permissions
+        return [
+          'add_payment',
+          'add_expense',
+          'view_reports',
+        ].includes(permission);
+      default:
+        return false;
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -82,6 +127,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         login,
         logout,
+        hasPermission,
       }}
     >
       {children}

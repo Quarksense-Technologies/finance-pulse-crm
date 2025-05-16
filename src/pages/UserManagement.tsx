@@ -1,0 +1,245 @@
+
+import React, { useState } from 'react';
+import { toast } from '@/components/ui/use-toast';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useAuth } from '@/hooks/useAuth';
+import { User } from '@/data/types';
+
+const UserManagement = () => {
+  const { hasPermission } = useAuth();
+  const [users, setUsers] = useState<User[]>([
+    {
+      id: '1',
+      name: 'Admin User',
+      email: 'admin@example.com',
+      role: 'admin',
+      createdAt: '2023-01-01',
+    },
+    {
+      id: '2',
+      name: 'Manager User',
+      email: 'manager@example.com',
+      role: 'manager',
+      managerId: '1',
+      createdAt: '2023-01-02',
+    },
+    {
+      id: '3',
+      name: 'Regular User',
+      email: 'user@example.com',
+      role: 'user',
+      managerId: '2',
+      createdAt: '2023-01-03',
+    },
+  ]);
+  const [newUser, setNewUser] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'user',
+    managerId: '',
+  });
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const handleAddUser = () => {
+    if (!newUser.name || !newUser.email || !newUser.password) {
+      toast({
+        title: 'Missing information',
+        description: 'Please fill in all required fields',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const newUserObject: User = {
+      id: `${users.length + 1}`,
+      name: newUser.name,
+      email: newUser.email,
+      role: newUser.role as 'admin' | 'manager' | 'user',
+      createdAt: new Date().toISOString(),
+    };
+
+    if (newUser.role !== 'admin' && newUser.managerId) {
+      newUserObject.managerId = newUser.managerId;
+    }
+
+    setUsers([...users, newUserObject]);
+    setNewUser({
+      name: '',
+      email: '',
+      password: '',
+      role: 'user',
+      managerId: '',
+    });
+    setDialogOpen(false);
+
+    toast({
+      title: 'User added',
+      description: 'New user has been added successfully',
+    });
+  };
+
+  const getManagerName = (managerId: string) => {
+    const manager = users.find(user => user.id === managerId);
+    return manager ? manager.name : 'Unknown';
+  };
+
+  if (!hasPermission('manage_users')) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Access Denied</CardTitle>
+            <CardDescription>You don't have permission to access this page.</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto py-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">User Management</h1>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>Add New User</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New User</DialogTitle>
+              <DialogDescription>
+                Create a new user account with specific permissions.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="name" className="text-right">Name</Label>
+                <Input 
+                  id="name" 
+                  value={newUser.name} 
+                  onChange={(e) => setNewUser({...newUser, name: e.target.value})} 
+                  className="col-span-3" 
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="email" className="text-right">Email</Label>
+                <Input 
+                  id="email" 
+                  type="email" 
+                  value={newUser.email} 
+                  onChange={(e) => setNewUser({...newUser, email: e.target.value})} 
+                  className="col-span-3" 
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="password" className="text-right">Password</Label>
+                <Input 
+                  id="password" 
+                  type="password" 
+                  value={newUser.password} 
+                  onChange={(e) => setNewUser({...newUser, password: e.target.value})} 
+                  className="col-span-3" 
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="role" className="text-right">Role</Label>
+                <Select 
+                  value={newUser.role} 
+                  onValueChange={(value) => setNewUser({...newUser, role: value})}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="user">User</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {newUser.role !== 'admin' && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="manager" className="text-right">Reporting Manager</Label>
+                  <Select 
+                    value={newUser.managerId} 
+                    onValueChange={(value) => setNewUser({...newUser, managerId: value})}
+                  >
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Select manager" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {users
+                        .filter(user => user.role === 'admin' || user.role === 'manager')
+                        .map(user => (
+                          <SelectItem key={user.id} value={user.id}>
+                            {user.name} ({user.role})
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+              <Button onClick={handleAddUser}>Add User</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>User List</CardTitle>
+          <CardDescription>Manage all users and their permissions</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-muted/50 font-medium">
+                  <th className="py-3 px-4 text-left">Name</th>
+                  <th className="py-3 px-4 text-left">Email</th>
+                  <th className="py-3 px-4 text-left">Role</th>
+                  <th className="py-3 px-4 text-left">Reporting Manager</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((user) => (
+                  <tr key={user.id} className="border-b">
+                    <td className="py-3 px-4">{user.name}</td>
+                    <td className="py-3 px-4">{user.email}</td>
+                    <td className="py-3 px-4">
+                      <Badge variant={
+                        user.role === 'admin' ? 'default' : 
+                        user.role === 'manager' ? 'secondary' : 'outline'
+                      }>
+                        {user.role}
+                      </Badge>
+                    </td>
+                    <td className="py-3 px-4">
+                      {user.managerId ? getManagerName(user.managerId) : 'None'}
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <Button variant="outline" size="sm">Edit</Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default UserManagement;

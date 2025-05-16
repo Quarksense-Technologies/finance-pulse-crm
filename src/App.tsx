@@ -12,6 +12,8 @@ import Projects from "./pages/Projects";
 import ProjectDetails from "./pages/ProjectDetails";
 import Finances from "./pages/Finances";
 import Resources from "./pages/Resources";
+import UserManagement from "./pages/UserManagement";
+import Approvals from "./pages/Approvals";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -34,6 +36,8 @@ const App = () => (
             <Route path="projects/:projectId" element={<ProjectDetails />} />
             <Route path="finances" element={<Finances />} />
             <Route path="resources" element={<Resources />} />
+            <Route path="users" element={<UserManagement />} />
+            <Route path="approvals" element={<Approvals />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

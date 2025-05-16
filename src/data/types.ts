@@ -30,6 +30,9 @@ export interface Payment {
   date: string;
   status: 'paid' | 'pending' | 'overdue';
   description: string;
+  approvalStatus?: 'pending' | 'approved' | 'rejected';
+  createdBy?: string;
+  approvedBy?: string;
 }
 
 export interface Expense {
@@ -39,6 +42,9 @@ export interface Expense {
   date: string;
   category: 'manpower' | 'materials' | 'services' | 'other';
   description: string;
+  approvalStatus?: 'pending' | 'approved' | 'rejected';
+  createdBy?: string;
+  approvedBy?: string;
 }
 
 export interface Resource {
@@ -75,4 +81,26 @@ export interface ChartData {
     borderColor?: string;
     borderWidth?: number;
   }[];
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  password?: string;
+  role: 'admin' | 'manager' | 'user';
+  managerId?: string; // ID of reporting manager
+  createdAt: string;
+}
+
+export interface ApprovalItem {
+  id: string;
+  type: 'payment' | 'expense';
+  itemId: string;
+  requesterId: string;
+  requestDate: string;
+  status: 'pending' | 'approved' | 'rejected';
+  notes?: string;
+  amount: number;
+  description: string;
 }
