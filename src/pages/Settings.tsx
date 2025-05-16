@@ -1,0 +1,220 @@
+
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "@/components/ui/use-toast";
+import { Moon, Sun } from 'lucide-react';
+
+const Settings = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState({
+    name: user?.name || '',
+    email: user?.email || '',
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [isDarkTheme, setIsDarkTheme] = useState(
+    document.documentElement.classList.contains('dark')
+  );
+
+  const handleProfileUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    // In a real app, this would call an API to update the user profile
+    toast({
+      title: "Profile Updated",
+      description: "Your profile has been updated successfully.",
+    });
+  };
+
+  const handlePasswordChange = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (profile.newPassword !== profile.confirmPassword) {
+      toast({
+        title: "Passwords don't match",
+        description: "New password and confirm password must match.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // In a real app, this would call an API to change the password
+    toast({
+      title: "Password Changed",
+      description: "Your password has been changed successfully.",
+    });
+    
+    setProfile({
+      ...profile,
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    });
+  };
+
+  const handleLogout = () => {
+    logout();
+    toast({
+      title: "Logged Out",
+      description: "You have been logged out successfully.",
+    });
+    navigate('/login');
+  };
+
+  const toggleTheme = () => {
+    const newTheme = !isDarkTheme;
+    setIsDarkTheme(newTheme);
+    
+    if (newTheme) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+    
+    toast({
+      title: newTheme ? "Dark Theme Enabled" : "Light Theme Enabled",
+      description: `Theme has been switched to ${newTheme ? "dark" : "light"} mode.`,
+    });
+  };
+
+  return (
+    <div className="container mx-auto py-6 max-w-4xl">
+      <h1 className="text-3xl font-bold mb-6">Settings</h1>
+
+      <Tabs defaultValue="profile" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsTrigger value="appearance">Appearance</TabsTrigger>
+          <TabsTrigger value="account">Account</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="profile">
+          <Card>
+            <CardHeader>
+              <CardTitle>Profile Settings</CardTitle>
+              <CardDescription>
+                Update your personal information and how it appears on the platform.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleProfileUpdate} className="space-y-4">
+                <div className="space-y-1">
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input
+                    id="name"
+                    value={profile.name}
+                    onChange={(e) => setProfile({...profile, name: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="email">Email Address</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={profile.email}
+                    onChange={(e) => setProfile({...profile, email: e.target.value})}
+                  />
+                </div>
+                <Button type="submit">Update Profile</Button>
+              </form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="appearance">
+          <Card>
+            <CardHeader>
+              <CardTitle>Appearance</CardTitle>
+              <CardDescription>
+                Customize how the portal looks and feels.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="dark-mode">Dark Mode</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Toggle between light and dark themes
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Sun className={`h-5 w-5 ${!isDarkTheme ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <Switch
+                      id="dark-mode"
+                      checked={isDarkTheme}
+                      onCheckedChange={toggleTheme}
+                    />
+                    <Moon className={`h-5 w-5 ${isDarkTheme ? 'text-primary' : 'text-muted-foreground'}`} />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="account">
+          <Card>
+            <CardHeader>
+              <CardTitle>Account Settings</CardTitle>
+              <CardDescription>
+                Update your password and manage your account.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <form onSubmit={handlePasswordChange} className="space-y-4">
+                <div className="space-y-1">
+                  <Label htmlFor="current-password">Current Password</Label>
+                  <Input
+                    id="current-password"
+                    type="password"
+                    value={profile.currentPassword}
+                    onChange={(e) => setProfile({...profile, currentPassword: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="new-password">New Password</Label>
+                  <Input
+                    id="new-password"
+                    type="password"
+                    value={profile.newPassword}
+                    onChange={(e) => setProfile({...profile, newPassword: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="confirm-password">Confirm New Password</Label>
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    value={profile.confirmPassword}
+                    onChange={(e) => setProfile({...profile, confirmPassword: e.target.value})}
+                  />
+                </div>
+                <Button type="submit">Change Password</Button>
+              </form>
+              
+              <div className="pt-6 border-t">
+                <h3 className="text-lg font-medium mb-4">Danger Zone</h3>
+                <Button variant="destructive" onClick={handleLogout}>
+                  Logout
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
+
+export default Settings;

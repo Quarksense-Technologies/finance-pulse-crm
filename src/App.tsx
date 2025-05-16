@@ -14,6 +14,7 @@ import Finances from "./pages/Finances";
 import Resources from "./pages/Resources";
 import UserManagement from "./pages/UserManagement";
 import Approvals from "./pages/Approvals";
+import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="resources" element={<Resources />} />
             <Route path="users" element={<UserManagement />} />
             <Route path="approvals" element={<Approvals />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

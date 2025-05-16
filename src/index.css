@@ -104,3 +104,13 @@
   @apply overflow-auto;
   height: calc(100vh - 1rem);
 }
+
+/* Add theme initialization script */
+:root {
+  color-scheme: light dark;
+}
+
+/* Animation for sidebar transition */
+.sidebar-transition {
+  transition: width 0.3s ease-in-out;
+}

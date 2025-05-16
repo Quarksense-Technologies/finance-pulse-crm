@@ -42,6 +42,7 @@ const UserManagement = () => {
     name: '',
     email: '',
     password: '',
+    confirmPassword: '',
     role: 'user',
     managerId: '',
   });
@@ -52,6 +53,15 @@ const UserManagement = () => {
       toast({
         title: 'Missing information',
         description: 'Please fill in all required fields',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (newUser.password !== newUser.confirmPassword) {
+      toast({
+        title: 'Passwords do not match',
+        description: 'Please make sure both passwords match',
         variant: 'destructive',
       });
       return;
@@ -74,6 +84,7 @@ const UserManagement = () => {
       name: '',
       email: '',
       password: '',
+      confirmPassword: '',
       role: 'user',
       managerId: '',
     });
@@ -145,6 +156,16 @@ const UserManagement = () => {
                   type="password" 
                   value={newUser.password} 
                   onChange={(e) => setNewUser({...newUser, password: e.target.value})} 
+                  className="col-span-3" 
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="confirmPassword" className="text-right">Confirm Password</Label>
+                <Input 
+                  id="confirmPassword" 
+                  type="password" 
+                  value={newUser.confirmPassword} 
+                  onChange={(e) => setNewUser({...newUser, confirmPassword: e.target.value})} 
                   className="col-span-3" 
                 />
               </div>
