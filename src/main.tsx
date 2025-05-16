@@ -19,7 +19,10 @@ const initializeTheme = () => {
 // Initialize theme before rendering
 initializeTheme();
 
-createRoot(document.getElementById("root")!).render(
+const container = document.getElementById("root");
+const root = createRoot(container!);
+
+root.render(
   <React.StrictMode>
     <AuthProvider>
       <App />
