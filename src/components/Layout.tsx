@@ -4,6 +4,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Users, Briefcase, DollarSign, Menu, X, LogOut, UserPlus, Check, Shield } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from "@/components/ui/use-toast";
+import { Permission } from '@/hooks/useAuth';
 
 const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -46,13 +47,13 @@ const Layout = () => {
       path: '/approvals', 
       name: 'Approvals', 
       icon: <Check className="w-5 h-5" />,
-      permission: 'approve_transactions' // Only managers and admins
+      permission: 'approve_transactions' as Permission // Only managers and admins
     },
     { 
       path: '/users', 
       name: 'User Management', 
       icon: <UserPlus className="w-5 h-5" />,
-      permission: 'manage_users' // Only admins
+      permission: 'manage_users' as Permission // Only admins
     }
   ];
 
