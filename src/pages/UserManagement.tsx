@@ -1,4 +1,4 @@
-
+// src/pages/UserManagement.tsx
 import React, { useState } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
@@ -9,35 +9,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
+import { useUsers, useCreateUser } from '@/hooks/api/useUsers';
 import { User } from '@/data/types';
 
 const UserManagement = () => {
   const { hasPermission } = useAuth();
-  const [users, setUsers] = useState<User[]>([
-    {
-      id: '1',
-      name: 'Admin User',
-      email: 'admin@example.com',
-      role: 'admin',
-      createdAt: '2023-01-01',
-    },
-    {
-      id: '2',
-      name: 'Manager User',
-      email: 'manager@example.com',
-      role: 'manager',
-      managerId: '1',
-      createdAt: '2023-01-02',
-    },
-    {
-      id: '3',
-      name: 'Regular User',
-      email: 'user@example.com',
-      role: 'user',
-      managerId: '2',
-      createdAt: '2023-01-03',
-    },
-  ]);
+  const { data: users = [], isLoading, error } = useUsers();
+  const createUserMutation = useCreateUser();
+  
   const [newUser, setNewUser] = useState({
     name: '',
     email: '',
@@ -67,32 +46,26 @@ const UserManagement = () => {
       return;
     }
 
-    const newUserObject: User = {
-      id: `${users.length + 1}`,
+    const userData = {
       name: newUser.name,
       email: newUser.email,
+      password: newUser.password,
       role: newUser.role as 'admin' | 'manager' | 'user',
-      createdAt: new Date().toISOString(),
+      managerId: newUser.role !== 'admin' && newUser.managerId ? newUser.managerId : undefined,
     };
 
-    if (newUser.role !== 'admin' && newUser.managerId) {
-      newUserObject.managerId = newUser.managerId;
-    }
-
-    setUsers([...users, newUserObject]);
-    setNewUser({
-      name: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-      role: 'user',
-      managerId: '',
-    });
-    setDialogOpen(false);
-
-    toast({
-      title: 'User added',
-      description: 'New user has been added successfully',
+    createUserMutation.mutate(userData, {
+      onSuccess: () => {
+        setNewUser({
+          name: '',
+          email: '',
+          password: '',
+          confirmPassword: '',
+          role: 'user',
+          managerId: '',
+        });
+        setDialogOpen(false);
+      }
     });
   };
 
@@ -109,6 +82,30 @@ const UserManagement = () => {
             <CardTitle>Access Denied</CardTitle>
             <CardDescription>You don't have permission to access this page.</CardDescription>
           </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Error</CardTitle>
+            <CardDescription>Failed to load users. Please try again.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => window.location.reload()}>Retry</Button>
+          </CardContent>
         </Card>
       </div>
     );

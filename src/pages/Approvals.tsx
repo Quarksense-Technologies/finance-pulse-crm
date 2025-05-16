@@ -157,7 +157,7 @@ const ApprovalCard = ({ item, onApprove, onReject, showActions }: ApprovalCardPr
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
         <div>
           <CardTitle>
-            {item.type === 'payment' ? 'Payment Request' : 'Expense Claim'} - ${item.amount}
+            {item.type === 'payment' ? 'Payment Request' : 'Expense Claim'} - ₹{item.amount}
           </CardTitle>
           <CardDescription>
             Requested on {new Date(item.requestDate).toLocaleDateString()}

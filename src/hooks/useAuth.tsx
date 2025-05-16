@@ -1,4 +1,6 @@
+// src/hooks/useAuth.tsx
 import * as React from 'react';
+import { authService } from '@/services/api/authService';
 
 interface User {
   id: string;
@@ -31,33 +33,6 @@ export type Permission =
 
 const AuthContext = React.createContext<AuthContextType | undefined>(undefined);
 
-// Mock users for demo purposes
-const mockUsers = [
-  {
-    id: '1',
-    name: 'Admin User',
-    email: 'admin@example.com',
-    password: 'admin123',
-    role: 'admin' as const,
-  },
-  {
-    id: '2',
-    name: 'Manager User',
-    email: 'manager@example.com',
-    password: 'manager123',
-    role: 'manager' as const,
-    managerId: '1',
-  },
-  {
-    id: '3',
-    name: 'Regular User',
-    email: 'user@example.com',
-    password: 'user123',
-    role: 'user' as const,
-    managerId: '2',
-  },
-];
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = React.useState<User | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -65,35 +40,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   React.useEffect(() => {
     // Check if user is stored in localStorage
     const storedUser = localStorage.getItem('user');
-    if (storedUser) {
+    const token = localStorage.getItem('token');
+    
+    if (storedUser && token) {
       setUser(JSON.parse(storedUser));
+      setIsLoading(false);
+    } else {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
   const login = async (email: string, password: string): Promise<void> => {
-    // Simulate API call
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const user = mockUsers.find(
-          (u) => u.email === email && u.password === password
-        );
-        
-        if (user) {
-          const { password, ...userWithoutPassword } = user;
-          setUser(userWithoutPassword);
-          localStorage.setItem('user', JSON.stringify(userWithoutPassword));
-          resolve();
-        } else {
-          reject(new Error('Invalid credentials'));
-        }
-      }, 500);
-    });
+    setIsLoading(true);
+    try {
+      const { user, token } = await authService.login({ email, password });
+      // Ensure role is correctly typed
+      const typedUser: User = {
+        ...user,
+        role: user.role as User['role'],
+      };
+      setUser(typedUser);
+      localStorage.setItem('user', JSON.stringify(typedUser));
+      localStorage.setItem('token', token);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const logout = () => {
+    authService.logout();
     setUser(null);
-    localStorage.removeItem('user');
   };
 
   const hasPermission = (permission: Permission): boolean => {
