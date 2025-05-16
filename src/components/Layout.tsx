@@ -1,10 +1,8 @@
-
 import React, { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Users, Briefcase, DollarSign, Menu, X, LogOut, UserPlus, Check, Shield } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth, Permission } from '@/hooks/useAuth';
 import { toast } from "@/components/ui/use-toast";
-import { Permission } from '@/hooks/useAuth';
 
 const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);

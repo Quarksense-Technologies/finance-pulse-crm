@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 
 interface User {
@@ -18,7 +17,8 @@ interface AuthContextType {
   hasPermission: (permission: Permission) => boolean;
 }
 
-type Permission = 
+// Export the Permission type so it can be imported elsewhere
+export type Permission = 
   | 'manage_users'
   | 'approve_transactions'
   | 'add_company'
