@@ -78,7 +78,7 @@ const ResourcesList: React.FC<ResourcesListProps> = ({ projectFilter }) => {
                 <TableCell className="font-medium">{resource.name}</TableCell>
                 <TableCell>{resource.role}</TableCell>
                 <TableCell>{resource.hoursAllocated}</TableCell>
-                <TableCell>{formatCurrency(resource.hourlyRate, false)}</TableCell>
+                <TableCell>{formatCurrency(resource.hourlyRate)}</TableCell>
                 <TableCell>{formatCurrency(calculateTotalCost(resource))}</TableCell>
                 <TableCell>{formatDate(resource.startDate)}</TableCell>
                 <TableCell>{resource.endDate ? formatDate(resource.endDate) : 'Ongoing'}</TableCell>
