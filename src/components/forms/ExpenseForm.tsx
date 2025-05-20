@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,8 @@ import { Expense } from '@/data/types';
 import { useProjects } from '@/hooks/api/useProjects';
 import { Plus } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useQuery } from '@tanstack/react-query';
+import { financeService } from '@/services/api/financeService';
 
 interface ExpenseFormProps {
   preselectedProjectId?: string;
@@ -19,9 +21,22 @@ interface ExpenseFormProps {
 const DEFAULT_CATEGORIES = ['manpower', 'materials', 'services', 'other'];
 
 const ExpenseForm: React.FC<ExpenseFormProps> = ({ preselectedProjectId, onSubmit }) => {
+  // Fetch categories from API
+  const { data: savedCategories = [] } = useQuery({
+    queryKey: ['expenseCategories'],
+    queryFn: financeService.getExpenseCategories,
+  });
+
   const [customCategories, setCustomCategories] = useState<string[]>([]);
   const [newCategory, setNewCategory] = useState('');
   const [isAddingCategory, setIsAddingCategory] = useState(false);
+  
+  // Set custom categories from API when data is loaded
+  useEffect(() => {
+    // Filter out default categories to get only custom ones
+    const customFromAPI = savedCategories.filter(cat => !DEFAULT_CATEGORIES.includes(cat));
+    setCustomCategories(customFromAPI);
+  }, [savedCategories]);
   
   // Fetch projects from API
   const { data: projects = [], isLoading } = useProjects();
@@ -50,11 +65,17 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ preselectedProjectId, onSubmi
     form.reset();
   };
 
-  const handleAddCategory = () => {
+  const handleAddCategory = async () => {
     if (newCategory && !allCategories.includes(newCategory)) {
-      setCustomCategories([...customCategories, newCategory]);
-      setNewCategory('');
-      setIsAddingCategory(false);
+      try {
+        // Save new category to database
+        await financeService.saveExpenseCategory(newCategory);
+        setCustomCategories([...customCategories, newCategory]);
+        setNewCategory('');
+        setIsAddingCategory(false);
+      } catch (error) {
+        console.error('Error saving category:', error);
+      }
     }
   };
 

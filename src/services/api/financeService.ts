@@ -76,6 +76,37 @@ export const financeService = {
     }
   },
 
+  // Get expense categories from API
+  async getExpenseCategories(): Promise<string[]> {
+    try {
+      const response = await apiClient.get('/finances/expense-categories');
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching expense categories:', error);
+      // Return default categories if API fails
+      return ['manpower', 'materials', 'services', 'other'];
+    }
+  },
+  
+  // Save new expense category
+  async saveExpenseCategory(category: string): Promise<void> {
+    try {
+      await apiClient.post('/finances/expense-categories', { category });
+      toast({
+        title: "Success",
+        description: "Category added successfully",
+      });
+    } catch (error: any) {
+      console.error('Error saving expense category:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add category",
+        variant: "destructive"
+      });
+      throw error;
+    }
+  },
+
   // Export functions
   async exportToExcel(dataType: 'payments' | 'expenses'): Promise<Blob> {
     try {

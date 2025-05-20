@@ -3,7 +3,10 @@ import axios from 'axios';
 import { toast } from "@/components/ui/use-toast";
 
 // Use a default API URL that works in development environment
+// Make sure this matches your backend API URL
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+console.log('Using API URL:', API_URL);
 
 const apiClient = axios.create({
   baseURL: API_URL,
@@ -49,6 +52,9 @@ apiClient.interceptors.response.use(
             variant: "destructive"
           });
         }
+      } else if (error.response.status === 404) {
+        // Handle 404 errors - this will be common during development until all API endpoints are implemented
+        console.warn('API endpoint not found:', error.config.url);
       }
       
       // Toast other errors except 401 (which has special handling)
@@ -61,6 +67,8 @@ apiClient.interceptors.response.use(
       }
     } else if (error.request) {
       // Request was made but no response received
+      console.error('Network Error - No response:', error.request);
+      
       toast({
         title: "Network Error",
         description: "Cannot connect to the server. Please check your internet connection.",

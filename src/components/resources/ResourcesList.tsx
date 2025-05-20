@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { resources } from '@/data/mockData';
 import { Resource } from '@/data/types';
 import { Users } from 'lucide-react';
 import { 
@@ -12,23 +11,30 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { formatDate } from '@/utils/financialUtils';
+import { useQuery } from '@tanstack/react-query';
+import { resourceService } from '@/services/api/resourceService';
 
 interface ResourcesListProps {
   projectFilter?: string;
 }
 
 const ResourcesList: React.FC<ResourcesListProps> = ({ projectFilter }) => {
-  // Filter resources based on project if filter is provided
-  const filteredResources = projectFilter 
-    ? resources.filter(resource => resource.projectId === projectFilter)
-    : resources;
+  // Fetch resources data from API
+  const { data: resources = [], isLoading } = useQuery({
+    queryKey: ['resources', { projectId: projectFilter }],
+    queryFn: () => resourceService.getResources(projectFilter),
+  });
 
   // Calculate total cost for a resource
   const calculateTotalCost = (resource: Resource): number => {
     return resource.hoursAllocated * resource.hourlyRate;
   };
 
-  if (filteredResources.length === 0) {
+  if (isLoading) {
+    return <div className="text-center py-4">Loading resources...</div>;
+  }
+
+  if (resources.length === 0) {
     return (
       <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-100">
         <Users className="mx-auto h-12 w-12 text-gray-400" />
@@ -63,7 +69,7 @@ const ResourcesList: React.FC<ResourcesListProps> = ({ projectFilter }) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredResources.map((resource) => (
+            {resources.map((resource) => (
               <TableRow key={resource.id}>
                 <TableCell className="font-medium">{resource.name}</TableCell>
                 <TableCell>{resource.role}</TableCell>

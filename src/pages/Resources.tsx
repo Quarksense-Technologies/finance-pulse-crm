@@ -3,24 +3,35 @@ import React, { useState, useEffect } from 'react';
 import { Users } from 'lucide-react';
 import ManpowerResourceForm from '@/components/resources/ManpowerResourceForm';
 import ResourcesList from '@/components/resources/ResourcesList';
-import { calculateManpowerSummary, initializeData } from '@/data/mockData';
+import { useQuery } from '@tanstack/react-query';
+import { resourceService } from '@/services/api/resourceService';
 import { formatCurrency } from '@/utils/financialUtils';
 
 const Resources = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   
-  // Initialize data when component mounts
-  useEffect(() => {
-    initializeData();
-  }, []);
-
-  // Calculate manpower summary
-  const manpowerSummary = calculateManpowerSummary();
-
+  // Fetch resources data from API
+  const { data: manpowerSummary, isLoading } = useQuery({
+    queryKey: ['resourcesSummary'],
+    queryFn: resourceService.getResourcesSummary
+  });
+  
   // Handle resource addition
   const handleResourceAdded = () => {
     setRefreshKey(prev => prev + 1);
   };
+
+  if (isLoading) {
+    return <div className="flex justify-center items-center h-64">Loading resources...</div>;
+  }
+
+  const defaultSummary = {
+    totalAllocated: 0,
+    averageCost: 0,
+    projectsWithResources: 0
+  };
+
+  const summary = manpowerSummary || defaultSummary;
 
   return (
     <div className="animate-fade-in">
@@ -35,7 +46,7 @@ const Resources = () => {
             </div>
             <div className="ml-4">
               <h3 className="text-sm font-medium text-gray-500">Total Manpower</h3>
-              <p className="text-2xl font-semibold">{manpowerSummary.totalAllocated} hrs</p>
+              <p className="text-2xl font-semibold">{summary.totalAllocated} hrs</p>
             </div>
           </div>
         </div>
@@ -47,7 +58,7 @@ const Resources = () => {
             </div>
             <div className="ml-4">
               <h3 className="text-sm font-medium text-gray-500">Projects with Resources</h3>
-              <p className="text-2xl font-semibold">{Object.keys(manpowerSummary.byProject).length}</p>
+              <p className="text-2xl font-semibold">{summary.projectsWithResources}</p>
             </div>
           </div>
         </div>
@@ -59,7 +70,7 @@ const Resources = () => {
             </div>
             <div className="ml-4">
               <h3 className="text-sm font-medium text-gray-500">Average Hourly Cost</h3>
-              <p className="text-2xl font-semibold">{formatCurrency(71.25)}</p>
+              <p className="text-2xl font-semibold">{formatCurrency(summary.averageCost)}</p>
             </div>
           </div>
         </div>

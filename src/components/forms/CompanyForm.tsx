@@ -23,13 +23,11 @@ const CompanyForm: React.FC<CompanyFormProps> = ({ onSubmit }) => {
 
   const handleSubmit = (data: any) => {
     onSubmit({
-      id: `company-${Date.now()}`,
       name: data.name,
       contactPerson: data.contactPerson,
       email: data.email,
       phone: data.phone,
-      address: data.address,
-      projects: [],
+      address: data.address || '',
     });
     form.reset();
   };
@@ -100,7 +98,7 @@ const CompanyForm: React.FC<CompanyFormProps> = ({ onSubmit }) => {
           name="address"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Address</FormLabel>
+              <FormLabel>Address (Optional)</FormLabel>
               <FormControl>
                 <Input {...field} placeholder="Company address" />
               </FormControl>

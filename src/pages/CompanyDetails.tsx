@@ -4,7 +4,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ArrowDown, Briefcase, Users, DollarSign, Plus } from 'lucide-react';
-import { companies, projects } from '@/data/mockData';
+import { useCompany } from '@/hooks/api/useCompanies';
+import { useProjects } from '@/hooks/api/useProjects';
 import { formatCurrency, formatDate, calculateProjectRevenue, calculateProjectExpenses, calculateProjectProfit } from '@/utils/financialUtils';
 import { toast } from "@/components/ui/use-toast";
 import StatusBadge from '@/components/ui/StatusBadge';
@@ -13,11 +14,25 @@ const CompanyDetails = () => {
   const { companyId } = useParams<{ companyId: string }>();
   const navigate = useNavigate();
   
-  // Find the company by ID
-  const company = companies.find(c => c.id === companyId);
+  // Get company data from API
+  const { data: company, isLoading: isCompanyLoading, error: companyError } = useCompany(companyId || '');
   
+  // Get company projects from API
+  const { data: projects = [], isLoading: isProjectsLoading } = useProjects({ 
+    companyId: companyId 
+  });
+  
+  // Show loading state
+  if (isCompanyLoading || isProjectsLoading) {
+    return (
+      <div className="flex justify-center items-center h-96">
+        <p>Loading company details...</p>
+      </div>
+    );
+  }
+
   // If company not found, redirect or show error
-  if (!company) {
+  if (companyError || !company) {
     return (
       <div className="flex flex-col items-center justify-center h-96">
         <h2 className="text-2xl font-bold mb-4">Company Not Found</h2>
@@ -26,21 +41,18 @@ const CompanyDetails = () => {
       </div>
     );
   }
-
-  // Get company projects
-  const companyProjects = projects.filter(project => project.companyId === companyId);
   
   // Calculate total revenue, expenses, and profit
-  const totalRevenue = companyProjects.reduce((sum, project) => 
+  const totalRevenue = projects.reduce((sum, project) => 
     sum + calculateProjectRevenue(project), 0);
   
-  const totalExpenses = companyProjects.reduce((sum, project) => 
+  const totalExpenses = projects.reduce((sum, project) => 
     sum + calculateProjectExpenses(project), 0);
   
   const totalProfit = totalRevenue - totalExpenses;
   
   // Calculate total manpower allocation
-  const totalManpower = companyProjects.reduce((sum, project) => 
+  const totalManpower = projects.reduce((sum, project) => 
     sum + project.resources.reduce((sum, resource) => sum + resource.hoursAllocated, 0), 0);
 
   return (
@@ -78,7 +90,7 @@ const CompanyDetails = () => {
             <Briefcase className="w-8 h-8 text-blue-500" />
             <div className="ml-4">
               <h3 className="text-sm font-medium text-gray-500">Total Projects</h3>
-              <p className="text-xl font-semibold">{companyProjects.length}</p>
+              <p className="text-xl font-semibold">{projects.length}</p>
             </div>
           </div>
         </div>
@@ -136,7 +148,7 @@ const CompanyDetails = () => {
           </div>
           <div>
             <h3 className="text-sm font-medium text-gray-500">Address</h3>
-            <p className="mt-1">{company.address}</p>
+            <p className="mt-1">{company.address || 'Not provided'}</p>
           </div>
         </div>
       </div>
@@ -151,9 +163,9 @@ const CompanyDetails = () => {
           </Button>
         </div>
         
-        {companyProjects.length > 0 ? (
+        {projects.length > 0 ? (
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-            {companyProjects.map(project => (
+            {projects.map(project => (
               <Link
                 to={`/projects/${project.id}`}
                 key={project.id}
@@ -185,7 +197,7 @@ const CompanyDetails = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Resources:</span>
-                    <span className="font-medium">{project.resources.length}</span>
+                    <span className="font-medium">{project.resources?.length || 0}</span>
                   </div>
                 </div>
               </Link>
