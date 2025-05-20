@@ -1,10 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Users } from 'lucide-react';
 import ManpowerResourceForm from '@/components/resources/ManpowerResourceForm';
 import ResourcesList from '@/components/resources/ResourcesList';
 import { useQuery } from '@tanstack/react-query';
 import { resourceService } from '@/services/api/resourceService';
+import { resourceSummaryService, ResourceSummary } from '@/services/api/resourceSummaryService';
 import { formatCurrency } from '@/utils/financialUtils';
 
 const Resources = () => {
@@ -13,7 +14,7 @@ const Resources = () => {
   // Fetch resources data from API
   const { data: manpowerSummary, isLoading } = useQuery({
     queryKey: ['resourcesSummary'],
-    queryFn: resourceService.getResourcesSummary
+    queryFn: resourceSummaryService.getResourcesSummary
   });
   
   // Handle resource addition
@@ -25,7 +26,7 @@ const Resources = () => {
     return <div className="flex justify-center items-center h-64">Loading resources...</div>;
   }
 
-  const defaultSummary = {
+  const defaultSummary: ResourceSummary = {
     totalAllocated: 0,
     averageCost: 0,
     projectsWithResources: 0

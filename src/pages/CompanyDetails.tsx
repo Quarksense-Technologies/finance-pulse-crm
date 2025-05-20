@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,7 @@ import { useCompany } from '@/hooks/api/useCompanies';
 import { useProjects } from '@/hooks/api/useProjects';
 import { formatCurrency, formatDate, calculateProjectRevenue, calculateProjectExpenses, calculateProjectProfit } from '@/utils/financialUtils';
 import StatusBadge from '@/components/ui/StatusBadge';
-import { isHttpError } from './api/client';
+import { isHttpError } from '@/services/api/client';
 
 const CompanyDetails = () => {
   const { companyId } = useParams<{ companyId: string }>();
