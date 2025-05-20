@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Calendar, Search, Plus, ArrowDown } from 'lucide-react';
+import { Calendar, Search, Plus, ArrowDown, FileText, FileSpreadsheet, Download } from 'lucide-react';
 import { payments, expenses, companies, projects } from '@/data/mockData';
 import { formatCurrency, formatDate, getPaymentStatusColor, getExpenseCategoryColor } from '@/utils/financialUtils';
 import StatusBadge from '@/components/ui/StatusBadge';
@@ -12,8 +12,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@/components/ui/use-toast";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import PaymentForm from '@/components/forms/PaymentForm';
 import ExpenseForm from '@/components/forms/ExpenseForm';
+import { financeService } from '@/services/api/financeService';
 
 const Finances = () => {
   const [tab, setTab] = useState<'payments' | 'expenses'>('payments');
@@ -22,6 +24,7 @@ const Finances = () => {
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
 
   // Prepare data for payment status pie chart
   const paidAmount = payments.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
@@ -85,6 +88,42 @@ const Finances = () => {
       description: `Expense of ${formatCurrency(data.amount)} has been recorded.`,
     });
     setIsExpenseDialogOpen(false);
+  };
+
+  // Export functions
+  const handleExportToExcel = async () => {
+    try {
+      setIsExporting(true);
+      const blob = await financeService.exportToExcel(tab);
+      downloadFile(blob, `${tab}-${new Date().toISOString().split('T')[0]}.xlsx`);
+    } catch (error) {
+      console.error(`Error exporting to Excel:`, error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportToPdf = async () => {
+    try {
+      setIsExporting(true);
+      const blob = await financeService.exportToPdf(tab);
+      downloadFile(blob, `${tab}-${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (error) {
+      console.error(`Error exporting to PDF:`, error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const downloadFile = (blob: Blob, fileName: string) => {
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
   };
 
   // Filter transactions based on search query
@@ -422,6 +461,28 @@ const Finances = () => {
                       <SelectItem value="expenses">Expenses</SelectItem>
                     </SelectContent>
                   </Select>
+                  
+                  {/* Export dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" disabled={isExporting}>
+                        <Download className="h-4 w-4 mr-2" />
+                        {isExporting ? 'Exporting...' : 'Export'}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuLabel>Export Options</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleExportToExcel}>
+                        <FileSpreadsheet className="h-4 w-4 mr-2" />
+                        Export to Excel
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleExportToPdf}>
+                        <FileText className="h-4 w-4 mr-2" />
+                        Export to PDF
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
             </div>
