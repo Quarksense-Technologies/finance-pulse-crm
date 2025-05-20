@@ -125,20 +125,22 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ preselectedProjectId, onSubmi
             <FormItem>
               <FormLabel>Category</FormLabel>
               <div className="flex gap-2">
-                <Select onValueChange={field.onChange} defaultValue={field.value} className="flex-1">
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {allCategories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category.charAt(0).toUpperCase() + category.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex-1">
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {allCategories.map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category.charAt(0).toUpperCase() + category.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 
                 <Popover open={isAddingCategory} onOpenChange={setIsAddingCategory}>
                   <PopoverTrigger asChild>
