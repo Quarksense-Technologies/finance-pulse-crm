@@ -3,7 +3,6 @@ import axios from 'axios';
 import { toast } from "@/components/ui/use-toast";
 
 // Use a default API URL that works in development environment
-// Make sure this matches your backend API URL
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 console.log('Using API URL:', API_URL);
@@ -13,6 +12,8 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  // Add a timeout to prevent hanging requests
+  timeout: 15000,
 });
 
 // Add a request interceptor for auth token
@@ -27,58 +28,59 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Handle 401 responses
+// Handle API responses
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     console.error('API Error:', error);
     
-    if (error.response) {
-      // Server responded with an error status
-      const message = error.response.data?.message || 'An error occurred';
-      
-      if (error.response.status === 401) {
-        // Clear auth state
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        
-        // Redirect to login only if not already on login page
-        const isLoginPage = window.location.pathname === '/login';
-        if (!isLoginPage) {
-          window.location.href = '/login';
-          toast({
-            title: "Session Expired",
-            description: "Please log in again to continue.",
-            variant: "destructive"
-          });
-        }
-      } else if (error.response.status === 404) {
-        // Handle 404 errors - this will be common during development until all API endpoints are implemented
-        console.warn('API endpoint not found:', error.config.url);
-      }
-      
-      // Toast other errors except 401 (which has special handling)
-      if (error.response.status !== 401) {
-        toast({
-          title: "Error",
-          description: message,
-          variant: "destructive"
-        });
-      }
-    } else if (error.request) {
-      // Request was made but no response received
-      console.error('Network Error - No response:', error.request);
-      
+    // Check if the error is due to network issues
+    if (!error.response) {
       toast({
         title: "Network Error",
         description: "Cannot connect to the server. Please check your internet connection.",
         variant: "destructive"
       });
-    } else {
-      // Something happened in setting up the request
+      return Promise.reject(error);
+    }
+    
+    // Get the error message from the API response or use a default
+    const errorMessage = error.response?.data?.message || 'An unknown error occurred';
+    
+    if (error.response.status === 401) {
+      // Clear auth state
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      // Redirect to login only if not already on login page
+      const isLoginPage = window.location.pathname === '/login';
+      if (!isLoginPage) {
+        window.location.href = '/login';
+        toast({
+          title: "Session Expired",
+          description: "Please log in again to continue.",
+          variant: "destructive"
+        });
+      }
+    } else if (error.response.status === 404) {
+      console.warn('API endpoint not found:', error.config.url);
       toast({
-        title: "Error",
-        description: "An unexpected error occurred.",
+        title: "Resource Not Found",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } else if (error.response.status === 500) {
+      console.error('Server Error:', error.response.data);
+      toast({
+        title: "Server Error",
+        description: "The server encountered an error. Please try again later or contact support.",
+        variant: "destructive"
+      });
+    } else {
+      // Handle other status codes
+      toast({
+        title: `Error (${error.response.status})`,
+        description: errorMessage,
         variant: "destructive"
       });
     }
@@ -86,5 +88,10 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Add a helper method to check if an error is a specific HTTP status code
+export const isHttpError = (error: any, statusCode: number): boolean => {
+  return error?.response?.status === statusCode;
+};
 
 export default apiClient;

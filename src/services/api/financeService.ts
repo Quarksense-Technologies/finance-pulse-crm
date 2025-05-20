@@ -27,11 +27,46 @@ export interface CreateExpenseData {
   projectId: string;
   amount: number;
   date: string;
-  category: string;  // Support for custom categories
+  category: string;
   description: string;
 }
 
+export interface PaymentFilter {
+  projectId?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface ExpenseFilter {
+  projectId?: string;
+  category?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
 export const financeService = {
+  // Get all payments with optional filters
+  async getPayments(filters?: PaymentFilter): Promise<Payment[]> {
+    try {
+      const response = await apiClient.get('/payments', { params: filters });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching payments:', error);
+      throw error;
+    }
+  },
+
+  // Get all expenses with optional filters
+  async getExpenses(filters?: ExpenseFilter): Promise<Expense[]> {
+    try {
+      const response = await apiClient.get('/expenses', { params: filters });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching expenses:', error);
+      throw error;
+    }
+  },
+
   async getFinancialSummary(): Promise<FinancialSummary> {
     try {
       const response = await apiClient.get('/finances/summary');

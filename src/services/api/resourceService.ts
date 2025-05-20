@@ -1,95 +1,77 @@
 
-import { toast } from "@/components/ui/use-toast";
 import apiClient from './client';
 import { Resource } from '@/data/types';
-
-export interface ResourceSummary {
-  totalAllocated: number;
-  averageCost: number;
-  projectsWithResources: number;
-}
+import { toast } from "@/components/ui/use-toast";
 
 export interface CreateResourceData {
-  projectId: string;
   name: string;
   role: string;
   hoursAllocated: number;
   hourlyRate: number;
   startDate: string;
   endDate?: string | null;
+  projectId: string;
+}
+
+export interface UpdateResourceData {
+  name?: string;
+  role?: string;
+  hoursAllocated?: number;
+  hourlyRate?: number;
+  startDate?: string;
+  endDate?: string | null;
 }
 
 export const resourceService = {
   async getResources(projectId?: string): Promise<Resource[]> {
     try {
-      const url = projectId ? `/projects/${projectId}/resources` : '/resources';
+      let url = '/resources';
+      if (projectId) {
+        url = `/projects/${projectId}/resources`;
+      }
+      
       const response = await apiClient.get(url);
       return response.data;
     } catch (error: any) {
       console.error('Error fetching resources:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load resources",
-        variant: "destructive"
-      });
-      return [];
-    }
-  },
-
-  async getResourcesSummary(): Promise<ResourceSummary> {
-    try {
-      const response = await apiClient.get('/resources/summary');
-      return response.data;
-    } catch (error: any) {
-      console.error('Error fetching resources summary:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load resources summary",
-        variant: "destructive"
-      });
-      // Return default summary if API fails
-      return {
-        totalAllocated: 0,
-        averageCost: 0,
-        projectsWithResources: 0
-      };
-    }
-  },
-
-  async addResource(resource: CreateResourceData): Promise<Resource> {
-    try {
-      const response = await apiClient.post(`/projects/${resource.projectId}/resources`, resource);
-      toast({
-        title: "Success", 
-        description: "Resource added successfully"
-      });
-      return response.data;
-    } catch (error: any) {
-      console.error('Error adding resource:', error);
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to add resource",
-        variant: "destructive"
-      });
       throw error;
     }
   },
 
-  async updateResource(id: string, data: Partial<Resource>): Promise<Resource> {
+  async getResourceById(id: string): Promise<Resource> {
     try {
-      const response = await apiClient.put(`/resources/${id}`, data);
+      const response = await apiClient.get(`/resources/${id}`);
+      return response.data;
+    } catch (error: any) {
+      console.error(`Error fetching resource ${id}:`, error);
+      throw error;
+    }
+  },
+
+  async createResource(resourceData: CreateResourceData): Promise<Resource> {
+    try {
+      const response = await apiClient.post(`/projects/${resourceData.projectId}/resources`, resourceData);
       toast({
         title: "Success",
-        description: "Resource updated successfully"
+        description: "Resource allocated successfully",
       });
       return response.data;
     } catch (error: any) {
-      console.error('Error updating resource:', error);
+      console.error('Error creating resource:', error);
+      throw error;
+    }
+  },
+
+  async updateResource(id: string, resourceData: UpdateResourceData): Promise<Resource> {
+    try {
+      const response = await apiClient.put(`/resources/${id}`, resourceData);
       toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to update resource",
-        variant: "destructive"
+        title: "Success",
+        description: "Resource updated successfully",
       });
+      return response.data;
+    } catch (error: any) {
+      console.error(`Error updating resource ${id}:`, error);
       throw error;
     }
   },
@@ -99,15 +81,10 @@ export const resourceService = {
       await apiClient.delete(`/resources/${id}`);
       toast({
         title: "Success",
-        description: "Resource deleted successfully"
+        description: "Resource removed successfully",
       });
     } catch (error: any) {
-      console.error('Error deleting resource:', error);
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to delete resource",
-        variant: "destructive"
-      });
+      console.error(`Error deleting resource ${id}:`, error);
       throw error;
     }
   }

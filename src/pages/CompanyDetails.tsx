@@ -1,14 +1,13 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ArrowDown, Briefcase, Users, DollarSign, Plus } from 'lucide-react';
 import { useCompany } from '@/hooks/api/useCompanies';
 import { useProjects } from '@/hooks/api/useProjects';
 import { formatCurrency, formatDate, calculateProjectRevenue, calculateProjectExpenses, calculateProjectProfit } from '@/utils/financialUtils';
-import { toast } from "@/components/ui/use-toast";
 import StatusBadge from '@/components/ui/StatusBadge';
+import { isHttpError } from './api/client';
 
 const CompanyDetails = () => {
   const { companyId } = useParams<{ companyId: string }>();
@@ -18,7 +17,7 @@ const CompanyDetails = () => {
   const { data: company, isLoading: isCompanyLoading, error: companyError } = useCompany(companyId || '');
   
   // Get company projects from API
-  const { data: projects = [], isLoading: isProjectsLoading } = useProjects({ 
+  const { data: projects = [], isLoading: isProjectsLoading, error: projectsError } = useProjects({ 
     companyId: companyId 
   });
   
@@ -31,12 +30,15 @@ const CompanyDetails = () => {
     );
   }
 
-  // If company not found, redirect or show error
+  // If company not found or error occurred
   if (companyError || !company) {
+    const is404 = isHttpError(companyError, 404);
+    const message = is404 ? "The company you're looking for doesn't exist or has been removed." : "Failed to load company details. Please try again later.";
+    
     return (
       <div className="flex flex-col items-center justify-center h-96">
         <h2 className="text-2xl font-bold mb-4">Company Not Found</h2>
-        <p className="text-gray-600 mb-6">The company you're looking for doesn't exist or has been removed.</p>
+        <p className="text-gray-600 mb-6">{message}</p>
         <Button onClick={() => navigate('/companies')}>Return to Companies</Button>
       </div>
     );
@@ -53,7 +55,7 @@ const CompanyDetails = () => {
   
   // Calculate total manpower allocation
   const totalManpower = projects.reduce((sum, project) => 
-    sum + project.resources.reduce((sum, resource) => sum + resource.hoursAllocated, 0), 0);
+    sum + (project.resources?.reduce((sum, resource) => sum + resource.hoursAllocated, 0) || 0), 0);
 
   return (
     <div className="animate-fade-in">

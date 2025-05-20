@@ -10,7 +10,7 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
-import { formatDate } from '@/utils/financialUtils';
+import { formatDate, formatCurrency } from '@/utils/financialUtils';
 import { useQuery } from '@tanstack/react-query';
 import { resourceService } from '@/services/api/resourceService';
 
@@ -20,7 +20,7 @@ interface ResourcesListProps {
 
 const ResourcesList: React.FC<ResourcesListProps> = ({ projectFilter }) => {
   // Fetch resources data from API
-  const { data: resources = [], isLoading } = useQuery({
+  const { data: resources = [], isLoading, error } = useQuery({
     queryKey: ['resources', { projectId: projectFilter }],
     queryFn: () => resourceService.getResources(projectFilter),
   });
@@ -32,6 +32,10 @@ const ResourcesList: React.FC<ResourcesListProps> = ({ projectFilter }) => {
 
   if (isLoading) {
     return <div className="text-center py-4">Loading resources...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center py-4 text-red-500">Error loading resources. Please try again.</div>;
   }
 
   if (resources.length === 0) {
@@ -74,8 +78,8 @@ const ResourcesList: React.FC<ResourcesListProps> = ({ projectFilter }) => {
                 <TableCell className="font-medium">{resource.name}</TableCell>
                 <TableCell>{resource.role}</TableCell>
                 <TableCell>{resource.hoursAllocated}</TableCell>
-                <TableCell>${resource.hourlyRate}</TableCell>
-                <TableCell>${calculateTotalCost(resource).toLocaleString()}</TableCell>
+                <TableCell>{formatCurrency(resource.hourlyRate, false)}</TableCell>
+                <TableCell>{formatCurrency(calculateTotalCost(resource))}</TableCell>
                 <TableCell>{formatDate(resource.startDate)}</TableCell>
                 <TableCell>{resource.endDate ? formatDate(resource.endDate) : 'Ongoing'}</TableCell>
               </TableRow>

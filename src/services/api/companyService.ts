@@ -8,7 +8,7 @@ export interface CreateCompanyData {
   contactPerson: string;
   email: string;
   phone: string;
-  address: string;
+  address?: string; // Address is now optional
 }
 
 export interface UpdateCompanyData {
