@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,16 @@ const CompanyDetails = () => {
   const { data: projects = [], isLoading: isProjectsLoading, error: projectsError } = useProjects({ 
     companyId: companyId 
   });
+  
+  const handleAddProject = () => {
+    // Navigate to projects page with state information
+    navigate('/projects', { 
+      state: { 
+        companyId: companyId,
+        openDialog: true
+      }
+    });
+  };
   
   // Show loading state
   if (isCompanyLoading || isProjectsLoading) {
@@ -76,7 +87,7 @@ const CompanyDetails = () => {
             </p>
           </div>
           <div className="mt-4 md:mt-0">
-            <Button className="bg-primary" onClick={() => navigate('/projects/new', { state: { companyId } })}>
+            <Button className="bg-primary" onClick={handleAddProject}>
               <Plus className="h-4 w-4 mr-2" />
               Add Project
             </Button>
@@ -158,7 +169,7 @@ const CompanyDetails = () => {
       <div className="bg-white rounded-lg shadow-sm border border-gray-100">
         <div className="p-6 border-b border-gray-100 flex justify-between items-center">
           <h2 className="text-lg font-semibold">Projects</h2>
-          <Button className="bg-primary" onClick={() => navigate('/projects/new', { state: { companyId } })}>
+          <Button className="bg-primary" onClick={handleAddProject}>
             <Plus className="h-4 w-4 mr-2" />
             Add Project
           </Button>

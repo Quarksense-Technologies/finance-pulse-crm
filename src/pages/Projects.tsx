@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Search, Plus, Calendar, Users } from 'lucide-react';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Project } from '@/data/types';
@@ -12,9 +12,22 @@ import { useProjects, useCreateProject } from '@/hooks/api/useProjects';
 
 const Projects = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string | undefined>(undefined);
+  
+  // Get the companyId from location state if available
+  useEffect(() => {
+    if (location.state?.companyId) {
+      setSelectedCompanyId(location.state.companyId);
+      // Open dialog if we're coming from a "Add Project" action elsewhere
+      if (location.state.openDialog) {
+        setIsDialogOpen(true);
+      }
+    }
+  }, [location.state]);
   
   // Use React Query to fetch projects
   const { data: projects = [], isLoading, error } = useProjects({
@@ -48,6 +61,10 @@ const Projects = () => {
           description: `${projectData.name} has been added successfully.`,
         });
         setIsDialogOpen(false);
+        // Clear the location state after successful addition
+        navigate('.', { replace: true, state: {} });
+        // Reset selected company
+        setSelectedCompanyId(undefined);
       },
       onError: (error: any) => {
         toast({
@@ -57,6 +74,20 @@ const Projects = () => {
         });
       }
     });
+  };
+
+  const handleOpenDialog = (companyId?: string) => {
+    if (companyId) {
+      setSelectedCompanyId(companyId);
+    }
+    setIsDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    // Clear location state and selected company when closing dialog
+    navigate('.', { replace: true, state: {} });
+    setSelectedCompanyId(undefined);
   };
 
   if (isLoading) {
@@ -88,9 +119,12 @@ const Projects = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
             <DialogTrigger asChild>
-              <button className="bg-primary text-white px-4 py-2 rounded-lg inline-flex items-center">
+              <button 
+                className="bg-primary text-white px-4 py-2 rounded-lg inline-flex items-center"
+                onClick={() => handleOpenDialog()}
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Project
               </button>
@@ -102,7 +136,10 @@ const Projects = () => {
                   Fill in the details below to add a new project.
                 </DialogDescription>
               </DialogHeader>
-              <ProjectForm onSubmit={handleAddProject} />
+              <ProjectForm 
+                onSubmit={handleAddProject} 
+                preselectedCompanyId={selectedCompanyId}
+              />
             </DialogContent>
           </Dialog>
         </div>

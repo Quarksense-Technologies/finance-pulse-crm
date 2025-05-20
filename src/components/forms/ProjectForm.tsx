@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,13 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, preselectedCompanyI
       manpowerAllocated: '',
     },
   });
+
+  // Update the form's companyId value when preselectedCompanyId changes
+  useEffect(() => {
+    if (preselectedCompanyId) {
+      form.setValue('companyId', preselectedCompanyId);
+    }
+  }, [preselectedCompanyId, form]);
 
   const handleSubmit = (data: any) => {
     onSubmit({
@@ -68,6 +75,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, preselectedCompanyI
               <Select 
                 disabled={!!preselectedCompanyId || isLoading}
                 onValueChange={field.onChange} 
+                value={field.value}
                 defaultValue={field.value}
               >
                 <FormControl>

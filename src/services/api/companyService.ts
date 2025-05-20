@@ -32,6 +32,11 @@ export const companyService = {
 
   async getCompanyById(id: string): Promise<Company> {
     try {
+      // Early validation to avoid making API calls with invalid IDs
+      if (!id || id === 'undefined') {
+        throw new Error('Invalid company ID');
+      }
+      
       const response = await apiClient.get(`/companies/${id}`);
       return response.data;
     } catch (error: any) {
@@ -43,10 +48,6 @@ export const companyService = {
   async createCompany(companyData: CreateCompanyData): Promise<Company> {
     try {
       const response = await apiClient.post('/companies', companyData);
-      toast({
-        title: "Success",
-        description: "Company created successfully",
-      });
       return response.data;
     } catch (error: any) {
       console.error('Error creating company:', error);
@@ -57,10 +58,6 @@ export const companyService = {
   async updateCompany(id: string, companyData: UpdateCompanyData): Promise<Company> {
     try {
       const response = await apiClient.put(`/companies/${id}`, companyData);
-      toast({
-        title: "Success",
-        description: "Company updated successfully",
-      });
       return response.data;
     } catch (error: any) {
       console.error(`Error updating company ${id}:`, error);
@@ -71,10 +68,6 @@ export const companyService = {
   async deleteCompany(id: string): Promise<void> {
     try {
       await apiClient.delete(`/companies/${id}`);
-      toast({
-        title: "Success",
-        description: "Company deleted successfully",
-      });
     } catch (error: any) {
       console.error(`Error deleting company ${id}:`, error);
       throw error;
