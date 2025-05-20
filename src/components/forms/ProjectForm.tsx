@@ -5,8 +5,8 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { companies } from '@/data/mockData';
 import { Project } from '@/data/types';
+import { useCompanies } from '@/hooks/api/useCompanies';
 
 interface ProjectFormProps {
   onSubmit: (data: Partial<Project>) => void;
@@ -14,6 +14,9 @@ interface ProjectFormProps {
 }
 
 const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, preselectedCompanyId }) => {
+  // Fetch companies from API
+  const { data: companies = [], isLoading } = useCompanies();
+
   const form = useForm({
     defaultValues: {
       name: '',
@@ -28,7 +31,6 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, preselectedCompanyI
 
   const handleSubmit = (data: any) => {
     onSubmit({
-      id: `proj-${Date.now()}`,
       name: data.name,
       companyId: data.companyId,
       description: data.description,
@@ -36,9 +38,6 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, preselectedCompanyI
       endDate: data.endDate || null,
       status: data.status as 'active' | 'completed' | 'on-hold',
       manpowerAllocated: parseInt(data.manpowerAllocated, 10) || 0,
-      payments: [],
-      expenses: [],
-      resources: [],
     });
     form.reset();
   };
@@ -67,13 +66,13 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, preselectedCompanyI
             <FormItem>
               <FormLabel>Company</FormLabel>
               <Select 
-                disabled={!!preselectedCompanyId}
+                disabled={!!preselectedCompanyId || isLoading}
                 onValueChange={field.onChange} 
                 defaultValue={field.value}
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a company" />
+                    <SelectValue placeholder={isLoading ? "Loading companies..." : "Select a company"} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>

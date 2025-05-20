@@ -23,6 +23,14 @@ export interface CategoryExpenseData {
   }[];
 }
 
+export interface CreateExpenseData {
+  projectId: string;
+  amount: number;
+  date: string;
+  category: string;  // Support for custom categories
+  description: string;
+}
+
 export const financeService = {
   async getFinancialSummary(): Promise<FinancialSummary> {
     try {
@@ -30,11 +38,6 @@ export const financeService = {
       return response.data;
     } catch (error: any) {
       console.error('Error fetching financial summary:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load financial summary",
-        variant: "destructive"
-      });
       throw error;
     }
   },
@@ -45,11 +48,6 @@ export const financeService = {
       return response.data;
     } catch (error: any) {
       console.error('Error fetching chart data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load financial chart data",
-        variant: "destructive"
-      });
       throw error;
     }
   },
@@ -60,11 +58,20 @@ export const financeService = {
       return response.data;
     } catch (error: any) {
       console.error('Error fetching category expenses:', error);
+      throw error;
+    }
+  },
+
+  async addExpense(expense: CreateExpenseData): Promise<Expense> {
+    try {
+      const response = await apiClient.post(`/projects/${expense.projectId}/expenses`, expense);
       toast({
-        title: "Error",
-        description: "Failed to load expense categories",
-        variant: "destructive"
+        title: "Success",
+        description: "Expense added successfully",
       });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error adding expense:', error);
       throw error;
     }
   },
@@ -78,11 +85,6 @@ export const financeService = {
       return response.data;
     } catch (error: any) {
       console.error(`Error exporting ${dataType} to Excel:`, error);
-      toast({
-        title: "Export Failed",
-        description: `Could not export ${dataType} to Excel`,
-        variant: "destructive"
-      });
       throw error;
     }
   },
@@ -95,11 +97,6 @@ export const financeService = {
       return response.data;
     } catch (error: any) {
       console.error(`Error exporting ${dataType} to PDF:`, error);
-      toast({
-        title: "Export Failed",
-        description: `Could not export ${dataType} to PDF`,
-        variant: "destructive"
-      });
       throw error;
     }
   }

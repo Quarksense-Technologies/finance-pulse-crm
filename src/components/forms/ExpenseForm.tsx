@@ -1,19 +1,34 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { projects } from '@/data/mockData';
 import { Expense } from '@/data/types';
+import { useProjects } from '@/hooks/api/useProjects';
+import { Plus } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface ExpenseFormProps {
   preselectedProjectId?: string;
   onSubmit: (data: Partial<Expense>) => void;
 }
 
+// Default expense categories
+const DEFAULT_CATEGORIES = ['manpower', 'materials', 'services', 'other'];
+
 const ExpenseForm: React.FC<ExpenseFormProps> = ({ preselectedProjectId, onSubmit }) => {
+  const [customCategories, setCustomCategories] = useState<string[]>([]);
+  const [newCategory, setNewCategory] = useState('');
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  
+  // Fetch projects from API
+  const { data: projects = [], isLoading } = useProjects();
+  
+  // All available categories (default + custom)
+  const allCategories = [...DEFAULT_CATEGORIES, ...customCategories];
+
   const form = useForm({
     defaultValues: {
       projectId: preselectedProjectId || '',
@@ -26,14 +41,21 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ preselectedProjectId, onSubmi
 
   const handleSubmit = (data: any) => {
     onSubmit({
-      id: `expense-${Date.now()}`,
       projectId: data.projectId,
       amount: parseFloat(data.amount),
       date: data.date,
-      category: data.category as 'manpower' | 'materials' | 'services' | 'other',
+      category: data.category,
       description: data.description,
     });
     form.reset();
+  };
+
+  const handleAddCategory = () => {
+    if (newCategory && !allCategories.includes(newCategory)) {
+      setCustomCategories([...customCategories, newCategory]);
+      setNewCategory('');
+      setIsAddingCategory(false);
+    }
   };
 
   return (
@@ -46,13 +68,13 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ preselectedProjectId, onSubmi
             <FormItem>
               <FormLabel>Project</FormLabel>
               <Select 
-                disabled={!!preselectedProjectId}
+                disabled={!!preselectedProjectId || isLoading}
                 onValueChange={field.onChange} 
                 defaultValue={field.value}
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a project" />
+                    <SelectValue placeholder={isLoading ? "Loading projects..." : "Select a project"} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -102,19 +124,48 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ preselectedProjectId, onSubmi
           render={({ field }) => (
             <FormItem>
               <FormLabel>Category</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="manpower">Manpower</SelectItem>
-                  <SelectItem value="materials">Materials</SelectItem>
-                  <SelectItem value="services">Services</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2">
+                <Select onValueChange={field.onChange} defaultValue={field.value} className="flex-1">
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {allCategories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category.charAt(0).toUpperCase() + category.slice(1)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                <Popover open={isAddingCategory} onOpenChange={setIsAddingCategory}>
+                  <PopoverTrigger asChild>
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      onClick={() => setIsAddingCategory(true)}
+                      className="px-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-60 p-4">
+                    <div className="space-y-2">
+                      <h4 className="font-medium">Add Custom Category</h4>
+                      <div className="flex gap-2">
+                        <Input 
+                          value={newCategory} 
+                          onChange={(e) => setNewCategory(e.target.value)}
+                          placeholder="New category" 
+                        />
+                        <Button type="button" onClick={handleAddCategory}>Add</Button>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
               <FormMessage />
             </FormItem>
           )}

@@ -1,41 +1,65 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Plus } from 'lucide-react';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { companies } from '@/data/mockData';
 import { Company } from '@/data/types';
 import { toast } from "@/components/ui/use-toast";
 import CompanyForm from '@/components/forms/CompanyForm';
+import { useCompanies, useCreateCompany } from '@/hooks/api/useCompanies';
 
 const Companies = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredCompanies, setFilteredCompanies] = useState<Company[]>(companies);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  
+  // Use React Query to fetch companies
+  const { data: companies = [], isLoading, error } = useCompanies();
+  
+  // Mutation hook for creating companies
+  const createCompany = useCreateCompany();
 
-  useEffect(() => {
-    if (searchQuery.trim() === '') {
-      setFilteredCompanies(companies);
-    } else {
-      const lowercaseQuery = searchQuery.toLowerCase();
-      setFilteredCompanies(
-        companies.filter((company) =>
-          company.name.toLowerCase().includes(lowercaseQuery) ||
-          company.contactPerson.toLowerCase().includes(lowercaseQuery) ||
-          company.email.toLowerCase().includes(lowercaseQuery)
-        )
-      );
-    }
-  }, [searchQuery]);
+  // Filter companies by search query
+  const filteredCompanies = companies.filter(company => {
+    if (searchQuery.trim() === '') return true;
+    
+    const lowercaseQuery = searchQuery.toLowerCase();
+    return (
+      company.name.toLowerCase().includes(lowercaseQuery) ||
+      company.contactPerson.toLowerCase().includes(lowercaseQuery) ||
+      company.email.toLowerCase().includes(lowercaseQuery)
+    );
+  });
 
   const handleAddCompany = (companyData: Partial<Company>) => {
-    console.log('New company:', companyData);
-    toast({
-      title: "Company Added",
-      description: `${companyData.name} has been added successfully.`,
+    createCompany.mutate(companyData as any, {
+      onSuccess: () => {
+        toast({
+          title: "Company Added",
+          description: `${companyData.name} has been added successfully.`,
+        });
+        setIsDialogOpen(false);
+      },
+      onError: (error: any) => {
+        toast({
+          title: "Error",
+          description: error.response?.data?.message || "Failed to add company",
+          variant: "destructive"
+        });
+      }
     });
-    setIsDialogOpen(false);
   };
+
+  if (isLoading) {
+    return <div className="flex justify-center items-center h-64">Loading companies...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-64 text-red-500">
+        Error loading companies: {(error as any).message}
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fade-in">
@@ -76,33 +100,39 @@ const Companies = () => {
 
       {/* Companies Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCompanies.map((company) => (
-          <Link
-            to={`/companies/${company.id}`}
-            key={company.id}
-            className="bg-white border border-gray-100 rounded-lg shadow-sm p-6 hoverable"
-          >
-            <h3 className="text-lg font-semibold">{company.name}</h3>
-            <div className="mt-4 space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-500">Contact:</span>
-                <span className="font-medium">{company.contactPerson}</span>
+        {filteredCompanies.length === 0 ? (
+          <div className="col-span-3 text-center py-10">
+            <p className="text-gray-500">No companies found. Create a new company to get started.</p>
+          </div>
+        ) : (
+          filteredCompanies.map((company) => (
+            <Link
+              to={`/companies/${company.id}`}
+              key={company.id}
+              className="bg-white border border-gray-100 rounded-lg shadow-sm p-6 hoverable"
+            >
+              <h3 className="text-lg font-semibold">{company.name}</h3>
+              <div className="mt-4 space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Contact:</span>
+                  <span className="font-medium">{company.contactPerson}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Email:</span>
+                  <span className="font-medium">{company.email}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Phone:</span>
+                  <span className="font-medium">{company.phone}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Projects:</span>
+                  <span className="font-medium">{company.projects?.length || 0}</span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Email:</span>
-                <span className="font-medium">{company.email}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Phone:</span>
-                <span className="font-medium">{company.phone}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Projects:</span>
-                <span className="font-medium">{company.projects.length}</span>
-              </div>
-            </div>
-          </Link>
-        ))}
+            </Link>
+          ))
+        )}
       </div>
     </div>
   );

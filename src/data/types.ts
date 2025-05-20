@@ -1,4 +1,3 @@
-
 export interface Company {
   id: string;
   name: string;
@@ -13,6 +12,7 @@ export interface Project {
   id: string;
   name: string;
   companyId: string;
+  companyName?: string; // Optional field for displaying company name
   description: string;
   startDate: string;
   endDate: string | null;
@@ -40,7 +40,7 @@ export interface Expense {
   projectId: string;
   amount: number;
   date: string;
-  category: 'manpower' | 'materials' | 'services' | 'other';
+  category: string; // Changed from enum to string to support custom categories
   description: string;
   approvalStatus?: 'pending' | 'approved' | 'rejected';
   createdBy?: string;

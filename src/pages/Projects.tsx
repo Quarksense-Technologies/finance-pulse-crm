@@ -1,57 +1,75 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, Plus, Calendar, Users } from 'lucide-react';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { projects, companies } from '@/data/mockData';
 import { Project } from '@/data/types';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { formatDate, getProjectStatusColor, calculateProjectProfit } from '@/utils/financialUtils';
 import { toast } from "@/components/ui/use-toast";
 import ProjectForm from '@/components/forms/ProjectForm';
+import { useProjects, useCreateProject } from '@/hooks/api/useProjects';
 
 const Projects = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredProjects, setFilteredProjects] = useState<Project[]>(projects);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  
+  // Use React Query to fetch projects
+  const { data: projects = [], isLoading, error } = useProjects({
+    status: statusFilter !== 'all' ? statusFilter : undefined
+  });
+  
+  // Mutation hook for creating projects
+  const createProject = useCreateProject();
 
-  useEffect(() => {
-    // Apply filters
-    let result = projects;
+  // Filter projects by search query
+  const filteredProjects = projects.filter(project => {
+    if (searchQuery.trim() === '') return true;
     
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      result = result.filter(project => project.status === statusFilter);
-    }
-    
-    // Apply search filter
-    if (searchQuery.trim() !== '') {
-      const lowercaseQuery = searchQuery.toLowerCase();
-      result = result.filter(project =>
-        project.name.toLowerCase().includes(lowercaseQuery) ||
-        project.description.toLowerCase().includes(lowercaseQuery)
-      );
-    }
-    
-    setFilteredProjects(result);
-  }, [searchQuery, statusFilter]);
+    const lowercaseQuery = searchQuery.toLowerCase();
+    return (
+      project.name.toLowerCase().includes(lowercaseQuery) ||
+      project.description.toLowerCase().includes(lowercaseQuery)
+    );
+  });
 
   // Get company name by ID
   const getCompanyName = (companyId: string): string => {
-    const company = companies.find(c => c.id === companyId);
-    return company ? company.name : 'Unknown Company';
+    return companyId; // This will be replaced by company name in the API response
   };
 
   const handleAddProject = (projectData: Partial<Project>) => {
-    console.log('New project:', projectData);
-    toast({
-      title: "Project Added",
-      description: `${projectData.name} has been added successfully.`,
+    createProject.mutate(projectData as any, {
+      onSuccess: () => {
+        toast({
+          title: "Project Added",
+          description: `${projectData.name} has been added successfully.`,
+        });
+        setIsDialogOpen(false);
+      },
+      onError: (error: any) => {
+        toast({
+          title: "Error",
+          description: error.response?.data?.message || "Failed to add project",
+          variant: "destructive"
+        });
+      }
     });
-    setIsDialogOpen(false);
   };
+
+  if (isLoading) {
+    return <div className="flex justify-center items-center h-64">Loading projects...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-64 text-red-500">
+        Error loading projects: {(error as any).message}
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fade-in">
@@ -136,50 +154,56 @@ const Projects = () => {
 
       {/* Projects Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {filteredProjects.map((project) => (
-          <Link
-            to={`/projects/${project.id}`}
-            key={project.id}
-            className="bg-white border border-gray-100 rounded-lg shadow-sm p-6 hoverable"
-          >
-            <div className="flex justify-between items-start">
-              <h3 className="text-lg font-semibold">{project.name}</h3>
-              <StatusBadge 
-                status={project.status} 
-                colorClassName={getProjectStatusColor(project.status)} 
-              />
-            </div>
-            
-            <p className="text-sm text-gray-600 mt-2 line-clamp-2">{project.description}</p>
-            
-            <div className="mt-4 flex items-center text-sm text-gray-500">
-              <Calendar className="w-4 h-4 mr-1" />
-              <span>{formatDate(project.startDate)} - {project.endDate ? formatDate(project.endDate) : 'Ongoing'}</span>
-            </div>
-            
-            <div className="mt-1 flex items-center text-sm text-gray-500">
-              <Users className="w-4 h-4 mr-1" />
-              <span>{project.manpowerAllocated} hours allocated</span>
-            </div>
-            
-            <div className="mt-4 border-t border-gray-100 pt-4">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Company:</span>
-                <span className="font-medium">{getCompanyName(project.companyId)}</span>
+        {filteredProjects.length === 0 ? (
+          <div className="col-span-2 text-center py-10">
+            <p className="text-gray-500">No projects found. Create a new project to get started.</p>
+          </div>
+        ) : (
+          filteredProjects.map((project) => (
+            <Link
+              to={`/projects/${project.id}`}
+              key={project.id}
+              className="bg-white border border-gray-100 rounded-lg shadow-sm p-6 hoverable"
+            >
+              <div className="flex justify-between items-start">
+                <h3 className="text-lg font-semibold">{project.name}</h3>
+                <StatusBadge 
+                  status={project.status} 
+                  colorClassName={getProjectStatusColor(project.status)} 
+                />
               </div>
               
-              <div className="flex justify-between text-sm mt-1">
-                <span className="text-gray-500">Profit:</span>
-                <span className={`font-medium ${
-                  calculateProjectProfit(project) >= 0 ? 'text-green-600' : 'text-red-600'
-                }`}>
-                  {calculateProjectProfit(project) >= 0 ? '+' : ''}
-                  ${calculateProjectProfit(project).toLocaleString()}
-                </span>
+              <p className="text-sm text-gray-600 mt-2 line-clamp-2">{project.description}</p>
+              
+              <div className="mt-4 flex items-center text-sm text-gray-500">
+                <Calendar className="w-4 h-4 mr-1" />
+                <span>{formatDate(project.startDate)} - {project.endDate ? formatDate(project.endDate) : 'Ongoing'}</span>
               </div>
-            </div>
-          </Link>
-        ))}
+              
+              <div className="mt-1 flex items-center text-sm text-gray-500">
+                <Users className="w-4 h-4 mr-1" />
+                <span>{project.manpowerAllocated} hours allocated</span>
+              </div>
+              
+              <div className="mt-4 border-t border-gray-100 pt-4">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Company:</span>
+                  <span className="font-medium">{project.companyName || getCompanyName(project.companyId)}</span>
+                </div>
+                
+                <div className="flex justify-between text-sm mt-1">
+                  <span className="text-gray-500">Profit:</span>
+                  <span className={`font-medium ${
+                    calculateProjectProfit(project) >= 0 ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {calculateProjectProfit(project) >= 0 ? '+' : ''}
+                    ${calculateProjectProfit(project).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            </Link>
+          ))
+        )}
       </div>
     </div>
   );
