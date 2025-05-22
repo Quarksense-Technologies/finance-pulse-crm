@@ -30,6 +30,13 @@ export const authService = {
     try {
       const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
       console.log('Auth service: Login successful, received:', response.data);
+      
+      // Validate the response format
+      if (!response.data || !response.data.user || !response.data.token) {
+        console.error('Auth service: Invalid response format:', response.data);
+        throw new Error('Invalid response format from server');
+      }
+      
       return response.data;
     } catch (error) {
       console.error('Auth service: Login failed:', error);

@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const [isLoading, setIsLoading] = React.useState(false);
   
   const form = useForm({
     defaultValues: {
@@ -23,6 +24,7 @@ const Login = () => {
   console.log('Login component rendering');
 
   const onSubmit = async (data: { email: string; password: string }) => {
+    setIsLoading(true);
     try {
       console.log('Login attempt with:', { email: data.email });
       await login(data.email, data.password);
@@ -36,9 +38,11 @@ const Login = () => {
       console.error('Login failed with error:', error);
       toast({
         title: "Login failed",
-        description: "Invalid email or password",
+        description: error instanceof Error ? error.message : "Invalid email or password",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -119,9 +123,9 @@ const Login = () => {
             <Button 
               type="submit" 
               className="w-full mt-6"
-              onClick={() => console.log('Login button clicked')}
+              disabled={isLoading}
             >
-              Log in
+              {isLoading ? "Logging in..." : "Log in"}
             </Button>
           </form>
         </Form>

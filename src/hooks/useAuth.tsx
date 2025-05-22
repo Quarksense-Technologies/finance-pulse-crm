@@ -57,16 +57,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log('AuthProvider: Login attempt for:', email);
     setIsLoading(true);
     try {
-      const { user, token } = await authService.login({ email, password });
+      const response = await authService.login({ email, password });
+      
+      // Check if user data and role exist before proceeding
+      if (!response.user || !response.user.role) {
+        console.error('AuthProvider: Invalid user data received from API', response);
+        throw new Error('Invalid user data received from server');
+      }
+      
       // Ensure role is correctly typed
       const typedUser: User = {
-        ...user,
-        role: user.role as User['role'],
+        ...response.user,
+        role: response.user.role as User['role'],
       };
+      
       console.log('AuthProvider: Setting user after successful login:', typedUser);
       setUser(typedUser);
       localStorage.setItem('user', JSON.stringify(typedUser));
-      localStorage.setItem('token', token);
+      localStorage.setItem('token', response.token);
     } catch (error) {
       console.error('AuthProvider: Login failed:', error);
       throw error;
