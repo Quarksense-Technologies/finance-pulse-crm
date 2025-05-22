@@ -1,3 +1,4 @@
+
 // src/hooks/useAuth.tsx
 import * as React from 'react';
 import { authService } from '@/services/api/authService';
@@ -38,19 +39,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
+    console.log('AuthProvider: Checking for stored user');
     // Check if user is stored in localStorage
     const storedUser = localStorage.getItem('user');
     const token = localStorage.getItem('token');
     
     if (storedUser && token) {
+      console.log('AuthProvider: Found stored user:', JSON.parse(storedUser));
       setUser(JSON.parse(storedUser));
-      setIsLoading(false);
     } else {
-      setIsLoading(false);
+      console.log('AuthProvider: No stored user found');
     }
+    setIsLoading(false);
   }, []);
 
   const login = async (email: string, password: string): Promise<void> => {
+    console.log('AuthProvider: Login attempt for:', email);
     setIsLoading(true);
     try {
       const { user, token } = await authService.login({ email, password });
@@ -59,23 +63,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         ...user,
         role: user.role as User['role'],
       };
+      console.log('AuthProvider: Setting user after successful login:', typedUser);
       setUser(typedUser);
       localStorage.setItem('user', JSON.stringify(typedUser));
       localStorage.setItem('token', token);
+    } catch (error) {
+      console.error('AuthProvider: Login failed:', error);
+      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
   const logout = () => {
+    console.log('AuthProvider: Logging out user');
     authService.logout();
     setUser(null);
   };
 
   const hasPermission = (permission: Permission): boolean => {
-    if (!user) return false;
+    if (!user) {
+      console.log('AuthProvider: Permission check failed - no user');
+      return false;
+    }
 
     // Role-based permissions
+    console.log(`AuthProvider: Checking permission "${permission}" for role "${user.role}"`);
+    
     switch (user.role) {
       case 'admin':
         return true; // Admin has all permissions
@@ -95,17 +109,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const contextValue = {
+    user,
+    isAuthenticated: !!user,
+    isLoading,
+    login,
+    logout,
+    hasPermission,
+  };
+  
+  console.log('AuthProvider: Current auth state:', {
+    isAuthenticated: !!user,
+    isLoading,
+    userRole: user?.role
+  });
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated: !!user,
-        isLoading,
-        login,
-        logout,
-        hasPermission,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
@@ -116,5 +136,6 @@ export const useAuth = () => {
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
+  console.log('useAuth hook: Current user:', context.user?.name || 'Not logged in');
   return context;
 };

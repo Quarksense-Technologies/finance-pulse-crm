@@ -19,23 +19,36 @@ const Login = () => {
     },
   });
 
+  // Add debug logging
+  console.log('Login component rendering');
+
   const onSubmit = async (data: { email: string; password: string }) => {
     try {
+      console.log('Login attempt with:', { email: data.email });
       await login(data.email, data.password);
+      console.log('Login successful');
       toast({
         title: "Login successful",
         description: "Welcome back!",
       });
       navigate('/');
     } catch (error) {
+      console.error('Login failed with error:', error);
       toast({
         title: "Login failed",
         description: "Invalid email or password",
         variant: "destructive",
       });
-      console.error('Login error:', error);
     }
   };
+
+  // Add logging for form submission
+  React.useEffect(() => {
+    const subscription = form.watch(() => {
+      console.log('Form values changed:', form.getValues());
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
@@ -44,46 +57,70 @@ const Login = () => {
         <h2 className="text-xl font-semibold mb-6">Log in to your account</h2>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form 
+            onSubmit={(e) => {
+              console.log('Form submission initiated');
+              form.handleSubmit(onSubmit)(e);
+            }} 
+            className="space-y-4"
+          >
             <FormField
               control={form.control}
               name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="admin@example.com" 
-                      type="email" 
-                      {...field} 
-                      autoComplete="email"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                console.log('Email field rendering with value:', field.value);
+                return (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="admin@example.com" 
+                        type="email" 
+                        {...field} 
+                        autoComplete="email"
+                        onChange={(e) => {
+                          console.log('Email changed:', e.target.value);
+                          field.onChange(e);
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
             
             <FormField
               control={form.control}
               name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="••••••••" 
-                      type="password" 
-                      {...field} 
-                      autoComplete="current-password"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                console.log('Password field rendering');
+                return (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="••••••••" 
+                        type="password" 
+                        {...field} 
+                        autoComplete="current-password"
+                        onChange={(e) => {
+                          console.log('Password changed (length):', e.target.value.length);
+                          field.onChange(e);
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
             
-            <Button type="submit" className="w-full mt-6">
+            <Button 
+              type="submit" 
+              className="w-full mt-6"
+              onClick={() => console.log('Login button clicked')}
+            >
               Log in
             </Button>
           </form>
