@@ -1,27 +1,97 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { financeService } from '@/services/api/financeService';
 import { Payment, Expense } from '@/data/types';
 import { exportPaymentsToExcel, exportExpensesToExcel, exportPaymentsToPDF, exportExpensesToPDF } from '@/utils/exportUtils';
 
-export const usePayments = (filters?: { projectId?: string; startDate?: string; endDate?: string }) => {
+export const useTransactions = (filters?: { project?: string; type?: string; status?: string }) => {
   return useQuery({
-    queryKey: ['payments', filters],
-    queryFn: () => financeService.getPayments(filters),
+    queryKey: ['transactions', filters],
+    queryFn: () => financeService.getTransactions(filters),
   });
 };
 
-export const useExpenses = (filters?: { projectId?: string; category?: string; startDate?: string; endDate?: string }) => {
+export const useTransaction = (id: string) => {
   return useQuery({
-    queryKey: ['expenses', filters],
-    queryFn: () => financeService.getExpenses(filters),
+    queryKey: ['transaction', id],
+    queryFn: () => financeService.getTransactionById(id),
+    enabled: !!id,
   });
 };
 
-export const useFinancialSummary = () => {
+export const useCreateTransaction = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: financeService.createTransaction,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['financialSummary'] });
+    },
+  });
+};
+
+export const useUpdateTransaction = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => 
+      financeService.updateTransaction(id, data),
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['transaction', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['financialSummary'] });
+    },
+  });
+};
+
+export const useDeleteTransaction = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: financeService.deleteTransaction,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['financialSummary'] });
+    },
+  });
+};
+
+export const useApproveTransaction = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: financeService.approveTransaction,
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['transaction', id] });
+      queryClient.invalidateQueries({ queryKey: ['financialSummary'] });
+    },
+  });
+};
+
+export const useRejectTransaction = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) => 
+      financeService.rejectTransaction(id, reason),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['transaction', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['financialSummary'] });
+    },
+  });
+};
+
+export const useFinancialSummary = (filters?: { 
+  startDate?: string; 
+  endDate?: string; 
+  company?: string; 
+  project?: string 
+}) => {
   return useQuery({
-    queryKey: ['financialSummary'],
-    queryFn: financeService.getFinancialSummary,
+    queryKey: ['financialSummary', filters],
+    queryFn: () => financeService.getFinancialSummary(filters),
   });
 };
 
@@ -57,6 +127,15 @@ export const useAddExpenseCategory = () => {
   });
 };
 
+export const useExportTransactions = () => {
+  return {
+    exportToFormat: (format: 'csv' | 'pdf', filters?: { startDate?: string; endDate?: string }) => {
+      return financeService.exportTransactions(format, filters);
+    }
+  };
+};
+
+// Keep the legacy functions for backward compatibility
 export const useExportPayments = () => {
   return {
     exportToExcel: (payments: Payment[], fileName?: string) => {

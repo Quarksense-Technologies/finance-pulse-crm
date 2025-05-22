@@ -24,52 +24,134 @@ export interface CategoryExpenseData {
 }
 
 export interface CreateExpenseData {
-  projectId: string;
+  type: 'expense';
   amount: number;
-  date: string;
-  category: string;
   description: string;
+  category: string;
+  project: string; // Project ID
+  date: string;
 }
 
 export interface PaymentFilter {
-  projectId?: string;
+  project?: string;
+  type?: string;
+  status?: string;
   startDate?: string;
   endDate?: string;
 }
 
 export interface ExpenseFilter {
-  projectId?: string;
-  category?: string;
+  project?: string;
+  type?: string;
+  status?: string;
   startDate?: string;
   endDate?: string;
 }
 
 export const financeService = {
-  // Get all payments with optional filters
-  async getPayments(filters?: PaymentFilter): Promise<Payment[]> {
+  // Get all transactions with optional filters
+  async getTransactions(filters?: PaymentFilter): Promise<(Payment | Expense)[]> {
     try {
-      const response = await apiClient.get('/payments', { params: filters });
+      const response = await apiClient.get('/finances', { params: filters });
       return response.data;
     } catch (error: any) {
-      console.error('Error fetching payments:', error);
+      console.error('Error fetching transactions:', error);
       throw error;
     }
   },
 
-  // Get all expenses with optional filters
-  async getExpenses(filters?: ExpenseFilter): Promise<Expense[]> {
+  // Get a transaction by ID
+  async getTransactionById(id: string): Promise<Payment | Expense> {
     try {
-      const response = await apiClient.get('/expenses', { params: filters });
+      const response = await apiClient.get(`/finances/${id}`);
       return response.data;
     } catch (error: any) {
-      console.error('Error fetching expenses:', error);
+      console.error(`Error fetching transaction ${id}:`, error);
       throw error;
     }
   },
 
-  async getFinancialSummary(): Promise<FinancialSummary> {
+  // Create a transaction
+  async createTransaction(transactionData: CreateExpenseData): Promise<Expense> {
     try {
-      const response = await apiClient.get('/finances/summary');
+      const response = await apiClient.post('/finances', transactionData);
+      toast({
+        title: "Success",
+        description: "Transaction added successfully",
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error creating transaction:', error);
+      throw error;
+    }
+  },
+
+  // Update a transaction
+  async updateTransaction(id: string, transactionData: Partial<CreateExpenseData>): Promise<Payment | Expense> {
+    try {
+      const response = await apiClient.put(`/finances/${id}`, transactionData);
+      toast({
+        title: "Success",
+        description: "Transaction updated successfully",
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error(`Error updating transaction ${id}:`, error);
+      throw error;
+    }
+  },
+
+  // Delete a transaction
+  async deleteTransaction(id: string): Promise<void> {
+    try {
+      await apiClient.delete(`/finances/${id}`);
+      toast({
+        title: "Success",
+        description: "Transaction deleted successfully",
+      });
+    } catch (error: any) {
+      console.error(`Error deleting transaction ${id}:`, error);
+      throw error;
+    }
+  },
+
+  // Approve a transaction
+  async approveTransaction(id: string): Promise<void> {
+    try {
+      await apiClient.put(`/finances/${id}/approve`);
+      toast({
+        title: "Success",
+        description: "Transaction approved successfully",
+      });
+    } catch (error: any) {
+      console.error(`Error approving transaction ${id}:`, error);
+      throw error;
+    }
+  },
+
+  // Reject a transaction
+  async rejectTransaction(id: string, reason: string): Promise<void> {
+    try {
+      await apiClient.put(`/finances/${id}/reject`, { reason });
+      toast({
+        title: "Success",
+        description: "Transaction rejected successfully",
+      });
+    } catch (error: any) {
+      console.error(`Error rejecting transaction ${id}:`, error);
+      throw error;
+    }
+  },
+
+  // Get financial summary
+  async getFinancialSummary(filters?: {
+    startDate?: string;
+    endDate?: string;
+    company?: string;
+    project?: string;
+  }): Promise<FinancialSummary> {
+    try {
+      const response = await apiClient.get('/finances/summary', { params: filters });
       return response.data;
     } catch (error: any) {
       console.error('Error fetching financial summary:', error);
@@ -77,6 +159,24 @@ export const financeService = {
     }
   },
 
+  // Export transactions
+  async exportTransactions(format: 'csv' | 'pdf' = 'csv', filters?: {
+    startDate?: string;
+    endDate?: string;
+  }): Promise<Blob> {
+    try {
+      const response = await apiClient.get(`/finances/export?format=${format}`, {
+        params: filters,
+        responseType: 'blob'
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error(`Error exporting transactions to ${format}:`, error);
+      throw error;
+    }
+  },
+
+  // Get chart data
   async getChartData(): Promise<FinancialChartData> {
     try {
       const response = await apiClient.get('/finances/chart-data');
@@ -87,6 +187,7 @@ export const financeService = {
     }
   },
 
+  // Get category expenses
   async getCategoryExpenses(): Promise<CategoryExpenseData> {
     try {
       const response = await apiClient.get('/finances/category-expenses');
@@ -97,21 +198,7 @@ export const financeService = {
     }
   },
 
-  async addExpense(expense: CreateExpenseData): Promise<Expense> {
-    try {
-      const response = await apiClient.post(`/projects/${expense.projectId}/expenses`, expense);
-      toast({
-        title: "Success",
-        description: "Expense added successfully",
-      });
-      return response.data;
-    } catch (error: any) {
-      console.error('Error adding expense:', error);
-      throw error;
-    }
-  },
-
-  // Get expense categories from API
+  // Get expense categories
   async getExpenseCategories(): Promise<string[]> {
     try {
       const response = await apiClient.get('/finances/expense-categories');
@@ -119,7 +206,7 @@ export const financeService = {
     } catch (error: any) {
       console.error('Error fetching expense categories:', error);
       // Return default categories if API fails
-      return ['manpower', 'materials', 'services', 'other'];
+      return ['equipment', 'materials', 'services', 'other'];
     }
   },
   
@@ -138,31 +225,6 @@ export const financeService = {
         description: "Failed to add category",
         variant: "destructive"
       });
-      throw error;
-    }
-  },
-
-  // Export functions
-  async exportToExcel(dataType: 'payments' | 'expenses'): Promise<Blob> {
-    try {
-      const response = await apiClient.get(`/finances/export/${dataType}/excel`, {
-        responseType: 'blob'
-      });
-      return response.data;
-    } catch (error: any) {
-      console.error(`Error exporting ${dataType} to Excel:`, error);
-      throw error;
-    }
-  },
-
-  async exportToPdf(dataType: 'payments' | 'expenses'): Promise<Blob> {
-    try {
-      const response = await apiClient.get(`/finances/export/${dataType}/pdf`, {
-        responseType: 'blob'
-      });
-      return response.data;
-    } catch (error: any) {
-      console.error(`Error exporting ${dataType} to PDF:`, error);
       throw error;
     }
   }

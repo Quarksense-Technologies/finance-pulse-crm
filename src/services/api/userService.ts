@@ -1,4 +1,4 @@
-// src/services/api/userService.ts
+
 import apiClient from './client';
 import { User } from '@/data/types';
 
@@ -6,16 +6,20 @@ interface CreateUserData {
   name: string;
   email: string;
   password: string;
-  role: 'admin' | 'manager' | 'user';
-  managerId?: string;
+  role: string;
 }
 
 interface UpdateUserData {
   name?: string;
   email?: string;
   password?: string;
-  role?: 'admin' | 'manager' | 'user';
-  managerId?: string;
+  role?: string;
+}
+
+interface UpdateProfileData {
+  name?: string;
+  theme?: string;
+  profileImage?: string;
 }
 
 export const userService = {
@@ -42,4 +46,9 @@ export const userService = {
   async deleteUser(id: string): Promise<void> {
     await apiClient.delete(`/users/${id}`);
   },
+
+  async updateProfile(profileData: UpdateProfileData): Promise<User> {
+    const response = await apiClient.put('/users/profile/update', profileData);
+    return response.data;
+  }
 };

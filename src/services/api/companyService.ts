@@ -5,18 +5,38 @@ import { Company } from '@/data/types';
 
 export interface CreateCompanyData {
   name: string;
-  contactPerson: string;
-  email: string;
-  phone: string;
-  address?: string; // Address is now optional
+  description: string;
+  logo?: string;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+  contactInfo: {
+    email: string;
+    phone: string;
+    website?: string;
+  };
 }
 
 export interface UpdateCompanyData {
   name?: string;
-  contactPerson?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
+  description?: string;
+  logo?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+    country?: string;
+  };
+  contactInfo?: {
+    email?: string;
+    phone?: string;
+    website?: string;
+  };
 }
 
 export const companyService = {

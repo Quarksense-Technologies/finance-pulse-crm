@@ -1,3 +1,4 @@
+
 // src/services/api/authService.ts
 import apiClient from './client';
 
@@ -6,13 +7,19 @@ interface LoginCredentials {
   password: string;
 }
 
+interface RegisterData {
+  name: string;
+  email: string;
+  password: string;
+  role: string;
+}
+
 interface AuthResponse {
   user: {
     id: string;
     name: string;
     email: string;
     role: string;
-    managerId?: string;
   };
   token: string;
 }
@@ -20,6 +27,11 @@ interface AuthResponse {
 export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
+    return response.data;
+  },
+  
+  async register(userData: RegisterData): Promise<AuthResponse> {
+    const response = await apiClient.post<AuthResponse>('/auth/register', userData);
     return response.data;
   },
   

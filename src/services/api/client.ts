@@ -2,8 +2,8 @@
 import axios from 'axios';
 import { toast } from "@/components/ui/use-toast";
 
-// Use a default API URL that works in development environment
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Use the API URL from environment variables
+const API_URL = import.meta.env.VITE_API_URL || 'http://10.226.211.130:5000/api';
 
 console.log('Using API URL:', API_URL);
 

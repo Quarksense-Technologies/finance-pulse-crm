@@ -5,22 +5,22 @@ import { Project, Payment, Expense, Resource } from '@/data/types';
 
 export interface CreateProjectData {
   name: string;
-  companyId: string;
   description: string;
+  company: string;  // Company ID
   startDate: string;
   endDate?: string | null;
-  status: 'active' | 'completed' | 'on-hold';
-  manpowerAllocated?: number;
+  status: string;
+  budget?: number;
 }
 
 export interface UpdateProjectData {
   name?: string;
-  companyId?: string;
   description?: string;
+  company?: string;  // Company ID
   startDate?: string;
   endDate?: string | null;
-  status?: 'active' | 'completed' | 'on-hold';
-  manpowerAllocated?: number;
+  status?: string;
+  budget?: number;
 }
 
 export const projectService = {

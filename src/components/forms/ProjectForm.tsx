@@ -9,7 +9,7 @@ import { Project } from '@/data/types';
 import { useCompanies } from '@/hooks/api/useCompanies';
 
 interface ProjectFormProps {
-  onSubmit: (data: Partial<Project>) => void;
+  onSubmit: (data: any) => void;
   preselectedCompanyId?: string;
 }
 
@@ -20,31 +20,31 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, preselectedCompanyI
   const form = useForm({
     defaultValues: {
       name: '',
-      companyId: preselectedCompanyId || '',
+      company: preselectedCompanyId || '',
       description: '',
       startDate: new Date().toISOString().slice(0, 10),
       endDate: '',
       status: 'active',
-      manpowerAllocated: '',
+      budget: '',
     },
   });
 
-  // Update the form's companyId value when preselectedCompanyId changes
+  // Update the form's company value when preselectedCompanyId changes
   useEffect(() => {
     if (preselectedCompanyId) {
-      form.setValue('companyId', preselectedCompanyId);
+      form.setValue('company', preselectedCompanyId);
     }
   }, [preselectedCompanyId, form]);
 
   const handleSubmit = (data: any) => {
     onSubmit({
       name: data.name,
-      companyId: data.companyId,
+      company: data.company,
       description: data.description,
       startDate: data.startDate,
       endDate: data.endDate || null,
-      status: data.status as 'active' | 'completed' | 'on-hold',
-      manpowerAllocated: parseInt(data.manpowerAllocated, 10) || 0,
+      status: data.status,
+      budget: data.budget ? Number(data.budget) : undefined,
     });
     form.reset();
   };
@@ -68,7 +68,7 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, preselectedCompanyI
 
         <FormField
           control={form.control}
-          name="companyId"
+          name="company"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Company</FormLabel>
@@ -165,10 +165,10 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onSubmit, preselectedCompanyI
 
         <FormField
           control={form.control}
-          name="manpowerAllocated"
+          name="budget"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Estimated Hours</FormLabel>
+              <FormLabel>Budget</FormLabel>
               <FormControl>
                 <Input {...field} type="number" min="0" placeholder="0" />
               </FormControl>
