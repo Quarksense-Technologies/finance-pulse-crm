@@ -38,7 +38,7 @@ apiClient.interceptors.response.use(
     if (!error.response) {
       toast({
         title: "Network Error",
-        description: "Cannot connect to the server. Please check your internet connection.",
+        description: "Cannot connect to the API server. If you're using the live preview, this is expected - the API would work when running locally.",
         variant: "destructive"
       });
       return Promise.reject(error);

@@ -7,11 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from '@/hooks/useAuth';
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [isLoading, setIsLoading] = React.useState(false);
+  const [networkError, setNetworkError] = React.useState(false);
   
   const form = useForm({
     defaultValues: {
@@ -25,6 +28,7 @@ const Login = () => {
 
   const onSubmit = async (data: { email: string; password: string }) => {
     setIsLoading(true);
+    setNetworkError(false);
     try {
       console.log('Login attempt with:', { email: data.email });
       await login(data.email, data.password);
@@ -36,6 +40,12 @@ const Login = () => {
       navigate('/');
     } catch (error) {
       console.error('Login failed with error:', error);
+      
+      // Check if it's a network error
+      if (error instanceof Error && error.message.includes("Network Error")) {
+        setNetworkError(true);
+      }
+      
       toast({
         title: "Login failed",
         description: error instanceof Error ? error.message : "Invalid email or password",
@@ -59,6 +69,17 @@ const Login = () => {
       <div className="p-8 bg-white rounded-lg shadow-md border border-gray-200 w-full max-w-md">
         <h1 className="text-2xl font-bold text-center mb-6 text-primary">Business CRM</h1>
         <h2 className="text-xl font-semibold mb-6">Log in to your account</h2>
+        
+        {networkError && (
+          <Alert variant="warning" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Connection Issue</AlertTitle>
+            <AlertDescription>
+              Cannot connect to the API server. This is expected in the live preview environment as it's trying to connect to a local IP address.
+              <p className="mt-2 font-medium">The application will work properly when run locally on your machine.</p>
+            </AlertDescription>
+          </Alert>
+        )}
         
         <Form {...form}>
           <form 
