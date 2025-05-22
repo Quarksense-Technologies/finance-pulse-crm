@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Calendar, Search, Plus, ArrowDown, FileText, FileSpreadsheet, Download } from 'lucide-react';
@@ -16,6 +15,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import PaymentForm from '@/components/forms/PaymentForm';
 import ExpenseForm from '@/components/forms/ExpenseForm';
 import { financeService } from '@/services/api/financeService';
+import { useExportTransactions } from '@/hooks/api/useFinances';
 
 const Finances = () => {
   const [tab, setTab] = useState<'payments' | 'expenses'>('payments');
@@ -25,6 +25,8 @@ const Finances = () => {
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isExporting, setIsExporting] = useState(false);
+  
+  const { exportToFormat } = useExportTransactions();
 
   // Prepare data for payment status pie chart
   const paidAmount = payments.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
@@ -94,7 +96,7 @@ const Finances = () => {
   const handleExportToExcel = async () => {
     try {
       setIsExporting(true);
-      const blob = await financeService.exportToExcel(tab);
+      const blob = await exportToFormat('csv');
       downloadFile(blob, `${tab}-${new Date().toISOString().split('T')[0]}.xlsx`);
     } catch (error) {
       console.error(`Error exporting to Excel:`, error);
@@ -106,7 +108,7 @@ const Finances = () => {
   const handleExportToPdf = async () => {
     try {
       setIsExporting(true);
-      const blob = await financeService.exportToPdf(tab);
+      const blob = await exportToFormat('pdf');
       downloadFile(blob, `${tab}-${new Date().toISOString().split('T')[0]}.pdf`);
     } catch (error) {
       console.error(`Error exporting to PDF:`, error);

@@ -2,6 +2,7 @@
 import { toast } from "@/components/ui/use-toast";
 import apiClient from './client';
 import { Payment, Expense, FinancialSummary } from '@/data/types';
+import { exportPaymentsToExcel, exportExpensesToExcel, exportPaymentsToPDF, exportExpensesToPDF } from '@/utils/exportUtils';
 
 export interface FinancialChartData {
   labels: string[];
@@ -227,5 +228,17 @@ export const financeService = {
       });
       throw error;
     }
+  },
+
+  // Export to Excel - Helper method for the Finances.tsx file
+  exportToExcel(tab: 'payments' | 'expenses'): Promise<Blob> {
+    // This passes the request to the exportTransactions method with format='csv'
+    return this.exportTransactions('csv');
+  },
+
+  // Export to PDF - Helper method for the Finances.tsx file
+  exportToPdf(tab: 'payments' | 'expenses'): Promise<Blob> {
+    // This passes the request to the exportTransactions method with format='pdf'
+    return this.exportTransactions('pdf');
   }
 };
