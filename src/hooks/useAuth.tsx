@@ -1,4 +1,3 @@
-
 // src/hooks/useAuth.tsx
 import * as React from 'react';
 import { authService } from '@/services/api/authService';
@@ -59,16 +58,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const response = await authService.login({ email, password });
       
-      // Check if user data and role exist before proceeding
-      if (!response.user || !response.user.role) {
-        console.error('AuthProvider: Invalid user data received from API', response);
-        throw new Error('Invalid user data received from server');
+      if (!response.user) {
+        throw new Error('No user data received from server');
       }
       
       // Ensure role is correctly typed
       const typedUser: User = {
-        ...response.user,
-        role: response.user.role as User['role'],
+        id: response.user.id || '',
+        name: response.user.name || '',
+        email: response.user.email || '',
+        role: (response.user.role as User['role']) || 'user',
       };
       
       console.log('AuthProvider: Setting user after successful login:', typedUser);

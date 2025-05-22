@@ -15,8 +15,9 @@ interface RegisterData {
 }
 
 interface AuthResponse {
-  user: {
-    id: string;
+  user?: {
+    id?: string;
+    _id?: string;
     name: string;
     email: string;
     role: string;
@@ -28,16 +29,32 @@ export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     console.log('Auth service: Attempting login with:', credentials.email);
     try {
-      const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
+      const response = await apiClient.post<any>('/auth/login', credentials);
       console.log('Auth service: Login successful, received:', response.data);
       
-      // Validate the response format
-      if (!response.data || !response.data.user || !response.data.token) {
-        console.error('Auth service: Invalid response format:', response.data);
-        throw new Error('Invalid response format from server');
+      // Normalize the response format - handle both direct response and user property
+      const responseData: AuthResponse = {
+        token: response.data.token,
+        user: response.data.user || response.data
+      };
+      
+      // If the user object has _id instead of id, normalize it
+      if (responseData.user && responseData.user._id && !responseData.user.id) {
+        responseData.user.id = responseData.user._id;
       }
       
-      return response.data;
+      // Validate the response format
+      if (!responseData.token) {
+        console.error('Auth service: Missing token in response:', responseData);
+        throw new Error('Invalid response format: Missing token');
+      }
+      
+      if (!responseData.user || !responseData.user.role) {
+        console.error('Auth service: Invalid user data in response:', responseData);
+        throw new Error('Invalid response format: Missing user data or role');
+      }
+      
+      return responseData;
     } catch (error) {
       console.error('Auth service: Login failed:', error);
       throw error;
