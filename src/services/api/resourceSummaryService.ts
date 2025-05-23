@@ -14,7 +14,7 @@ export const resourceSummaryService = {
       return response.data;
     } catch (error: any) {
       console.error('Error fetching resources summary:', error);
-      // Return default values if the API call fails
+      // Return default values in case of error
       return {
         totalAllocated: 0,
         averageCost: 0,

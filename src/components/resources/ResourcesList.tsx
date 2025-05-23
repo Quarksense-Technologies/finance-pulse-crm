@@ -1,92 +1,149 @@
 
-import React from 'react';
-import { Resource } from '@/data/types';
-import { Users } from 'lucide-react';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
+import React, { useState } from 'react';
+import { Trash2, Edit, Calendar, DollarSign } from 'lucide-react';
 import { formatDate, formatCurrency } from '@/utils/financialUtils';
-import { useQuery } from '@tanstack/react-query';
-import { resourceService } from '@/services/api/resourceService';
+import { Button } from "@/components/ui/button";
+import { useResources, useDeleteResource } from '@/hooks/api/useResources';
+import { toast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
-interface ResourcesListProps {
-  projectFilter?: string;
-}
-
-const ResourcesList: React.FC<ResourcesListProps> = ({ projectFilter }) => {
-  // Fetch resources data from API
-  const { data: resources = [], isLoading, error } = useQuery({
-    queryKey: ['resources', { projectId: projectFilter }],
-    queryFn: () => resourceService.getResources(projectFilter),
-  });
-
-  // Calculate total cost for a resource
-  const calculateTotalCost = (resource: Resource): number => {
-    return resource.hoursAllocated * resource.hourlyRate;
-  };
+const ResourcesList = () => {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [resourceToDelete, setResourceToDelete] = useState<string | null>(null);
+  
+  // Fetch resources from the API
+  const { data: resources = [], isLoading } = useResources();
+  const deleteResourceMutation = useDeleteResource();
 
   if (isLoading) {
-    return <div className="text-center py-4">Loading resources...</div>;
+    return <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">Loading resources...</div>;
   }
 
-  if (error) {
-    return <div className="text-center py-4 text-red-500">Error loading resources. Please try again.</div>;
-  }
-
-  if (resources.length === 0) {
-    return (
-      <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-100">
-        <Users className="mx-auto h-12 w-12 text-gray-400" />
-        <h3 className="mt-2 text-sm font-semibold text-gray-900">No resources</h3>
-        <p className="mt-1 text-sm text-gray-500">
-          Get started by adding a new resource.
-        </p>
-      </div>
-    );
-  }
+  const handleDeleteResource = async () => {
+    if (resourceToDelete) {
+      try {
+        await deleteResourceMutation.mutateAsync(resourceToDelete);
+        toast({
+          title: "Resource Deleted",
+          description: "The resource has been successfully removed.",
+        });
+      } catch (error) {
+        // Error handling is done by the API service
+        console.error('Error deleting resource:', error);
+      } finally {
+        setResourceToDelete(null);
+        setDeleteDialogOpen(false);
+      }
+    }
+  };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-      <div className="px-4 py-5 sm:px-6">
-        <h3 className="text-lg font-medium leading-6 text-gray-900">Manpower Resources</h3>
-        <p className="mt-1 max-w-2xl text-sm text-gray-500">
-          List of allocated resources and their details
-        </p>
-      </div>
+    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+      <h2 className="text-xl font-semibold mb-4">Resources List</h2>
       
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Hours</TableHead>
-              <TableHead>Rate ($/hr)</TableHead>
-              <TableHead>Total Cost</TableHead>
-              <TableHead>Start Date</TableHead>
-              <TableHead>End Date</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {resources.map((resource) => (
-              <TableRow key={resource.id}>
-                <TableCell className="font-medium">{resource.name}</TableCell>
-                <TableCell>{resource.role}</TableCell>
-                <TableCell>{resource.hoursAllocated}</TableCell>
-                <TableCell>{formatCurrency(resource.hourlyRate)}</TableCell>
-                <TableCell>{formatCurrency(calculateTotalCost(resource))}</TableCell>
-                <TableCell>{formatDate(resource.startDate)}</TableCell>
-                <TableCell>{resource.endDate ? formatDate(resource.endDate) : 'Ongoing'}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      {resources.length === 0 ? (
+        <div className="text-center py-8 text-gray-500">
+          No resources found. Add a resource to get started.
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {resources.map((resource) => (
+            <div 
+              key={resource.id} 
+              className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="font-medium">{resource.name}</h3>
+                  <p className="text-sm text-gray-600">{resource.role}</p>
+                </div>
+                <div className="flex space-x-2">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                  >
+                    <Edit className="h-4 w-4" />
+                    <span className="sr-only">Edit</span>
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    onClick={() => {
+                      setResourceToDelete(resource.id);
+                      setDeleteDialogOpen(true);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span className="sr-only">Delete</span>
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div className="flex items-center text-sm text-gray-600">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  <span>
+                    {formatDate(resource.startDate)} - 
+                    {resource.endDate ? formatDate(resource.endDate) : 'Ongoing'}
+                  </span>
+                </div>
+                <div className="flex items-center text-sm text-gray-600">
+                  <DollarSign className="h-4 w-4 mr-2" />
+                  <span>{formatCurrency(resource.hourlyRate)} / hour</span>
+                </div>
+              </div>
+              
+              <div className="mt-2 flex justify-between text-sm">
+                <span className="text-gray-600">Total hours:</span>
+                <span className="font-medium">{resource.hoursAllocated} hrs</span>
+              </div>
+              
+              <div className="mt-1 flex justify-between text-sm">
+                <span className="text-gray-600">Total cost:</span>
+                <span className="font-medium">
+                  {formatCurrency(resource.hourlyRate * resource.hoursAllocated)}
+                </span>
+              </div>
+              
+              <div className="mt-2 text-xs text-gray-500">
+                Project: {resource.projectId?.name || resource.projectId}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the resource
+              and remove the allocated hours from the project.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteResource}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

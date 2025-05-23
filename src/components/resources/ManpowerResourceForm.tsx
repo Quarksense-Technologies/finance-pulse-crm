@@ -1,10 +1,9 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { toast } from "@/hooks/use-toast";
-import { projects } from '@/data/mockData';
 import { 
   Form, 
   FormControl, 
@@ -16,6 +15,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useProjects } from '@/hooks/api/useProjects';
+import { resourceService } from '@/services/api/resourceService';
+import { useQueryClient } from '@tanstack/react-query';
 
 // Define the form schema
 const formSchema = z.object({
@@ -37,6 +39,14 @@ interface ManpowerResourceFormProps {
 }
 
 const ManpowerResourceForm: React.FC<ManpowerResourceFormProps> = ({ onResourceAdded }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
+  
+  // Fetch active projects from API
+  const { data: projects = [], isLoading: loadingProjects } = useProjects({
+    status: 'in-progress'
+  });
+  
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -50,42 +60,38 @@ const ManpowerResourceForm: React.FC<ManpowerResourceFormProps> = ({ onResourceA
     },
   });
 
-  const onSubmit = (data: FormValues) => {
-    // In a real app, this would send data to a backend
-    // For now, we'll just simulate adding a resource
-    const newResource = {
-      id: `res-${Date.now()}`,
-      projectId: data.projectId,
-      name: data.name,
-      role: data.role,
-      hoursAllocated: data.hoursAllocated,
-      hourlyRate: data.hourlyRate,
-      startDate: data.startDate,
-      endDate: data.endDate || null,
-    };
-
-    // Find the project and add the resource
-    const project = projects.find(p => p.id === data.projectId);
-    if (project) {
-      project.resources.push(newResource);
-      project.manpowerAllocated += data.hoursAllocated;
+  const onSubmit = async (data: FormValues) => {
+    setIsSubmitting(true);
+    
+    try {
+      // Create the resource using the API service
+      await resourceService.createResource({
+        projectId: data.projectId,
+        name: data.name,
+        role: data.role,
+        hoursAllocated: data.hoursAllocated,
+        hourlyRate: data.hourlyRate,
+        startDate: data.startDate,
+        endDate: data.endDate || null
+      });
+      
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['resources'] });
+      queryClient.invalidateQueries({ queryKey: ['resourcesSummary'] });
+      queryClient.invalidateQueries({ queryKey: ['project', data.projectId] });
+      
+      // Reset form
+      form.reset();
+      
+      // Trigger refresh in parent component
+      onResourceAdded();
+    } catch (error) {
+      console.error('Error adding resource:', error);
+      // Error toast is handled by the API service
+    } finally {
+      setIsSubmitting(false);
     }
-
-    // Notify success
-    toast({
-      title: "Resource added",
-      description: `${data.name} has been allocated to the project.`,
-    });
-
-    // Reset form
-    form.reset();
-
-    // Trigger refresh in parent component
-    onResourceAdded();
   };
-
-  // Update the filter to include projects with 'in-progress' status
-  const activeProjects = projects.filter(p => p.status === 'in-progress');
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
@@ -105,11 +111,17 @@ const ManpowerResourceForm: React.FC<ManpowerResourceFormProps> = ({ onResourceA
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {activeProjects.map((project) => (
-                      <SelectItem key={project.id} value={project.id}>
-                        {project.name}
-                      </SelectItem>
-                    ))}
+                    {loadingProjects ? (
+                      <SelectItem value="loading" disabled>Loading projects...</SelectItem>
+                    ) : projects.length > 0 ? (
+                      projects.map((project) => (
+                        <SelectItem key={project.id} value={project.id}>
+                          {project.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="none" disabled>No active projects available</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -160,7 +172,7 @@ const ManpowerResourceForm: React.FC<ManpowerResourceFormProps> = ({ onResourceA
                       min="0" 
                       placeholder="Hours" 
                       {...field} 
-                      onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                     />
                   </FormControl>
                   <FormMessage />
@@ -181,7 +193,7 @@ const ManpowerResourceForm: React.FC<ManpowerResourceFormProps> = ({ onResourceA
                       step="0.01" 
                       placeholder="Rate" 
                       {...field} 
-                      onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                     />
                   </FormControl>
                   <FormMessage />
@@ -226,7 +238,9 @@ const ManpowerResourceForm: React.FC<ManpowerResourceFormProps> = ({ onResourceA
             />
           </div>
 
-          <Button type="submit" className="w-full">Add Resource</Button>
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? 'Adding...' : 'Add Resource'}
+          </Button>
         </form>
       </Form>
     </div>
