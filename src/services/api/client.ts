@@ -2,16 +2,16 @@
 import axios from 'axios';
 import { toast } from "@/components/ui/use-toast";
 
-// Get API URL from environment variables and ensure it uses HTTPS
-let API_URL = import.meta.env.VITE_API_URL || 'https://65.0.4.219:5000/api';
-
-// Convert API_URL to HTTPS if it's using HTTP and we're on a secure connection
-if (API_URL.startsWith('http:') && window.location.protocol === 'https:') {
-  API_URL = API_URL.replace('http:', 'https:');
-  console.log('Converted API URL to HTTPS:', API_URL);
-}
+// Get API URL from environment variables
+const API_URL = import.meta.env.VITE_API_URL || 'http://65.0.4.219:5000/api';
 
 console.log('Using API URL:', API_URL);
+
+// Check if we're on HTTPS but the API URL is HTTP (mixed content scenario)
+const isMixedContent = window.location.protocol === 'https:' && API_URL.startsWith('http:');
+if (isMixedContent) {
+  console.warn('Mixed content scenario detected. This may cause issues in secure environments.');
+}
 
 const apiClient = axios.create({
   baseURL: API_URL,
@@ -43,11 +43,11 @@ apiClient.interceptors.response.use(
     // Check if this is a mixed content error
     if (error.message && error.message.includes('Mixed Content')) {
       toast({
-        title: "Security Error",
-        description: "Mixed content error. The API must be accessed over HTTPS when the app is loaded securely.",
+        title: "Security Warning",
+        description: "Your browser is blocking requests to the insecure API. Please use the app in an HTTP environment or update your API server to support HTTPS.",
         variant: "destructive"
       });
-      return Promise.reject(error);
+      return Promise.reject(new Error("Mixed content error: Your browser is blocking requests to the insecure API. Please use the app in an HTTP environment or update your API to support HTTPS."));
     }
     
     // Check if the error is due to network issues
@@ -131,5 +131,8 @@ export const isMongoDbTimeoutError = (error: any): boolean => {
          (errorMessage.includes('buffering timed out') || 
           (errorMessage.includes('Operation') && errorMessage.includes('timed out')));
 };
+
+// Export the mixed content detection flag
+export const isMixedContentEnvironment = isMixedContent;
 
 export default apiClient;
