@@ -1,3 +1,4 @@
+
 import { Company, Project, Payment, Expense, FinancialSummary, ManpowerSummary, Resource } from './types';
 
 // Mock Companies
@@ -40,7 +41,7 @@ export const projects: Project[] = [
     description: 'Complete overhaul of company website with modern design and improved functionality',
     startDate: '2025-01-15',
     endDate: '2025-04-30',
-    status: 'active',
+    status: 'in-progress',
     payments: [],
     expenses: [],
     manpowerAllocated: 320,
@@ -53,7 +54,7 @@ export const projects: Project[] = [
     description: 'Creating a cross-platform mobile application for customer engagement',
     startDate: '2025-02-01',
     endDate: null,
-    status: 'active',
+    status: 'in-progress',
     payments: [],
     expenses: [],
     manpowerAllocated: 480,
@@ -79,7 +80,7 @@ export const projects: Project[] = [
     description: 'Building an e-commerce platform with inventory management',
     startDate: '2025-03-01',
     endDate: null,
-    status: 'active',
+    status: 'in-progress',
     payments: [],
     expenses: [],
     manpowerAllocated: 600,

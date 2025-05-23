@@ -121,7 +121,7 @@ const Dashboard = () => {
         
         <StatCard
           title="Active Projects"
-          value={projects.filter(p => p.status === 'active' || p.status === 'in-progress').length}
+          value={projects.filter(p => p.status === 'in-progress').length}
           icon={<Briefcase className="h-6 w-6 text-indigo-600" />}
         />
         

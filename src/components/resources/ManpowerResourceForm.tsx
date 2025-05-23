@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -83,8 +84,8 @@ const ManpowerResourceForm: React.FC<ManpowerResourceFormProps> = ({ onResourceA
     onResourceAdded();
   };
 
-  // Update the filter to include projects with 'active' or 'in-progress' status
-  const activeProjects = projects.filter(p => p.status === 'active' || p.status === 'in-progress');
+  // Update the filter to include projects with 'in-progress' status
+  const activeProjects = projects.filter(p => p.status === 'in-progress');
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
