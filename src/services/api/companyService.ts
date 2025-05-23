@@ -54,7 +54,9 @@ export const companyService = {
     try {
       // Early validation to avoid making API calls with invalid IDs
       if (!id || id === 'undefined') {
-        throw new Error('Invalid company ID');
+        const error = new Error('Invalid company ID');
+        (error as any).status = 400;
+        throw error;
       }
       
       const response = await apiClient.get(`/companies/${id}`);
@@ -77,6 +79,9 @@ export const companyService = {
 
   async updateCompany(id: string, companyData: UpdateCompanyData): Promise<Company> {
     try {
+      if (!id || id === 'undefined') {
+        throw new Error('Invalid company ID for update');
+      }
       const response = await apiClient.put(`/companies/${id}`, companyData);
       return response.data;
     } catch (error: any) {
@@ -87,6 +92,9 @@ export const companyService = {
 
   async deleteCompany(id: string): Promise<void> {
     try {
+      if (!id || id === 'undefined') {
+        throw new Error('Invalid company ID for deletion');
+      }
       await apiClient.delete(`/companies/${id}`);
     } catch (error: any) {
       console.error(`Error deleting company ${id}:`, error);

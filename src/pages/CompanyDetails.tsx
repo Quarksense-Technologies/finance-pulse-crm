@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -13,8 +12,22 @@ const CompanyDetails = () => {
   const { companyId } = useParams<{ companyId: string }>();
   const navigate = useNavigate();
   
+  // Log for debugging
+  console.log('CompanyDetails - companyId param:', companyId);
+  
+  // Check for invalid ID early
+  if (!companyId || companyId === 'undefined') {
+    return (
+      <div className="flex flex-col items-center justify-center h-96">
+        <h2 className="text-2xl font-bold mb-4">Company Not Found</h2>
+        <p className="text-gray-600 mb-6">Invalid company ID. Please select a valid company.</p>
+        <Button onClick={() => navigate('/companies')}>Return to Companies</Button>
+      </div>
+    );
+  }
+  
   // Get company data from API
-  const { data: company, isLoading: isCompanyLoading, error: companyError } = useCompany(companyId || '');
+  const { data: company, isLoading: isCompanyLoading, error: companyError } = useCompany(companyId);
   
   // Get company projects from API
   const { data: projects = [], isLoading: isProjectsLoading, error: projectsError } = useProjects({ 

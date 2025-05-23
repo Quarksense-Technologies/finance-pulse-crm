@@ -24,9 +24,9 @@ const Companies = () => {
     
     const lowercaseQuery = searchQuery.toLowerCase();
     return (
-      company.name.toLowerCase().includes(lowercaseQuery) ||
-      company.contactPerson.toLowerCase().includes(lowercaseQuery) ||
-      company.email.toLowerCase().includes(lowercaseQuery)
+      company.name?.toLowerCase().includes(lowercaseQuery) ||
+      company.contactPerson?.toLowerCase().includes(lowercaseQuery) ||
+      company.email?.toLowerCase().includes(lowercaseQuery)
     );
   });
 
@@ -105,33 +105,41 @@ const Companies = () => {
             <p className="text-gray-500">No companies found. Create a new company to get started.</p>
           </div>
         ) : (
-          filteredCompanies.map((company) => (
-            <Link
-              to={`/companies/${company.id}`}
-              key={company.id || `company-${company.name}-${company.email}`}
-              className="bg-white border border-gray-100 rounded-lg shadow-sm p-6 hoverable"
-            >
-              <h3 className="text-lg font-semibold">{company.name}</h3>
-              <div className="mt-4 space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Contact:</span>
-                  <span className="font-medium">{company.contactPerson}</span>
+          filteredCompanies.map((company) => {
+            // Skip rendering companies with undefined IDs
+            if (!company.id) {
+              console.warn('Company without ID detected:', company);
+              return null;
+            }
+            
+            return (
+              <Link
+                to={`/companies/${company.id}`}
+                key={company.id}
+                className="bg-white border border-gray-100 rounded-lg shadow-sm p-6 hoverable"
+              >
+                <h3 className="text-lg font-semibold">{company.name}</h3>
+                <div className="mt-4 space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Contact:</span>
+                    <span className="font-medium">{company.contactPerson}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Email:</span>
+                    <span className="font-medium">{company.email}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Phone:</span>
+                    <span className="font-medium">{company.phone}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Projects:</span>
+                    <span className="font-medium">{company.projects?.length || 0}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Email:</span>
-                  <span className="font-medium">{company.email}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Phone:</span>
-                  <span className="font-medium">{company.phone}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Projects:</span>
-                  <span className="font-medium">{company.projects?.length || 0}</span>
-                </div>
-              </div>
-            </Link>
-          ))
+              </Link>
+            );
+          }).filter(Boolean) // Filter out null items (companies without IDs)
         )}
       </div>
     </div>
