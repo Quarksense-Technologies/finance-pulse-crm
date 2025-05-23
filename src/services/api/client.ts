@@ -71,11 +71,25 @@ apiClient.interceptors.response.use(
       });
     } else if (error.response.status === 500) {
       console.error('Server Error:', error.response.data);
-      toast({
-        title: "Server Error",
-        description: "The server encountered an error. Please try again later or contact support.",
-        variant: "destructive"
-      });
+      
+      // Check if this is a MongoDB connection timeout issue
+      const isMongoDBTimeout = errorMessage.includes('buffering timed out') || 
+                              errorMessage.includes('Operation') && 
+                              errorMessage.includes('timed out');
+      
+      if (isMongoDBTimeout) {
+        toast({
+          title: "Database Connection Error",
+          description: "The server couldn't connect to the database. The database might be starting up or experiencing issues.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Server Error",
+          description: "The server encountered an error. Please try again later or contact support.",
+          variant: "destructive"
+        });
+      }
     } else {
       // Handle other status codes
       toast({
@@ -92,6 +106,14 @@ apiClient.interceptors.response.use(
 // Add a helper method to check if an error is a specific HTTP status code
 export const isHttpError = (error: any, statusCode: number): boolean => {
   return error?.response?.status === statusCode;
+};
+
+// Helper to check if error is a specific type
+export const isMongoDbTimeoutError = (error: any): boolean => {
+  const errorMessage = error?.response?.data?.message || '';
+  return error?.response?.status === 500 && 
+         (errorMessage.includes('buffering timed out') || 
+          (errorMessage.includes('Operation') && errorMessage.includes('timed out')));
 };
 
 export default apiClient;

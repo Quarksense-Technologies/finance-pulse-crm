@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -7,13 +8,15 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from '@/hooks/useAuth';
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Database } from "lucide-react";
+import { isMongoDbTimeoutError } from '@/services/api/client';
 
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [isLoading, setIsLoading] = React.useState(false);
   const [networkError, setNetworkError] = React.useState(false);
+  const [databaseError, setDatabaseError] = React.useState(false);
   
   const form = useForm({
     defaultValues: {
@@ -28,6 +31,7 @@ const Login = () => {
   const onSubmit = async (data: { email: string; password: string }) => {
     setIsLoading(true);
     setNetworkError(false);
+    setDatabaseError(false);
     try {
       console.log('Login attempt with:', { email: data.email });
       await login(data.email, data.password);
@@ -43,6 +47,11 @@ const Login = () => {
       // Check if it's a network error
       if (error instanceof Error && error.message.includes("Network Error")) {
         setNetworkError(true);
+      }
+      
+      // Check if it's a MongoDB connection error
+      if (error instanceof Error && isMongoDbTimeoutError(error)) {
+        setDatabaseError(true);
       }
       
       toast({
@@ -75,6 +84,16 @@ const Login = () => {
             <AlertTitle>Connection Issue</AlertTitle>
             <AlertDescription>
               Cannot connect to the API server. Please check if the server is running at {import.meta.env.VITE_API_URL}.
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {databaseError && (
+          <Alert variant="warning" className="mb-4">
+            <Database className="h-4 w-4" />
+            <AlertTitle>Database Connection Issue</AlertTitle>
+            <AlertDescription>
+              The server couldn't connect to the database. This typically happens when the database is starting up or is experiencing connectivity issues. Please try again in a few moments.
             </AlertDescription>
           </Alert>
         )}
