@@ -1,17 +1,20 @@
 
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Search, Plus } from 'lucide-react';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Company } from '@/data/types';
 import { toast } from "@/components/ui/use-toast";
 import CompanyForm from '@/components/forms/CompanyForm';
 import { useCompanies, useCreateCompany } from '@/hooks/api/useCompanies';
+import { useAuth } from '@/hooks/useAuth';
 
 const Companies = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const navigate = useNavigate();
+  const { hasPermission } = useAuth();
+  const canAddCompany = hasPermission('add_company');
   
   // Use React Query to fetch companies
   const { data: companies = [], isLoading, error } = useCompanies();
@@ -31,8 +34,28 @@ const Companies = () => {
     );
   });
 
-  const handleAddCompany = (companyData: Partial<Company>) => {
-    createCompany.mutate(companyData as any, {
+  const handleAddCompany = (companyData: any) => {
+    // Transform the form data to match the API expected format
+    const apiCompanyData = {
+      name: companyData.name,
+      description: companyData.description || '',
+      logo: companyData.logo || '',
+      address: {
+        street: companyData.address || '',
+        city: companyData.city || '',
+        state: companyData.state || '',
+        zipCode: companyData.zipCode || '',
+        country: companyData.country || ''
+      },
+      contactInfo: {
+        name: companyData.contactPerson || '',
+        email: companyData.email || '',
+        phone: companyData.phone || '',
+        website: companyData.website || ''
+      }
+    };
+    
+    createCompany.mutate(apiCompanyData as any, {
       onSuccess: () => {
         toast({
           title: "Company Added",
@@ -97,23 +120,25 @@ const Companies = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <button className="bg-primary text-white px-4 py-2 rounded-lg inline-flex items-center">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Company
-              </button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Add New Company</DialogTitle>
-                <DialogDescription>
-                  Fill in the details below to add a new company.
-                </DialogDescription>
-              </DialogHeader>
-              <CompanyForm onSubmit={handleAddCompany} />
-            </DialogContent>
-          </Dialog>
+          {canAddCompany && (
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <button className="bg-primary text-white px-4 py-2 rounded-lg inline-flex items-center">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Company
+                </button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Add New Company</DialogTitle>
+                  <DialogDescription>
+                    Fill in the details below to add a new company.
+                  </DialogDescription>
+                </DialogHeader>
+                <CompanyForm onSubmit={handleAddCompany} />
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       </div>
 

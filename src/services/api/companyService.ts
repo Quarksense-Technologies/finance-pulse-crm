@@ -1,5 +1,4 @@
 
-import { toast } from "@/components/ui/use-toast";
 import apiClient from './client';
 import { Company } from '@/data/types';
 
@@ -19,6 +18,7 @@ export interface CreateCompanyData {
     phone: string;
     website?: string;
   };
+  managers?: string[];
 }
 
 export interface UpdateCompanyData {
@@ -37,13 +37,25 @@ export interface UpdateCompanyData {
     phone?: string;
     website?: string;
   };
+  managers?: string[];
 }
 
 export const companyService = {
   async getCompanies(): Promise<Company[]> {
     try {
       const response = await apiClient.get('/companies');
-      return response.data;
+      // Transform API response to match our frontend Company type if needed
+      return response.data.map((company: any) => ({
+        id: company._id || company.id,
+        name: company.name,
+        contactPerson: company.contactInfo?.name || 'N/A',
+        email: company.contactInfo?.email || 'N/A',
+        phone: company.contactInfo?.phone || 'N/A',
+        address: company.address ? 
+          `${company.address.street}, ${company.address.city}, ${company.address.state} ${company.address.zipCode}, ${company.address.country}` : 
+          'N/A',
+        projects: company.projects || []
+      }));
     } catch (error: any) {
       console.error('Error fetching companies:', error);
       throw error;
@@ -60,7 +72,18 @@ export const companyService = {
       }
       
       const response = await apiClient.get(`/companies/${id}`);
-      return response.data;
+      // Transform API response to match our frontend Company type
+      return {
+        id: response.data._id || response.data.id,
+        name: response.data.name,
+        contactPerson: response.data.contactInfo?.name || 'N/A',
+        email: response.data.contactInfo?.email || 'N/A',
+        phone: response.data.contactInfo?.phone || 'N/A',
+        address: response.data.address ? 
+          `${response.data.address.street}, ${response.data.address.city}, ${response.data.address.state} ${response.data.address.zipCode}, ${response.data.address.country}` : 
+          'N/A',
+        projects: response.data.projects || []
+      };
     } catch (error: any) {
       console.error(`Error fetching company ${id}:`, error);
       throw error;
@@ -70,7 +93,18 @@ export const companyService = {
   async createCompany(companyData: CreateCompanyData): Promise<Company> {
     try {
       const response = await apiClient.post('/companies', companyData);
-      return response.data;
+      // Transform API response to match our frontend Company type
+      return {
+        id: response.data._id || response.data.id,
+        name: response.data.name,
+        contactPerson: response.data.contactInfo?.name || 'N/A',
+        email: response.data.contactInfo?.email || 'N/A',
+        phone: response.data.contactInfo?.phone || 'N/A',
+        address: response.data.address ? 
+          `${response.data.address.street}, ${response.data.address.city}, ${response.data.address.state} ${response.data.address.zipCode}, ${response.data.address.country}` : 
+          'N/A',
+        projects: response.data.projects || []
+      };
     } catch (error: any) {
       console.error('Error creating company:', error);
       throw error;
@@ -83,7 +117,18 @@ export const companyService = {
         throw new Error('Invalid company ID for update');
       }
       const response = await apiClient.put(`/companies/${id}`, companyData);
-      return response.data;
+      // Transform API response to match our frontend Company type
+      return {
+        id: response.data._id || response.data.id,
+        name: response.data.name,
+        contactPerson: response.data.contactInfo?.name || 'N/A',
+        email: response.data.contactInfo?.email || 'N/A',
+        phone: response.data.contactInfo?.phone || 'N/A',
+        address: response.data.address ? 
+          `${response.data.address.street}, ${response.data.address.city}, ${response.data.address.state} ${response.data.address.zipCode}, ${response.data.address.country}` : 
+          'N/A',
+        projects: response.data.projects || []
+      };
     } catch (error: any) {
       console.error(`Error updating company ${id}:`, error);
       throw error;

@@ -1,3 +1,4 @@
+
 // src/hooks/useAuth.tsx
 import * as React from 'react';
 import { authService } from '@/services/api/authService';
@@ -64,7 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Ensure role is correctly typed
       const typedUser: User = {
-        id: response.user.id || '',
+        id: response.user._id || response.user.id || '',
         name: response.user.name || '',
         email: response.user.email || '',
         role: (response.user.role as User['role']) || 'user',

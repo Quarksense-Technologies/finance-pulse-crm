@@ -1,3 +1,4 @@
+
 export interface Company {
   id: string;
   name: string;
@@ -6,6 +7,8 @@ export interface Company {
   phone: string;
   address: string;
   projects: string[]; // Array of project IDs
+  description?: string;
+  logo?: string;
 }
 
 export interface Project {
@@ -16,10 +19,13 @@ export interface Project {
   description: string;
   startDate: string;
   endDate: string | null;
-  status: 'active' | 'completed' | 'on-hold';
+  status: 'planning' | 'in-progress' | 'on-hold' | 'completed' | 'cancelled';
+  budget?: number;
+  managers?: string[];
+  team?: string[];
   payments: Payment[];
   expenses: Expense[];
-  manpowerAllocated: number; // Hours
+  manpowerAllocated?: number; // Hours
   resources: Resource[]; // Added resources array
 }
 
@@ -58,6 +64,22 @@ export interface Resource {
   endDate: string | null;
 }
 
+export interface Transaction {
+  id: string;
+  type: 'expense' | 'payment' | 'income';
+  amount: number;
+  description: string;
+  category?: string;
+  project: string; // Project ID
+  date: string;
+  attachments?: Array<{
+    name: string;
+    url: string;
+  }>;
+  approvalStatus?: 'pending' | 'approved' | 'rejected';
+  rejectionReason?: string;
+}
+
 export interface FinancialSummary {
   totalRevenue: number;
   totalExpenses: number;
@@ -91,6 +113,8 @@ export interface User {
   role: 'admin' | 'manager' | 'user';
   managerId?: string; // ID of reporting manager
   createdAt: string;
+  profileImage?: string;
+  theme?: 'light' | 'dark';
 }
 
 export interface ApprovalItem {
@@ -103,4 +127,10 @@ export interface ApprovalItem {
   notes?: string;
   amount: number;
   description: string;
+}
+
+export interface ApiResponse<T> {
+  data: T;
+  message?: string;
+  success: boolean;
 }

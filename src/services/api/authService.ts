@@ -1,5 +1,3 @@
-
-// src/services/api/authService.ts
 import apiClient from './client';
 
 interface LoginCredentials {
