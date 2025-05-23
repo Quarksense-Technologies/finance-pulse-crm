@@ -3,17 +3,20 @@ import { Project, Payment, Expense } from '../data/types';
 
 // Calculate total revenue for a project
 export const calculateProjectRevenue = (project: Project): number => {
+  if (!project || !project.payments) return 0;
   return project.payments.reduce((sum, payment) => 
     payment.status === 'paid' ? sum + payment.amount : sum, 0);
 };
 
 // Calculate total expenses for a project
 export const calculateProjectExpenses = (project: Project): number => {
+  if (!project || !project.expenses) return 0;
   return project.expenses.reduce((sum, expense) => sum + expense.amount, 0);
 };
 
 // Calculate project profit
 export const calculateProjectProfit = (project: Project): number => {
+  if (!project) return 0;
   const revenue = calculateProjectRevenue(project);
   const expenses = calculateProjectExpenses(project);
   return revenue - expenses;
@@ -21,12 +24,14 @@ export const calculateProjectProfit = (project: Project): number => {
 
 // Calculate pending payments for a project
 export const calculatePendingPayments = (project: Project): number => {
+  if (!project || !project.payments) return 0;
   return project.payments.reduce((sum, payment) => 
     payment.status === 'pending' ? sum + payment.amount : sum, 0);
 };
 
 // Calculate overdue payments for a project
 export const calculateOverduePayments = (project: Project): number => {
+  if (!project || !project.payments) return 0;
   return project.payments.reduce((sum, payment) => 
     payment.status === 'overdue' ? sum + payment.amount : sum, 0);
 };
@@ -67,12 +72,16 @@ export const getPaymentStatusColor = (status: string): string => {
 // Get project status color
 export const getProjectStatusColor = (status: string): string => {
   switch (status) {
-    case 'active':
+    case 'in-progress':
       return 'bg-green-100 text-green-800';
     case 'completed':
       return 'bg-blue-100 text-blue-800';
     case 'on-hold':
       return 'bg-yellow-100 text-yellow-800';
+    case 'planning':
+      return 'bg-purple-100 text-purple-800';
+    case 'cancelled':
+      return 'bg-red-100 text-red-800';
     default:
       return 'bg-gray-100 text-gray-800';
   }
