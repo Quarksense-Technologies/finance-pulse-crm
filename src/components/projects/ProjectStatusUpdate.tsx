@@ -44,13 +44,14 @@ const ProjectStatusUpdate: React.FC<ProjectStatusUpdateProps> = ({
       
       toast({
         title: "Status updated",
-        description: `Project status changed to ${formatProjectStatus(status)}`
+        description: `Project status changed to ${formatProjectStatus(status)}`,
+        variant: "default"
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to update project status:', error);
       toast({
         title: "Update failed",
-        description: "There was an error updating the project status",
+        description: error.response?.data?.message || "There was an error updating the project status",
         variant: "destructive"
       });
     } finally {

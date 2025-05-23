@@ -42,8 +42,9 @@ export const formatCurrency = (amount: number): string => {
     style: 'currency',
     currency: 'INR',
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(amount);
+    maximumFractionDigits: 0,
+    currencyDisplay: 'symbol'
+  }).format(amount).replace('₹', '₹ '); // Add a space after the rupee symbol
 };
 
 // Format date

@@ -7,6 +7,8 @@ export const useProjects = (filters?: { status?: string; companyId?: string }) =
   return useQuery({
     queryKey: ['projects', filters],
     queryFn: () => projectService.getProjects(filters),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1,
   });
 };
 
@@ -15,6 +17,8 @@ export const useProject = (id: string) => {
     queryKey: ['project', id],
     queryFn: () => projectService.getProjectById(id),
     enabled: !!id,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    retry: 1,
   });
 };
 
