@@ -3,7 +3,7 @@ import axios from 'axios';
 import { toast } from "@/components/ui/use-toast";
 
 // Use the API URL from environment variables
-const API_URL = import.meta.env.VITE_API_URL || 'http://10.226.211.130:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://65.0.4.219:5000/api';
 
 console.log('Using API URL:', API_URL);
 
@@ -38,7 +38,7 @@ apiClient.interceptors.response.use(
     if (!error.response) {
       toast({
         title: "Network Error",
-        description: "Cannot connect to the API server. If you're using the live preview, this is expected - the API would work when running locally.",
+        description: "Cannot connect to the API server. Please check your internet connection and ensure the API server is running.",
         variant: "destructive"
       });
       return Promise.reject(error);

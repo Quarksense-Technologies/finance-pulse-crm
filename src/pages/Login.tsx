@@ -74,8 +74,7 @@ const Login = () => {
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Connection Issue</AlertTitle>
             <AlertDescription>
-              Cannot connect to the API server. This is expected in the live preview environment as it's trying to connect to a local IP address.
-              <p className="mt-2 font-medium">The application will work properly when run locally on your machine.</p>
+              Cannot connect to the API server. Please check if the server is running at {import.meta.env.VITE_API_URL}.
             </AlertDescription>
           </Alert>
         )}
