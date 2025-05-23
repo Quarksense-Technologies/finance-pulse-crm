@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { financeService } from '@/services/api/financeService';
 import { Payment, Expense } from '@/data/types';
@@ -135,7 +136,7 @@ export const useExportTransactions = () => {
   };
 };
 
-// Keep the legacy functions for backward compatibility
+// Legacy functions for backward compatibility
 export const useExportPayments = () => {
   return {
     exportToExcel: (payments: Payment[], fileName?: string) => {

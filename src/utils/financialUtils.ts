@@ -101,3 +101,37 @@ export const getExpenseCategoryColor = (category: string): string => {
       return 'bg-gray-100 text-gray-800';
   }
 };
+
+// Get task status color for project management
+export const getTaskStatusColor = (status: string): string => {
+  switch (status) {
+    case 'to-do':
+      return 'bg-gray-100 text-gray-800';
+    case 'in-progress':
+      return 'bg-blue-100 text-blue-800';
+    case 'completed':
+      return 'bg-green-100 text-green-800';
+    case 'blocked':
+      return 'bg-red-100 text-red-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+};
+
+// Format project status for display
+export const formatProjectStatus = (status: string): string => {
+  switch (status) {
+    case 'in-progress':
+      return 'In Progress';
+    case 'completed':
+      return 'Completed';
+    case 'on-hold':
+      return 'On Hold';
+    case 'planning':
+      return 'Planning';
+    case 'cancelled':
+      return 'Cancelled';
+    default:
+      return status.charAt(0).toUpperCase() + status.slice(1);
+  }
+};
