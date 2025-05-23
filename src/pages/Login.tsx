@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from '@/hooks/useAuth';
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Database } from "lucide-react";
+import { AlertCircle, Database, Info } from "lucide-react";
 import { isMongoDbTimeoutError } from '@/services/api/client';
 
 const Login = () => {
@@ -17,6 +17,18 @@ const Login = () => {
   const [isLoading, setIsLoading] = React.useState(false);
   const [networkError, setNetworkError] = React.useState(false);
   const [databaseError, setDatabaseError] = React.useState(false);
+  const [isPreviewEnvironment, setIsPreviewEnvironment] = React.useState(false);
+  
+  React.useEffect(() => {
+    // Check if we're running in the Lovable preview environment
+    const isLovablePreview = window.location.hostname.includes('lovable.app');
+    setIsPreviewEnvironment(isLovablePreview);
+    
+    // If we're in the preview environment, show a network error by default
+    if (isLovablePreview) {
+      setNetworkError(true);
+    }
+  }, []);
   
   const form = useForm({
     defaultValues: {
@@ -44,14 +56,20 @@ const Login = () => {
     } catch (error) {
       console.error('Login failed with error:', error);
       
-      // Check if it's a network error
-      if (error instanceof Error && error.message.includes("Network Error")) {
+      // Check if we're in the preview environment
+      if (window.location.hostname.includes('lovable.app')) {
         setNetworkError(true);
-      }
-      
-      // Check if it's a MongoDB connection error
-      if (error instanceof Error && isMongoDbTimeoutError(error)) {
-        setDatabaseError(true);
+      } else {
+        // Only check these errors if we're not in preview
+        // Check if it's a network error
+        if (error instanceof Error && error.message.includes("Network Error")) {
+          setNetworkError(true);
+        }
+        
+        // Check if it's a MongoDB connection error
+        if (error instanceof Error && isMongoDbTimeoutError(error)) {
+          setDatabaseError(true);
+        }
       }
       
       toast({
@@ -78,7 +96,17 @@ const Login = () => {
         <h1 className="text-2xl font-bold text-center mb-6 text-primary">Business CRM</h1>
         <h2 className="text-xl font-semibold mb-6">Log in to your account</h2>
         
-        {networkError && (
+        {isPreviewEnvironment && (
+          <Alert className="mb-4 bg-blue-50 border-blue-200">
+            <Info className="h-4 w-4 text-blue-500" />
+            <AlertTitle>Preview Environment</AlertTitle>
+            <AlertDescription>
+              You are in the Lovable preview environment. The application is attempting to connect to an external server at {import.meta.env.VITE_API_URL}, but preview environments have limited network connectivity. To test the full application, please run it locally.
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {networkError && !isPreviewEnvironment && (
           <Alert variant="warning" className="mb-4">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Connection Issue</AlertTitle>
