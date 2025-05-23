@@ -117,7 +117,9 @@ const ResourcesList = () => {
               </div>
               
               <div className="mt-2 text-xs text-gray-500">
-                Project: {resource.projectId?.name || resource.projectId}
+                Project: {typeof resource.projectId === 'object' && resource.projectId?.name ? 
+                  resource.projectId.name : 
+                  resource.projectId}
               </div>
             </div>
           ))}
