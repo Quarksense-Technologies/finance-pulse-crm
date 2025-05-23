@@ -3,15 +3,9 @@ import axios from 'axios';
 import { toast } from "@/components/ui/use-toast";
 
 // Get API URL from environment variables
-const API_URL = import.meta.env.VITE_API_URL || 'http://65.0.4.219:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://bms.quarksense.in/api';
 
 console.log('Using API URL:', API_URL);
-
-// Check if we're on HTTPS but the API URL is HTTP (mixed content scenario)
-const isMixedContent = window.location.protocol === 'https:' && API_URL.startsWith('http:');
-if (isMixedContent) {
-  console.warn('Mixed content scenario detected. This may cause issues in secure environments.');
-}
 
 const apiClient = axios.create({
   baseURL: API_URL,
@@ -40,17 +34,7 @@ apiClient.interceptors.response.use(
   (error) => {
     console.error('API Error:', error);
     
-    // Check if this is a mixed content error
-    if (error.message && error.message.includes('Mixed Content')) {
-      toast({
-        title: "Security Warning",
-        description: "Your browser is blocking requests to the insecure API. Please use the app in an HTTP environment or update your API server to support HTTPS.",
-        variant: "destructive"
-      });
-      return Promise.reject(new Error("Mixed content error: Your browser is blocking requests to the insecure API. Please use the app in an HTTP environment or update your API to support HTTPS."));
-    }
-    
-    // Check if the error is due to network issues
+    // Check if this is a network error
     if (!error.response) {
       toast({
         title: "Network Error",
@@ -131,8 +115,5 @@ export const isMongoDbTimeoutError = (error: any): boolean => {
          (errorMessage.includes('buffering timed out') || 
           (errorMessage.includes('Operation') && errorMessage.includes('timed out')));
 };
-
-// Export the mixed content detection flag
-export const isMixedContentEnvironment = isMixedContent;
 
 export default apiClient;
