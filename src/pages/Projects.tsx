@@ -5,7 +5,7 @@ import { Search, Plus, Calendar, Users } from 'lucide-react';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Project } from '@/data/types';
 import StatusBadge from '@/components/ui/StatusBadge';
-import { formatDate, getProjectStatusColor, calculateProjectProfit } from '@/utils/financialUtils';
+import { formatDate, getProjectStatusColor, calculateProjectProfit, formatCurrency } from '@/utils/financialUtils';
 import { toast } from "@/components/ui/use-toast";
 import ProjectForm from '@/components/forms/ProjectForm';
 import { useProjects, useCreateProject } from '@/hooks/api/useProjects';
@@ -193,8 +193,8 @@ const Projects = () => {
         ) : (
           filteredProjects.map((project) => (
             <Link
-              to={`/projects/${project._id}`}
-              key={project._id}
+              to={`/projects/${project.id}`}
+              key={project.id}
               className="bg-white border border-gray-100 rounded-lg shadow-sm p-6 hoverable"
             >
               <div className="flex justify-between items-start">
@@ -220,7 +220,7 @@ const Projects = () => {
               <div className="mt-4 border-t border-gray-100 pt-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Company:</span>
-                  <span className="font-medium">{project.companyName || project.company}</span>
+                  <span className="font-medium">{project.companyName || project.companyId}</span>
                 </div>
                 
                 <div className="flex justify-between text-sm mt-1">

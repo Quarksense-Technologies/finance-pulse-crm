@@ -107,7 +107,7 @@ const ProjectDetails = () => {
           <div>
             <h1 className="text-2xl font-bold">{project.name}</h1>
             <p className="text-gray-500 mt-1">
-              {project.companyName || project.company} • Started {formatDate(project.startDate)}
+              {project.companyName || project.companyId} • Started {formatDate(project.startDate)}
             </p>
           </div>
           <div className="mt-4 md:mt-0 flex flex-wrap gap-2">
@@ -285,25 +285,27 @@ const ProjectDetails = () => {
               
               <div>
                 <h3 className="text-lg font-semibold mb-3">Company Information</h3>
-                {project.company ? (
+                {project.companyId ? (
                   <div className="space-y-4">
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Company Name</h4>
-                      <p className="mt-1">{project.companyName || project.company}</p>
+                      <p className="mt-1">{project.companyName || project.companyId}</p>
                     </div>
+                    {/* Contact info section - using optional properties */}
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Contact Person</h4>
-                      <p className="mt-1">{project.contactPerson || 'Not specified'}</p>
+                      <p className="mt-1">{project.manager || 'Not specified'}</p>
                     </div>
-                    {project.contactEmail && project.contactPhone && (
+                    {/* Only show contact details if they exist */}
+                    {project.contactInfo?.email && project.contactInfo?.phone && (
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <h4 className="text-sm font-medium text-gray-500">Email</h4>
-                          <p className="mt-1">{project.contactEmail}</p>
+                          <p className="mt-1">{project.contactInfo?.email}</p>
                         </div>
                         <div>
                           <h4 className="text-sm font-medium text-gray-500">Phone</h4>
-                          <p className="mt-1">{project.contactPhone}</p>
+                          <p className="mt-1">{project.contactInfo?.phone}</p>
                         </div>
                       </div>
                     )}
