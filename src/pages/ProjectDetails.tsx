@@ -291,24 +291,18 @@ const ProjectDetails = () => {
                       <h4 className="text-sm font-medium text-gray-500">Company Name</h4>
                       <p className="mt-1">{project.companyName || project.companyId}</p>
                     </div>
-                    {/* Contact info section - using optional properties */}
+                    {/* Contact info section */}
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Contact Person</h4>
-                      <p className="mt-1">{project.manager || 'Not specified'}</p>
+                      <p className="mt-1">{project.managers && project.managers.length > 0 ? project.managers[0] : 'Not specified'}</p>
                     </div>
-                    {/* Only show contact details if they exist */}
-                    {project.contactInfo?.email && project.contactInfo?.phone && (
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-500">Email</h4>
-                          <p className="mt-1">{project.contactInfo?.email}</p>
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-500">Phone</h4>
-                          <p className="mt-1">{project.contactInfo?.phone}</p>
-                        </div>
+                    {/* We don't have these properties in the Project interface, so we'll display a message instead */}
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-500">Contact Information</h4>
+                        <p className="mt-1">Contact details not available in project record</p>
                       </div>
-                    )}
+                    </div>
                   </div>
                 ) : (
                   <p className="text-gray-500">Company information not available</p>
