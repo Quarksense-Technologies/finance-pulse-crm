@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { DollarSign, Users, Briefcase, ArrowUp, ArrowDown } from 'lucide-react';
@@ -122,7 +121,7 @@ const Dashboard = () => {
         
         <StatCard
           title="Active Projects"
-          value={projects.filter(p => p.status === 'active').length}
+          value={projects.filter(p => p.status === 'active' || p.status === 'in-progress').length}
           icon={<Briefcase className="h-6 w-6 text-indigo-600" />}
         />
         

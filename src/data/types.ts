@@ -19,7 +19,7 @@ export interface Project {
   description: string;
   startDate: string;
   endDate: string | null;
-  status: 'planning' | 'in-progress' | 'on-hold' | 'completed' | 'cancelled';
+  status: 'planning' | 'in-progress' | 'active' | 'on-hold' | 'completed' | 'cancelled';
   budget?: number;
   managers?: string[];
   team?: string[];
