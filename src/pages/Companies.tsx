@@ -108,7 +108,7 @@ const Companies = () => {
           filteredCompanies.map((company) => (
             <Link
               to={`/companies/${company.id}`}
-              key={company.id}
+              key={company.id || `company-${company.name}-${company.email}`}
               className="bg-white border border-gray-100 rounded-lg shadow-sm p-6 hoverable"
             >
               <h3 className="text-lg font-semibold">{company.name}</h3>
