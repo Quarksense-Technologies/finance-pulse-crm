@@ -6,14 +6,14 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ArrowDown, Calendar, Plus, User, Users, DollarSign } from 'lucide-react';
-import { projects, companies, payments, expenses } from '@/data/mockData';
-import { Project, Payment, Expense, Resource } from '@/data/types';
+import { Payment, Expense, Resource } from '@/data/types';
 import { formatCurrency, formatDate, calculateProjectRevenue, calculateProjectExpenses, calculateProjectProfit } from '@/utils/financialUtils';
 import { toast } from "@/components/ui/use-toast";
 import StatusBadge from '@/components/ui/StatusBadge';
 import PaymentForm from '@/components/forms/PaymentForm';
 import ExpenseForm from '@/components/forms/ExpenseForm';
 import ResourceForm from '@/components/forms/ResourceForm';
+import { useProject, useAddPayment, useAddExpense, useAddResource } from '@/hooks/api/useProjects';
 
 const ProjectDetails = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -23,11 +23,26 @@ const ProjectDetails = () => {
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   const [isResourceDialogOpen, setIsResourceDialogOpen] = useState(false);
 
-  // Find the project by ID
-  const project = projects.find(p => p.id === projectId);
+  // Use React Query to fetch project data
+  const { data: project, isLoading, error } = useProject(projectId || '');
   
-  // If project not found, redirect or show error
-  if (!project) {
+  // Mutation hooks
+  const addPayment = useAddPayment();
+  const addExpense = useAddExpense();
+  const addResource = useAddResource();
+
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-96">
+        <h2 className="text-xl font-bold mb-4">Loading Project Details...</h2>
+      </div>
+    );
+  }
+  
+  // Handle error state
+  if (error || !project) {
+    console.error("Error loading project:", error);
     return (
       <div className="flex flex-col items-center justify-center h-96">
         <h2 className="text-2xl font-bold mb-4">Project Not Found</h2>
@@ -37,40 +52,43 @@ const ProjectDetails = () => {
     );
   }
 
-  // Get company details
-  const company = companies.find(c => c.id === project.companyId);
-
-  // Get project payments
-  const projectPayments = payments.filter(payment => payment.projectId === projectId);
-  
-  // Get project expenses
-  const projectExpenses = expenses.filter(expense => expense.projectId === projectId);
-
   const handlePaymentSubmit = (formData: Partial<Payment>) => {
-    console.log('Payment submitted:', formData);
-    toast({
-      title: "Payment Added",
-      description: `Payment of ${formatCurrency(formData.amount || 0)} has been recorded.`,
+    if (!projectId) return;
+    
+    addPayment.mutate({ 
+      projectId, 
+      paymentData: formData as Omit<Payment, 'id' | 'projectId'> 
+    }, {
+      onSuccess: () => {
+        setIsPaymentDialogOpen(false);
+      }
     });
-    setIsPaymentDialogOpen(false);
   };
 
   const handleExpenseSubmit = (formData: Partial<Expense>) => {
-    console.log('Expense submitted:', formData);
-    toast({
-      title: "Expense Added",
-      description: `Expense of ${formatCurrency(formData.amount || 0)} has been recorded.`,
+    if (!projectId) return;
+    
+    addExpense.mutate({ 
+      projectId, 
+      expenseData: formData as Omit<Expense, 'id' | 'projectId'> 
+    }, {
+      onSuccess: () => {
+        setIsExpenseDialogOpen(false);
+      }
     });
-    setIsExpenseDialogOpen(false);
   };
 
   const handleResourceSubmit = (formData: Partial<Resource>) => {
-    console.log('Resource submitted:', formData);
-    toast({
-      title: "Resource Assigned",
-      description: `${formData.name} has been assigned to this project.`,
+    if (!projectId) return;
+    
+    addResource.mutate({ 
+      projectId, 
+      resourceData: formData as Omit<Resource, 'id' | 'projectId'> 
+    }, {
+      onSuccess: () => {
+        setIsResourceDialogOpen(false);
+      }
     });
-    setIsResourceDialogOpen(false);
   };
 
   return (
@@ -89,7 +107,7 @@ const ProjectDetails = () => {
           <div>
             <h1 className="text-2xl font-bold">{project.name}</h1>
             <p className="text-gray-500 mt-1">
-              {company ? company.name : 'Unknown Company'} • Started {formatDate(project.startDate)}
+              {project.companyName || project.company} • Started {formatDate(project.startDate)}
             </p>
           </div>
           <div className="mt-4 md:mt-0 flex flex-wrap gap-2">
@@ -200,7 +218,7 @@ const ProjectDetails = () => {
             <Users className="w-8 h-8 text-purple-500" />
             <div className="ml-4">
               <h3 className="text-sm font-medium text-gray-500">Resources</h3>
-              <p className="text-xl font-semibold">{project.resources.length}</p>
+              <p className="text-xl font-semibold">{project.resources?.length || 0}</p>
             </div>
           </div>
         </div>
@@ -267,26 +285,28 @@ const ProjectDetails = () => {
               
               <div>
                 <h3 className="text-lg font-semibold mb-3">Company Information</h3>
-                {company ? (
+                {project.company ? (
                   <div className="space-y-4">
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Company Name</h4>
-                      <p className="mt-1">{company.name}</p>
+                      <p className="mt-1">{project.companyName || project.company}</p>
                     </div>
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Contact Person</h4>
-                      <p className="mt-1">{company.contactPerson}</p>
+                      <p className="mt-1">{project.contactPerson || 'Not specified'}</p>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-500">Email</h4>
-                        <p className="mt-1">{company.email}</p>
+                    {project.contactEmail && project.contactPhone && (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-500">Email</h4>
+                          <p className="mt-1">{project.contactEmail}</p>
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-500">Phone</h4>
+                          <p className="mt-1">{project.contactPhone}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-500">Phone</h4>
-                        <p className="mt-1">{company.phone}</p>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 ) : (
                   <p className="text-gray-500">Company information not available</p>
@@ -321,7 +341,7 @@ const ProjectDetails = () => {
               </Dialog>
             </div>
             
-            {projectPayments.length > 0 ? (
+            {project.payments && project.payments.length > 0 ? (
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -333,7 +353,7 @@ const ProjectDetails = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {projectPayments.map((payment) => (
+                    {project.payments.map((payment) => (
                       <TableRow key={payment.id}>
                         <TableCell>{formatDate(payment.date)}</TableCell>
                         <TableCell>{payment.description}</TableCell>
@@ -383,7 +403,7 @@ const ProjectDetails = () => {
               </Dialog>
             </div>
             
-            {projectExpenses.length > 0 ? (
+            {project.expenses && project.expenses.length > 0 ? (
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -395,7 +415,7 @@ const ProjectDetails = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {projectExpenses.map((expense) => (
+                    {project.expenses.map((expense) => (
                       <TableRow key={expense.id}>
                         <TableCell>{formatDate(expense.date)}</TableCell>
                         <TableCell>
@@ -445,7 +465,7 @@ const ProjectDetails = () => {
               </Dialog>
             </div>
             
-            {project.resources.length > 0 ? (
+            {project.resources && project.resources.length > 0 ? (
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>

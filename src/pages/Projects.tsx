@@ -44,14 +44,9 @@ const Projects = () => {
     const lowercaseQuery = searchQuery.toLowerCase();
     return (
       project.name.toLowerCase().includes(lowercaseQuery) ||
-      project.description.toLowerCase().includes(lowercaseQuery)
+      (project.description && project.description.toLowerCase().includes(lowercaseQuery))
     );
   });
-
-  // Get company name by ID
-  const getCompanyName = (companyId: string): string => {
-    return companyId; // This will be replaced by company name in the API response
-  };
 
   const handleAddProject = (projectData: Partial<Project>) => {
     createProject.mutate(projectData as any, {
@@ -198,8 +193,8 @@ const Projects = () => {
         ) : (
           filteredProjects.map((project) => (
             <Link
-              to={`/projects/${project.id}`}
-              key={project.id}
+              to={`/projects/${project._id}`}
+              key={project._id}
               className="bg-white border border-gray-100 rounded-lg shadow-sm p-6 hoverable"
             >
               <div className="flex justify-between items-start">
@@ -219,13 +214,13 @@ const Projects = () => {
               
               <div className="mt-1 flex items-center text-sm text-gray-500">
                 <Users className="w-4 h-4 mr-1" />
-                <span>{project.manpowerAllocated} hours allocated</span>
+                <span>{project.manpowerAllocated || 0} hours allocated</span>
               </div>
               
               <div className="mt-4 border-t border-gray-100 pt-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Company:</span>
-                  <span className="font-medium">{project.companyName || getCompanyName(project.companyId)}</span>
+                  <span className="font-medium">{project.companyName || project.company}</span>
                 </div>
                 
                 <div className="flex justify-between text-sm mt-1">
@@ -234,7 +229,7 @@ const Projects = () => {
                     calculateProjectProfit(project) >= 0 ? 'text-green-600' : 'text-red-600'
                   }`}>
                     {calculateProjectProfit(project) >= 0 ? '+' : ''}
-                    ${calculateProjectProfit(project).toLocaleString()}
+                    {formatCurrency(calculateProjectProfit(project))}
                   </span>
                 </div>
               </div>
