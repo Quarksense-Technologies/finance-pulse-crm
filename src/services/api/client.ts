@@ -3,7 +3,7 @@ import axios from 'axios';
 import { toast } from "@/components/ui/use-toast";
 
 // Get API URL from environment variables
-const API_URL = import.meta.env.VITE_API_URL || 'https://bms.quarksense.in/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 console.log('Using API URL:', API_URL);
 
