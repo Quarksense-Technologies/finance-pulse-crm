@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Search, Plus } from 'lucide-react';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Company } from '@/data/types';
@@ -11,6 +11,7 @@ import { useCompanies, useCreateCompany } from '@/hooks/api/useCompanies';
 const Companies = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const navigate = useNavigate();
   
   // Use React Query to fetch companies
   const { data: companies = [], isLoading, error } = useCompanies();
@@ -47,6 +48,24 @@ const Companies = () => {
         });
       }
     });
+  };
+  
+  // Handle company card click with validation
+  const handleCompanyClick = (company: Company, e: React.MouseEvent) => {
+    e.preventDefault();
+    
+    // Prevent navigation if company ID is invalid
+    if (!company.id) {
+      toast({
+        title: "Navigation Error",
+        description: "Cannot view details for this company due to missing ID.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Navigate to company details if ID is valid
+    navigate(`/companies/${company.id}`);
   };
 
   if (isLoading) {
@@ -113,10 +132,10 @@ const Companies = () => {
             }
             
             return (
-              <Link
-                to={`/companies/${company.id}`}
+              <div
                 key={company.id}
-                className="bg-white border border-gray-100 rounded-lg shadow-sm p-6 hoverable"
+                className="bg-white border border-gray-100 rounded-lg shadow-sm p-6 hoverable cursor-pointer"
+                onClick={(e) => handleCompanyClick(company, e)}
               >
                 <h3 className="text-lg font-semibold">{company.name}</h3>
                 <div className="mt-4 space-y-2 text-sm">
@@ -137,7 +156,7 @@ const Companies = () => {
                     <span className="font-medium">{company.projects?.length || 0}</span>
                   </div>
                 </div>
-              </Link>
+              </div>
             );
           }).filter(Boolean) // Filter out null items (companies without IDs)
         )}

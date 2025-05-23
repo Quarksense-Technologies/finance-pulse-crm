@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,24 @@ const CompanyDetails = () => {
   // Log for debugging
   console.log('CompanyDetails - companyId param:', companyId);
   
-  // Check for invalid ID early
+  // Initialize all hooks regardless of companyId validity
+  // This ensures hooks are always called in the same order
+  const { data: company, isLoading: isCompanyLoading, error: companyError } = useCompany(companyId || '');
+  const { data: projects = [], isLoading: isProjectsLoading, error: projectsError } = useProjects({ 
+    companyId: companyId || ''
+  });
+  
+  // Handler function
+  const handleAddProject = () => {
+    navigate('/projects', { 
+      state: { 
+        companyId: companyId,
+        openDialog: true
+      }
+    });
+  };
+
+  // Now handle rendering based on conditions - after ALL hooks are called
   if (!companyId || companyId === 'undefined') {
     return (
       <div className="flex flex-col items-center justify-center h-96">
@@ -25,24 +43,6 @@ const CompanyDetails = () => {
       </div>
     );
   }
-  
-  // Get company data from API
-  const { data: company, isLoading: isCompanyLoading, error: companyError } = useCompany(companyId);
-  
-  // Get company projects from API
-  const { data: projects = [], isLoading: isProjectsLoading, error: projectsError } = useProjects({ 
-    companyId: companyId 
-  });
-  
-  const handleAddProject = () => {
-    // Navigate to projects page with state information
-    navigate('/projects', { 
-      state: { 
-        companyId: companyId,
-        openDialog: true
-      }
-    });
-  };
   
   // Show loading state
   if (isCompanyLoading || isProjectsLoading) {
@@ -80,6 +80,7 @@ const CompanyDetails = () => {
   const totalManpower = projects.reduce((sum, project) => 
     sum + (project.resources?.reduce((sum, resource) => sum + resource.hoursAllocated, 0) || 0), 0);
 
+  // Render the main component after all conditions are checked
   return (
     <div className="animate-fade-in">
       {/* Back button and header */}

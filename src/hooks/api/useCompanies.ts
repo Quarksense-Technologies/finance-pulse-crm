@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { companyService } from '@/services/api/companyService';
 import { toast } from "@/components/ui/use-toast";
@@ -13,13 +14,13 @@ export const useCompany = (id: string) => {
   return useQuery({
     queryKey: ['company', id],
     queryFn: () => companyService.getCompanyById(id),
-    enabled: !!id && id !== 'undefined', // Only run if id is valid
+    // Only enable the query if id is valid
+    enabled: !!id && id !== 'undefined', 
+    // Don't retry 404 errors or bad requests due to invalid IDs
     retry: (failureCount, error) => {
-      // Don't retry 404 errors
-      if ((error as any)?.response?.status === 404) {
+      if ((error as any)?.response?.status === 404 || (error as any)?.response?.status === 400) {
         return false;
       }
-      // Retry other errors up to 2 times
       return failureCount < 2;
     },
   });
