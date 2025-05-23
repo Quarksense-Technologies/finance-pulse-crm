@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -8,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from '@/hooks/useAuth';
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Database, Info } from "lucide-react";
+import { AlertCircle, Database, Info, Shield } from "lucide-react";
 import { isMongoDbTimeoutError } from '@/services/api/client';
 
 const Login = () => {
@@ -18,6 +17,7 @@ const Login = () => {
   const [networkError, setNetworkError] = React.useState(false);
   const [databaseError, setDatabaseError] = React.useState(false);
   const [isPreviewEnvironment, setIsPreviewEnvironment] = React.useState(false);
+  const [mixedContentError, setMixedContentError] = React.useState(false);
   
   React.useEffect(() => {
     // Check if we're running in the Lovable preview environment
@@ -27,6 +27,12 @@ const Login = () => {
     // If we're in the preview environment, show a network error by default
     if (isLovablePreview) {
       setNetworkError(true);
+    }
+    
+    // Check if we're on HTTPS but the API URL is HTTP
+    const apiUrl = import.meta.env.VITE_API_URL || '';
+    if (window.location.protocol === 'https:' && apiUrl.startsWith('http:')) {
+      setMixedContentError(true);
     }
   }, []);
   
@@ -44,6 +50,7 @@ const Login = () => {
     setIsLoading(true);
     setNetworkError(false);
     setDatabaseError(false);
+    setMixedContentError(false);
     try {
       console.log('Login attempt with:', { email: data.email });
       await login(data.email, data.password);
@@ -55,6 +62,11 @@ const Login = () => {
       navigate('/');
     } catch (error) {
       console.error('Login failed with error:', error);
+      
+      // Check for mixed content error
+      if (error instanceof Error && error.message.includes('Mixed Content')) {
+        setMixedContentError(true);
+      }
       
       // Check if we're in the preview environment
       if (window.location.hostname.includes('lovable.app')) {
@@ -95,6 +107,18 @@ const Login = () => {
       <div className="p-8 bg-white rounded-lg shadow-md border border-gray-200 w-full max-w-md">
         <h1 className="text-2xl font-bold text-center mb-6 text-primary">Business CRM</h1>
         <h2 className="text-xl font-semibold mb-6">Log in to your account</h2>
+        
+        {mixedContentError && (
+          <Alert variant="destructive" className="mb-4">
+            <Shield className="h-4 w-4" />
+            <AlertTitle>Security Error</AlertTitle>
+            <AlertDescription>
+              The app is loaded over HTTPS, but the API URL is using HTTP. 
+              This causes a mixed content security error. The API must use HTTPS as well.
+              Please update your API server to support HTTPS or update the VITE_API_URL environment variable.
+            </AlertDescription>
+          </Alert>
+        )}
         
         {isPreviewEnvironment && (
           <Alert className="mb-4 bg-blue-50 border-blue-200">

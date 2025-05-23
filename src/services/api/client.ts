@@ -2,8 +2,14 @@
 import axios from 'axios';
 import { toast } from "@/components/ui/use-toast";
 
-// Use the API URL from environment variables
-const API_URL = import.meta.env.VITE_API_URL || 'http://65.0.4.219:5000/api';
+// Get API URL from environment variables and ensure it uses HTTPS
+let API_URL = import.meta.env.VITE_API_URL || 'https://65.0.4.219:5000/api';
+
+// Convert API_URL to HTTPS if it's using HTTP and we're on a secure connection
+if (API_URL.startsWith('http:') && window.location.protocol === 'https:') {
+  API_URL = API_URL.replace('http:', 'https:');
+  console.log('Converted API URL to HTTPS:', API_URL);
+}
 
 console.log('Using API URL:', API_URL);
 
@@ -33,6 +39,16 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     console.error('API Error:', error);
+    
+    // Check if this is a mixed content error
+    if (error.message && error.message.includes('Mixed Content')) {
+      toast({
+        title: "Security Error",
+        description: "Mixed content error. The API must be accessed over HTTPS when the app is loaded securely.",
+        variant: "destructive"
+      });
+      return Promise.reject(error);
+    }
     
     // Check if the error is due to network issues
     if (!error.response) {
