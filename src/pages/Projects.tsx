@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Search, Plus, Calendar, Users } from 'lucide-react';
@@ -158,13 +159,13 @@ const Projects = () => {
         </button>
         <button
           className={`pb-2 px-4 ${
-            statusFilter === 'active'
+            statusFilter === 'in-progress'
               ? 'border-b-2 border-primary text-primary'
               : 'text-gray-500 hover:text-gray-700'
           }`}
-          onClick={() => setStatusFilter('active')}
+          onClick={() => setStatusFilter('in-progress')}
         >
-          Active
+          In Progress
         </button>
         <button
           className={`pb-2 px-4 ${
