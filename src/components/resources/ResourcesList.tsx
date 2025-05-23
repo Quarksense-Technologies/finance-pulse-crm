@@ -16,6 +16,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+interface ProjectInfo {
+  id: string;
+  name: string;
+}
+
 const ResourcesList = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [resourceToDelete, setResourceToDelete] = useState<string | null>(null);
@@ -44,6 +49,16 @@ const ResourcesList = () => {
         setDeleteDialogOpen(false);
       }
     }
+  };
+
+  const renderProjectName = (projectId: any): string => {
+    if (!projectId) return 'Unknown Project';
+    
+    if (typeof projectId === 'object' && projectId !== null) {
+      return 'name' in projectId ? String(projectId.name) : 'Unnamed Project';
+    }
+    
+    return String(projectId);
   };
 
   return (
@@ -117,13 +132,7 @@ const ResourcesList = () => {
               </div>
               
               <div className="mt-2 text-xs text-gray-500">
-                Project: {
-                  resource.projectId 
-                    ? (typeof resource.projectId === 'object' && resource.projectId && 'name' in resource.projectId 
-                        ? resource.projectId.name 
-                        : resource.projectId)
-                    : 'Unknown Project'
-                }
+                Project: {renderProjectName(resource.projectId)}
               </div>
             </div>
           ))}
