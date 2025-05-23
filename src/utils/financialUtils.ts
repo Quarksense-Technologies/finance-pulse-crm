@@ -36,9 +36,9 @@ export const calculateOverduePayments = (project: Project): number => {
     payment.status === 'overdue' ? sum + payment.amount : sum, 0);
 };
 
-// Format currency 
+// Format currency with INR (Indian Rupee) symbol
 export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',
     minimumFractionDigits: 0,

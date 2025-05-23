@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Trash2, Edit, Calendar, DollarSign } from 'lucide-react';
+import { Trash2, Edit, Calendar, IndianRupee } from 'lucide-react';
 import { formatDate, formatCurrency } from '@/utils/financialUtils';
 import { Button } from "@/components/ui/button";
 import { useResources, useDeleteResource } from '@/hooks/api/useResources';
@@ -114,7 +114,7 @@ const ResourcesList = () => {
                   </span>
                 </div>
                 <div className="flex items-center text-sm text-gray-600">
-                  <DollarSign className="h-4 w-4 mr-2" />
+                  <IndianRupee className="h-4 w-4 mr-2" />
                   <span>{formatCurrency(resource.hourlyRate)} / hour</span>
                 </div>
               </div>

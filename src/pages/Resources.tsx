@@ -1,10 +1,9 @@
 
 import React, { useState } from 'react';
-import { Users } from 'lucide-react';
+import { Users, IndianRupee } from 'lucide-react';
 import ManpowerResourceForm from '@/components/resources/ManpowerResourceForm';
 import ResourcesList from '@/components/resources/ResourcesList';
 import { useQuery } from '@tanstack/react-query';
-import { resourceService } from '@/services/api/resourceService';
 import { resourceSummaryService, ResourceSummary } from '@/services/api/resourceSummaryService';
 import { formatCurrency } from '@/utils/financialUtils';
 
@@ -67,7 +66,7 @@ const Resources = () => {
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
           <div className="flex items-center">
             <div className="p-2 bg-purple-100 rounded-full">
-              <Users className="h-6 w-6 text-purple-600" />
+              <IndianRupee className="h-6 w-6 text-purple-600" />
             </div>
             <div className="ml-4">
               <h3 className="text-sm font-medium text-gray-500">Average Hourly Cost</h3>
