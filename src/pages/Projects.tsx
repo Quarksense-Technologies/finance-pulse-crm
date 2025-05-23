@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Search, Plus, Calendar, Users } from 'lucide-react';
@@ -119,7 +118,7 @@ const Projects = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <button 
                 className="bg-primary text-white px-4 py-2 rounded-lg inline-flex items-center"
