@@ -6,9 +6,10 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import { Project } from '@/data/types';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { formatDate, getProjectStatusColor, calculateProjectProfit, formatCurrency } from '@/utils/financialUtils';
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import ProjectForm from '@/components/forms/ProjectForm';
 import { useProjects, useCreateProject } from '@/hooks/api/useProjects';
+import { useAuth } from '@/hooks/useAuth';
 
 const Projects = () => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const Projects = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | undefined>(undefined);
+  const { isAuthenticated } = useAuth();
   
   // Get the companyId from location state if available
   useEffect(() => {
@@ -43,7 +45,7 @@ const Projects = () => {
     
     const lowercaseQuery = searchQuery.toLowerCase();
     return (
-      project.name.toLowerCase().includes(lowercaseQuery) ||
+      project.name?.toLowerCase().includes(lowercaseQuery) ||
       (project.description && project.description.toLowerCase().includes(lowercaseQuery))
     );
   });
@@ -85,14 +87,26 @@ const Projects = () => {
     setSelectedCompanyId(undefined);
   };
 
+  if (!isAuthenticated) {
+    return <div className="flex justify-center items-center h-64">Please login to view projects...</div>;
+  }
+
   if (isLoading) {
     return <div className="flex justify-center items-center h-64">Loading projects...</div>;
   }
 
   if (error) {
     return (
-      <div className="flex justify-center items-center h-64 text-red-500">
-        Error loading projects: {(error as any).message}
+      <div className="flex flex-col justify-center items-center h-64">
+        <div className="text-red-500 mb-4">
+          Error loading projects: {(error as any).message || "Failed to load projects"}
+        </div>
+        <button 
+          onClick={() => navigate('/login')} 
+          className="px-4 py-2 bg-primary text-white rounded-md"
+        >
+          Return to Login
+        </button>
       </div>
     );
   }
@@ -134,6 +148,7 @@ const Projects = () => {
               <ProjectForm 
                 onSubmit={handleAddProject} 
                 preselectedCompanyId={selectedCompanyId}
+                onCancel={handleCloseDialog}
               />
             </DialogContent>
           </Dialog>

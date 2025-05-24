@@ -1,5 +1,5 @@
 
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import apiClient from './client';
 import { Project, Payment, Expense, Resource } from '@/data/types';
 
@@ -26,13 +26,15 @@ export interface UpdateProjectData {
 export const projectService = {
   async getProjects(filters?: { status?: string; companyId?: string }): Promise<Project[]> {
     try {
+      console.log('Fetching projects with filters:', filters);
       const response = await apiClient.get('/projects', { params: filters });
+      console.log('Projects response:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('Error fetching projects:', error);
       toast({
         title: "Error",
-        description: "Failed to load projects",
+        description: "Failed to load projects: " + (error.response?.data?.message || error.message),
         variant: "destructive"
       });
       throw error;
@@ -41,13 +43,15 @@ export const projectService = {
 
   async getProjectById(id: string): Promise<Project> {
     try {
+      console.log(`Fetching project details for ID: ${id}`);
       const response = await apiClient.get(`/projects/${id}`);
+      console.log('Project details response:', response.data);
       return response.data;
     } catch (error: any) {
       console.error(`Error fetching project ${id}:`, error);
       toast({
         title: "Error",
-        description: "Failed to load project details",
+        description: "Failed to load project details: " + (error.response?.data?.message || error.message),
         variant: "destructive"
       });
       throw error;
@@ -75,6 +79,7 @@ export const projectService = {
 
   async updateProject(id: string, projectData: UpdateProjectData): Promise<Project> {
     try {
+      console.log(`Updating project ${id} with data:`, projectData);
       const response = await apiClient.put(`/projects/${id}`, projectData);
       toast({
         title: "Success",

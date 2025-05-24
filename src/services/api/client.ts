@@ -1,120 +1,60 @@
 
 import axios from 'axios';
-import { toast } from "@/components/ui/use-toast";
-
-// Get API URL from environment variables
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-
-console.log('Using API URL:', API_URL);
+import { toast } from "@/hooks/use-toast";
 
 const apiClient = axios.create({
-  baseURL: API_URL,
+  baseURL: 'https://bms.quarksense.in/api',
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
-  },
-  // Add a timeout to prevent hanging requests
-  timeout: 15000,
+  }
 });
 
-// Add a request interceptor for auth token
+// Add a request interceptor to add the auth token
 apiClient.interceptors.request.use(
-  (config) => {
+  config => {
     const token = localStorage.getItem('token');
     if (token) {
-      // Format: Bearer <token> as specified in the API docs
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  error => {
+    return Promise.reject(error);
+  }
 );
 
-// Handle API responses
+// Add a response interceptor to handle common errors and refresh token
 apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error('API Error:', error);
+  response => {
+    return response;
+  },
+  error => {
+    const originalRequest = error.config;
     
-    // Check if this is a network error
-    if (!error.response) {
-      toast({
-        title: "Network Error",
-        description: "Cannot connect to the API server. Please check your internet connection and ensure the API server is running.",
-        variant: "destructive"
-      });
-      return Promise.reject(error);
-    }
-    
-    // Get the error message from the API response or use a default
-    const errorMessage = error.response?.data?.message || 'An unknown error occurred';
-    
-    if (error.response.status === 401) {
-      // Clear auth state
+    // Handle authentication errors
+    if (error.response && error.response.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      
+      // Clear token and redirect to login
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       
-      // Redirect to login only if not already on login page
-      const isLoginPage = window.location.pathname === '/login';
-      if (!isLoginPage) {
-        window.location.href = '/login';
+      if (window.location.pathname !== '/login') {
         toast({
-          title: "Session Expired",
-          description: "Please log in again to continue.",
+          title: "Session expired",
+          description: "Please login again to continue",
           variant: "destructive"
         });
+        
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 1000);
       }
-    } else if (error.response.status === 404) {
-      console.warn('API endpoint not found:', error.config.url);
-      toast({
-        title: "Resource Not Found",
-        description: errorMessage,
-        variant: "destructive"
-      });
-    } else if (error.response.status === 500) {
-      console.error('Server Error:', error.response.data);
-      
-      // Check if this is a MongoDB connection timeout issue
-      const isMongoDBTimeout = errorMessage.includes('buffering timed out') || 
-                              errorMessage.includes('Operation') && 
-                              errorMessage.includes('timed out');
-      
-      if (isMongoDBTimeout) {
-        toast({
-          title: "Database Connection Error",
-          description: "The server couldn't connect to the database. The database might be starting up or experiencing issues.",
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: "Server Error",
-          description: "The server encountered an error. Please try again later or contact support.",
-          variant: "destructive"
-        });
-      }
-    } else {
-      // Handle other status codes
-      toast({
-        title: `Error (${error.response.status})`,
-        description: errorMessage,
-        variant: "destructive"
-      });
     }
     
     return Promise.reject(error);
   }
 );
-
-// Add a helper method to check if an error is a specific HTTP status code
-export const isHttpError = (error: any, statusCode: number): boolean => {
-  return error?.response?.status === statusCode;
-};
-
-// Helper to check if error is a specific type
-export const isMongoDbTimeoutError = (error: any): boolean => {
-  const errorMessage = error?.response?.data?.message || '';
-  return error?.response?.status === 500 && 
-         (errorMessage.includes('buffering timed out') || 
-          (errorMessage.includes('Operation') && errorMessage.includes('timed out')));
-};
 
 export default apiClient;
