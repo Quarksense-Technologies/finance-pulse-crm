@@ -1,13 +1,15 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, Plus, Calendar, Users } from 'lucide-react';
+import { Search, Plus, Calendar, Users, Trash2 } from 'lucide-react';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Project } from '@/data/types';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { formatDate, getProjectStatusColor, calculateProjectProfit, formatCurrency } from '@/utils/financialUtils';
 import { toast } from "@/hooks/use-toast";
 import ProjectForm from '@/components/forms/ProjectForm';
-import { useProjects, useCreateProject } from '@/hooks/api/useProjects';
+import { useProjects, useCreateProject, useDeleteProject } from '@/hooks/api/useProjects';
 import { useAuth } from '@/hooks/useAuth';
 
 const Projects = () => {
@@ -17,40 +19,35 @@ const Projects = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | undefined>(undefined);
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, hasPermission } = useAuth();
+  const canDeleteProject = hasPermission('delete_project');
   
-  // Debug logging
   console.log('Projects page - Auth state:', { isAuthenticated, user });
   console.log('Projects page - Token exists:', !!localStorage.getItem('token'));
   
-  // Get the companyId from location state if available
   useEffect(() => {
     if (location.state?.companyId) {
       setSelectedCompanyId(location.state.companyId);
-      // Open dialog if we're coming from a "Add Project" action elsewhere
       if (location.state.openDialog) {
         setIsDialogOpen(true);
       }
     }
   }, [location.state]);
   
-  // Use React Query to fetch projects
   const { data: projects = [], isLoading, error, refetch } = useProjects({
     status: statusFilter !== 'all' ? statusFilter : undefined
   });
   
-  // Debug logging
+  const createProject = useCreateProject();
+  const deleteProject = useDeleteProject();
+
   console.log('Projects data:', { 
     projects, 
     isLoading, 
     error: error?.message || error,
     projectsCount: projects.length 
   });
-  
-  // Mutation hook for creating projects
-  const createProject = useCreateProject();
 
-  // Filter projects by search query
   const filteredProjects = projects.filter(project => {
     if (searchQuery.trim() === '') return true;
     
@@ -66,25 +63,18 @@ const Projects = () => {
     
     createProject.mutate(projectData as any, {
       onSuccess: () => {
-        toast({
-          title: "Project Added",
-          description: `${projectData.name} has been added successfully.`,
-        });
         setIsDialogOpen(false);
-        // Clear the location state after successful addition
         navigate('.', { replace: true, state: {} });
-        // Reset selected company
         setSelectedCompanyId(undefined);
-        // Refetch projects
         refetch();
-      },
-      onError: (error: any) => {
-        console.error('Error creating project:', error);
-        toast({
-          title: "Error",
-          description: error.response?.data?.message || error.message || "Failed to add project",
-          variant: "destructive"
-        });
+      }
+    });
+  };
+
+  const handleDeleteProject = (projectId: string, projectName: string) => {
+    deleteProject.mutate(projectId, {
+      onSuccess: () => {
+        refetch();
       }
     });
   };
@@ -98,7 +88,6 @@ const Projects = () => {
 
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
-    // Clear location state and selected company when closing dialog
     navigate('.', { replace: true, state: {} });
     setSelectedCompanyId(undefined);
   };
@@ -108,7 +97,6 @@ const Projects = () => {
     refetch();
   };
 
-  // Check if user is not authenticated
   if (!isAuthenticated || !localStorage.getItem('token')) {
     console.log('User not authenticated, redirecting to login');
     return (
@@ -211,46 +199,21 @@ const Projects = () => {
 
       {/* Filter tabs */}
       <div className="flex border-b border-gray-200 mb-6">
-        <button
-          className={`pb-2 px-4 ${
-            statusFilter === 'all'
-              ? 'border-b-2 border-primary text-primary'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-          onClick={() => setStatusFilter('all')}
-        >
-          All
-        </button>
-        <button
-          className={`pb-2 px-4 ${
-            statusFilter === 'in-progress'
-              ? 'border-b-2 border-primary text-primary'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-          onClick={() => setStatusFilter('in-progress')}
-        >
-          In Progress
-        </button>
-        <button
-          className={`pb-2 px-4 ${
-            statusFilter === 'completed'
-              ? 'border-b-2 border-primary text-primary'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-          onClick={() => setStatusFilter('completed')}
-        >
-          Completed
-        </button>
-        <button
-          className={`pb-2 px-4 ${
-            statusFilter === 'on-hold'
-              ? 'border-b-2 border-primary text-primary'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-          onClick={() => setStatusFilter('on-hold')}
-        >
-          On Hold
-        </button>
+        {['all', 'in-progress', 'completed', 'on-hold'].map((filter) => (
+          <button
+            key={filter}
+            className={`pb-2 px-4 ${
+              statusFilter === filter
+                ? 'border-b-2 border-primary text-primary'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+            onClick={() => setStatusFilter(filter)}
+          >
+            {filter === 'all' ? 'All' : filter.split('-').map(word => 
+              word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ')}
+          </button>
+        ))}
       </div>
 
       {/* Projects Grid */}
@@ -266,48 +229,78 @@ const Projects = () => {
           </div>
         ) : (
           filteredProjects.map((project) => (
-            <Link
-              to={`/projects/${project.id}`}
+            <div
               key={project.id}
-              className="bg-white border border-gray-100 rounded-lg shadow-sm p-6 hoverable"
+              className="bg-white border border-gray-100 rounded-lg shadow-sm p-6 hoverable relative"
             >
-              <div className="flex justify-between items-start">
-                <h3 className="text-lg font-semibold">{project.name}</h3>
-                <StatusBadge 
-                  status={project.status} 
-                  colorClassName={getProjectStatusColor(project.status)} 
-                />
-              </div>
-              
-              <p className="text-sm text-gray-600 mt-2 line-clamp-2">{project.description}</p>
-              
-              <div className="mt-4 flex items-center text-sm text-gray-500">
-                <Calendar className="w-4 h-4 mr-1" />
-                <span>{formatDate(project.startDate)} - {project.endDate ? formatDate(project.endDate) : 'Ongoing'}</span>
-              </div>
-              
-              <div className="mt-1 flex items-center text-sm text-gray-500">
-                <Users className="w-4 h-4 mr-1" />
-                <span>{project.manpowerAllocated || 0} hours allocated</span>
-              </div>
-              
-              <div className="mt-4 border-t border-gray-100 pt-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Company:</span>
-                  <span className="font-medium">{project.companyName || 'Unknown Company'}</span>
+              {canDeleteProject && (
+                <div className="absolute top-4 right-4">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <button className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Project</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete "{project.name}"? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDeleteProject(project.id, project.name)}
+                          className="bg-red-500 hover:bg-red-600"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              )}
+
+              <Link to={`/projects/${project.id}`} className="block">
+                <div className="flex justify-between items-start pr-8">
+                  <h3 className="text-lg font-semibold">{project.name}</h3>
+                  <StatusBadge 
+                    status={project.status} 
+                    colorClassName={getProjectStatusColor(project.status)} 
+                  />
                 </div>
                 
-                <div className="flex justify-between text-sm mt-1">
-                  <span className="text-gray-500">Profit:</span>
-                  <span className={`font-medium ${
-                    calculateProjectProfit(project) >= 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {calculateProjectProfit(project) >= 0 ? '+' : ''}
-                    {formatCurrency(calculateProjectProfit(project))}
-                  </span>
+                <p className="text-sm text-gray-600 mt-2 line-clamp-2">{project.description}</p>
+                
+                <div className="mt-4 flex items-center text-sm text-gray-500">
+                  <Calendar className="w-4 h-4 mr-1" />
+                  <span>{formatDate(project.startDate)} - {project.endDate ? formatDate(project.endDate) : 'Ongoing'}</span>
                 </div>
-              </div>
-            </Link>
+                
+                <div className="mt-1 flex items-center text-sm text-gray-500">
+                  <Users className="w-4 h-4 mr-1" />
+                  <span>{project.manpowerAllocated || 0} hours allocated</span>
+                </div>
+                
+                <div className="mt-4 border-t border-gray-100 pt-4">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Company:</span>
+                    <span className="font-medium">{project.companyName || 'Unknown Company'}</span>
+                  </div>
+                  
+                  <div className="flex justify-between text-sm mt-1">
+                    <span className="text-gray-500">Profit:</span>
+                    <span className={`font-medium ${
+                      calculateProjectProfit(project) >= 0 ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {calculateProjectProfit(project) >= 0 ? '+' : ''}
+                      {formatCurrency(calculateProjectProfit(project))}
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            </div>
           ))
         )}
       </div>

@@ -1,6 +1,7 @@
 
 import apiClient from './client';
 import { Company } from '@/data/types';
+import { toast } from "@/hooks/use-toast";
 
 export interface CreateCompanyData {
   name: string;
@@ -44,7 +45,6 @@ export const companyService = {
   async getCompanies(): Promise<Company[]> {
     try {
       const response = await apiClient.get('/companies');
-      // Transform API response to match our frontend Company type
       return response.data.map((company: any) => ({
         id: company._id || company.id,
         name: company.name,
@@ -66,7 +66,6 @@ export const companyService = {
 
   async getCompanyById(id: string): Promise<Company> {
     try {
-      // Early validation to avoid making API calls with invalid IDs
       if (!id || id === 'undefined') {
         const error = new Error('Invalid company ID');
         (error as any).status = 400;
@@ -74,7 +73,6 @@ export const companyService = {
       }
       
       const response = await apiClient.get(`/companies/${id}`);
-      // Transform API response to match our frontend Company type
       return {
         id: response.data._id || response.data.id,
         name: response.data.name || 'Unnamed Company',
@@ -97,7 +95,12 @@ export const companyService = {
   async createCompany(companyData: CreateCompanyData): Promise<Company> {
     try {
       const response = await apiClient.post('/companies', companyData);
-      // Transform API response to match our frontend Company type
+      
+      toast({
+        title: "Success",
+        description: "Company created successfully",
+      });
+      
       return {
         id: response.data._id || response.data.id,
         name: response.data.name,
@@ -113,6 +116,14 @@ export const companyService = {
       };
     } catch (error: any) {
       console.error('Error creating company:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to create company';
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive"
+      });
+      
       throw error;
     }
   },
@@ -123,7 +134,12 @@ export const companyService = {
         throw new Error('Invalid company ID for update');
       }
       const response = await apiClient.put(`/companies/${id}`, companyData);
-      // Transform API response to match our frontend Company type
+      
+      toast({
+        title: "Success",
+        description: "Company updated successfully",
+      });
+      
       return {
         id: response.data._id || response.data.id,
         name: response.data.name,
@@ -139,6 +155,14 @@ export const companyService = {
       };
     } catch (error: any) {
       console.error(`Error updating company ${id}:`, error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to update company';
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive"
+      });
+      
       throw error;
     }
   },
@@ -148,9 +172,24 @@ export const companyService = {
       if (!id || id === 'undefined') {
         throw new Error('Invalid company ID for deletion');
       }
+      
+      console.log(`Deleting company ${id}`);
       await apiClient.delete(`/companies/${id}`);
+      
+      toast({
+        title: "Success",
+        description: "Company deleted successfully",
+      });
     } catch (error: any) {
       console.error(`Error deleting company ${id}:`, error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to delete company';
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive"
+      });
+      
       throw error;
     }
   }

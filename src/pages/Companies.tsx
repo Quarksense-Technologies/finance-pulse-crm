@@ -1,12 +1,13 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus } from 'lucide-react';
+import { Search, Plus, Trash2, Edit } from 'lucide-react';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Company } from '@/data/types';
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import CompanyForm from '@/components/forms/CompanyForm';
-import { useCompanies, useCreateCompany } from '@/hooks/api/useCompanies';
+import { useCompanies, useCreateCompany, useDeleteCompany } from '@/hooks/api/useCompanies';
 import { useAuth } from '@/hooks/useAuth';
 
 const Companies = () => {
@@ -15,14 +16,12 @@ const Companies = () => {
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
   const canAddCompany = hasPermission('add_company');
+  const canDeleteCompany = hasPermission('delete_company');
   
-  // Use React Query to fetch companies
   const { data: companies = [], isLoading, error } = useCompanies();
-  
-  // Mutation hook for creating companies
   const createCompany = useCreateCompany();
+  const deleteCompany = useDeleteCompany();
 
-  // Filter companies by search query
   const filteredCompanies = companies.filter(company => {
     if (searchQuery.trim() === '') return true;
     
@@ -35,7 +34,6 @@ const Companies = () => {
   });
 
   const handleAddCompany = (companyData: any) => {
-    // Transform the form data to match the API expected format
     const apiCompanyData = {
       name: companyData.name,
       description: companyData.description || '',
@@ -57,27 +55,23 @@ const Companies = () => {
     
     createCompany.mutate(apiCompanyData as any, {
       onSuccess: () => {
-        toast({
-          title: "Company Added",
-          description: `${companyData.name} has been added successfully.`,
-        });
         setIsDialogOpen(false);
-      },
-      onError: (error: any) => {
-        toast({
-          title: "Error",
-          description: error.response?.data?.message || "Failed to add company",
-          variant: "destructive"
-        });
       }
     });
   };
+
+  const handleDeleteCompany = (companyId: string, companyName: string) => {
+    deleteCompany.mutate(companyId);
+  };
   
-  // Handle company card click with validation
   const handleCompanyClick = (company: Company, e: React.MouseEvent) => {
+    // Prevent navigation if clicked on action buttons
+    if ((e.target as HTMLElement).closest('.action-buttons')) {
+      return;
+    }
+    
     e.preventDefault();
     
-    // Prevent navigation if company ID is invalid
     if (!company.id) {
       toast({
         title: "Navigation Error",
@@ -87,7 +81,6 @@ const Companies = () => {
       return;
     }
     
-    // Navigate to company details if ID is valid
     navigate(`/companies/${company.id}`);
   };
 
@@ -142,7 +135,6 @@ const Companies = () => {
         </div>
       </div>
 
-      {/* Companies Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredCompanies.length === 0 ? (
           <div className="col-span-3 text-center py-10">
@@ -150,7 +142,6 @@ const Companies = () => {
           </div>
         ) : (
           filteredCompanies.map((company) => {
-            // Skip rendering companies with undefined IDs
             if (!company.id) {
               console.warn('Company without ID detected:', company);
               return null;
@@ -159,10 +150,39 @@ const Companies = () => {
             return (
               <div
                 key={company.id}
-                className="bg-white border border-gray-100 rounded-lg shadow-sm p-6 hoverable cursor-pointer"
+                className="bg-white border border-gray-100 rounded-lg shadow-sm p-6 hoverable cursor-pointer relative"
                 onClick={(e) => handleCompanyClick(company, e)}
               >
-                <h3 className="text-lg font-semibold">{company.name}</h3>
+                {canDeleteCompany && (
+                  <div className="action-buttons absolute top-4 right-4 flex gap-2">
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <button className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Company</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete "{company.name}"? This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDeleteCompany(company.id, company.name)}
+                            className="bg-red-500 hover:bg-red-600"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                )}
+                
+                <h3 className="text-lg font-semibold pr-8">{company.name}</h3>
                 <div className="mt-4 space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-500">Contact:</span>
@@ -183,7 +203,7 @@ const Companies = () => {
                 </div>
               </div>
             );
-          }).filter(Boolean) // Filter out null items (companies without IDs)
+          }).filter(Boolean)
         )}
       </div>
     </div>

@@ -73,7 +73,6 @@ export const projectService = {
     try {
       console.log('Fetching projects with filters:', filters);
       
-      // Check if user is authenticated
       const token = localStorage.getItem('token');
       if (!token) {
         throw new Error('No authentication token found');
@@ -82,13 +81,11 @@ export const projectService = {
       const response = await apiClient.get('/projects', { params: filters });
       console.log('Raw projects response:', response.data);
       
-      // Handle different response formats
       let projects = response.data;
       if (response.data.data) {
         projects = response.data.data;
       }
       
-      // Ensure projects is an array
       if (!Array.isArray(projects)) {
         console.error('Expected projects array, got:', typeof projects, projects);
         return [];
@@ -100,11 +97,9 @@ export const projectService = {
       return transformedProjects;
     } catch (error: any) {
       console.error('Error fetching projects:', error);
-      console.error('Error response:', error.response);
       
       const errorMessage = error.response?.data?.message || error.message || 'Failed to load projects';
       
-      // Only show toast if it's not an auth error (auth errors are handled by interceptor)
       if (error.response?.status !== 401) {
         toast({
           title: "Error",
@@ -192,6 +187,7 @@ export const projectService = {
 
   async deleteProject(id: string): Promise<void> {
     try {
+      console.log(`Deleting project ${id}`);
       await apiClient.delete(`/projects/${id}`);
       
       toast({
