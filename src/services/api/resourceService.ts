@@ -27,6 +27,7 @@ export const resourceService = {
     try {
       let url = '/resources';
       if (projectId) {
+        // Use the correct backend endpoint
         url = `/resources/project/${projectId}`;
       }
       
@@ -61,6 +62,10 @@ export const resourceService = {
       return transformedResources;
     } catch (error: any) {
       console.error('Error fetching resources:', error);
+      if (error.response?.status === 404) {
+        console.log('No resources found for this project');
+        return [];
+      }
       throw error;
     }
   },

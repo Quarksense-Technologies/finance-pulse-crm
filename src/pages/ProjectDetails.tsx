@@ -24,7 +24,12 @@ const ProjectDetails = () => {
 
   const { data: project, isLoading, error } = useProject(id || '');
   const { data: transactions = [] } = useTransactions({ project: id });
-  const { data: resources = [], isLoading: resourcesLoading } = useResources(id);
+  const { data: resources = [], isLoading: resourcesLoading, error: resourcesError } = useResources(id);
+
+  console.log('Project ID:', id);
+  console.log('Resources data:', resources);
+  console.log('Resources loading:', resourcesLoading);
+  console.log('Resources error:', resourcesError);
 
   const handleGoBack = () => {
     navigate('/projects');
@@ -409,9 +414,17 @@ const ProjectDetails = () => {
               <div className="text-center py-8 text-gray-500">
                 Loading resources...
               </div>
+            ) : resourcesError ? (
+              <div className="text-center py-8">
+                <div className="text-red-500 mb-2">Error loading resources</div>
+                <div className="text-sm text-gray-500">{resourcesError.message}</div>
+              </div>
             ) : resources.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 No resources assigned to this project
+                <div className="text-sm mt-2">
+                  You can add resources from the Manpower page
+                </div>
               </div>
             ) : (
               <div className="space-y-4">
