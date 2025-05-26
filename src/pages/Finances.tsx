@@ -18,6 +18,10 @@ import { useProjects } from '@/hooks/api/useProjects';
 import { useTransactions, useExportTransactions } from '@/hooks/api/useFinances';
 import { Transaction } from '@/data/types';
 
+// Color constants for charts
+const PAYMENT_COLORS = ['#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+const EXPENSE_COLORS = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#f97316', '#06b6d4', '#84cc16'];
+
 const Finances = () => {
   const [tab, setTab] = useState<'payments' | 'expenses'>('payments');
   const [timeFilter, setTimeFilter] = useState<string>('all');
@@ -71,6 +75,33 @@ const Finances = () => {
 
   console.log('Payments:', payments.length, 'Expenses:', expenses.length);
 
+  // Chart data calculations
+  const paymentStatusData = useMemo(() => {
+    const statusCounts = payments.reduce((acc, payment) => {
+      const status = (payment as any).status || 'pending';
+      acc[status] = (acc[status] || 0) + payment.amount;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return Object.entries(statusCounts).map(([status, amount]) => ({
+      name: status.charAt(0).toUpperCase() + status.slice(1),
+      value: amount
+    }));
+  }, [payments]);
+
+  const expenseCategoryData = useMemo(() => {
+    const categoryCounts = expenses.reduce((acc, expense) => {
+      const category = (expense as any).category || 'other';
+      acc[category] = (acc[category] || 0) + expense.amount;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return Object.entries(categoryCounts).map(([category, amount]) => ({
+      name: category.charAt(0).toUpperCase() + category.slice(1),
+      value: amount
+    }));
+  }, [expenses]);
+
   // Early return if loading
   if (isLoading) {
     return (
@@ -108,7 +139,7 @@ const Finances = () => {
     }
     
     console.log(`Project not found for ID: ${projectId}`);
-    return `Project ${projectId.length > 8 ? projectId.substring(0, 8) + '...' : projectId}`;
+    return `Project ${projectId && projectId.length > 8 ? projectId.substring(0, 8) + '...' : projectId}`;
   };
   
   const getProjectCompany = (projectData: any): string => {
