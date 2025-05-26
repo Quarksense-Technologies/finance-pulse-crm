@@ -16,7 +16,7 @@ import PaymentForm from '@/components/forms/PaymentForm';
 import ExpenseForm from '@/components/forms/ExpenseForm';
 import { useCompanies } from '@/hooks/api/useCompanies';
 import { useProjects } from '@/hooks/api/useProjects';
-import { useFinances, useExportTransactions } from '@/hooks/api/useFinances';
+import { useTransactions, useExportTransactions } from '@/hooks/api/useFinances';
 
 const Finances = () => {
   const [tab, setTab] = useState<'payments' | 'expenses'>('payments');
@@ -29,7 +29,7 @@ const Finances = () => {
   
   const { data: companies = [] } = useCompanies();
   const { data: projects = [] } = useProjects();
-  const { data: transactions = [] } = useFinances({ type: tab });
+  const { data: transactions = [] } = useTransactions({ type: tab });
   const { exportToFormat } = useExportTransactions();
 
   // Mock data for now since we don't have complete finance endpoints
