@@ -1,4 +1,3 @@
-
 export interface Company {
   id: string;
   name: string;
@@ -27,6 +26,9 @@ export interface Project {
   expenses: Expense[];
   manpowerAllocated?: number; // Hours
   resources: Resource[]; // Added resources array
+  totalPayments?: number; // Total payments received
+  totalExpenses?: number; // Total expenses including resource costs
+  profit?: number; // Calculated profit/loss
 }
 
 export interface Payment {
