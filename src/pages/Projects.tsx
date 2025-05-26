@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Search, Plus, Calendar, Users } from 'lucide-react';
@@ -148,7 +147,6 @@ const Projects = () => {
               <ProjectForm 
                 onSubmit={handleAddProject} 
                 preselectedCompanyId={selectedCompanyId}
-                onCancel={handleCloseDialog}
               />
             </DialogContent>
           </Dialog>
