@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { resourceService, CreateResourceData, UpdateResourceData } from '@/services/api/resourceService';
 
@@ -8,7 +7,7 @@ export const useResources = (projectId?: string) => {
     queryFn: () => resourceService.getResources(projectId),
     enabled: !!projectId,
     staleTime: 0, // Always refetch to ensure fresh data
-    cacheTime: 0, // Don't cache stale data
+    gcTime: 0, // Don't cache stale data (renamed from cacheTime)
   });
 };
 
@@ -17,7 +16,7 @@ export const useAllResources = () => {
     queryKey: ['resources'],
     queryFn: () => resourceService.getResources(),
     staleTime: 0, // Always refetch to ensure fresh data
-    cacheTime: 0, // Don't cache stale data
+    gcTime: 0, // Don't cache stale data (renamed from cacheTime)
   });
 };
 
