@@ -24,6 +24,16 @@ export interface CategoryExpenseData {
   }[];
 }
 
+export interface CreateTransactionData {
+  type: 'expense' | 'payment' | 'income';
+  amount: number;
+  description: string;
+  category?: string;
+  project: string; // Project ID
+  date: string;
+  status?: 'paid' | 'pending' | 'overdue';
+}
+
 export interface CreateExpenseData {
   type: 'expense';
   amount: number;
@@ -72,8 +82,8 @@ export const financeService = {
     }
   },
 
-  // Create a transaction
-  async createTransaction(transactionData: CreateExpenseData): Promise<Transaction> {
+  // Create a transaction (updated to accept both expense and income types)
+  async createTransaction(transactionData: CreateTransactionData): Promise<Transaction> {
     try {
       const response = await apiClient.post('/finances', transactionData);
       toast({
@@ -88,7 +98,7 @@ export const financeService = {
   },
 
   // Update a transaction
-  async updateTransaction(id: string, transactionData: Partial<CreateExpenseData>): Promise<Transaction> {
+  async updateTransaction(id: string, transactionData: Partial<CreateTransactionData>): Promise<Transaction> {
     try {
       const response = await apiClient.put(`/finances/${id}`, transactionData);
       toast({

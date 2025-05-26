@@ -1,6 +1,6 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { financeService } from '@/services/api/financeService';
+import { financeService, CreateTransactionData } from '@/services/api/financeService';
 import { Payment, Expense, Transaction } from '@/data/types';
 import { exportPaymentsToExcel, exportExpensesToExcel, exportPaymentsToPDF, exportExpensesToPDF } from '@/utils/exportUtils';
 
@@ -23,7 +23,7 @@ export const useCreateTransaction = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: financeService.createTransaction,
+    mutationFn: (data: CreateTransactionData) => financeService.createTransaction(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['financialSummary'] });
@@ -35,7 +35,7 @@ export const useUpdateTransaction = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => 
+    mutationFn: ({ id, data }: { id: string; data: Partial<CreateTransactionData> }) => 
       financeService.updateTransaction(id, data),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
