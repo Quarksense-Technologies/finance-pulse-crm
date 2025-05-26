@@ -8,6 +8,7 @@ import { formatCurrency, formatDate, getProjectStatusColor, formatProjectStatus 
 import StatusBadge from '@/components/ui/StatusBadge';
 import { useProject } from '@/hooks/api/useProjects';
 import { useTransactions } from '@/hooks/api/useFinances';
+import { useResources } from '@/hooks/api/useResources';
 import PaymentForm from '@/components/forms/PaymentForm';
 import ExpenseForm from '@/components/forms/ExpenseForm';
 import ProjectManagement from '@/components/projects/ProjectManagement';
@@ -23,6 +24,7 @@ const ProjectDetails = () => {
 
   const { data: project, isLoading, error } = useProject(id || '');
   const { data: transactions = [] } = useTransactions({ project: id });
+  const { data: resources = [], isLoading: resourcesLoading } = useResources(id);
 
   const handleGoBack = () => {
     navigate('/projects');
@@ -59,10 +61,12 @@ const ProjectDetails = () => {
   const payments = transactions.filter(t => t.type === 'payment' || t.type === 'income');
   const expenses = transactions.filter(t => t.type === 'expense');
 
-  // Calculate totals - safely access status property
+  // Calculate totals including resource costs
   const totalPaidPayments = payments.filter(p => (p as any).status === 'paid').reduce((sum, p) => sum + p.amount, 0);
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
-  const profit = totalPaidPayments - totalExpenses;
+  const resourceCosts = resources.reduce((sum, r) => sum + (r.hoursAllocated * r.hourlyRate), 0);
+  const totalExpensesWithResources = totalExpenses + resourceCosts;
+  const profit = totalPaidPayments - totalExpensesWithResources;
   const pendingPayments = payments.filter(p => (p as any).status === 'pending').reduce((sum, p) => sum + p.amount, 0);
   const overduePayments = payments.filter(p => (p as any).status === 'overdue').reduce((sum, p) => sum + p.amount, 0);
 
@@ -112,8 +116,8 @@ const ProjectDetails = () => {
         
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
           <div className="text-sm text-gray-500 mb-1">Expenses</div>
-          <div className="text-2xl font-semibold">{formatCurrency(totalExpenses)}</div>
-          <div className="mt-2 text-xs text-gray-500">Total expenses to date</div>
+          <div className="text-2xl font-semibold">{formatCurrency(totalExpensesWithResources)}</div>
+          <div className="mt-2 text-xs text-gray-500">Including resource costs</div>
         </div>
         
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
@@ -399,10 +403,68 @@ const ProjectDetails = () => {
         {/* Resources tab */}
         <TabsContent value="resources">
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-            <h2 className="text-xl font-semibold mb-6">Resources</h2>
-            <div className="text-center py-8 text-gray-500">
-              No resources assigned to this project
-            </div>
+            <h2 className="text-xl font-semibold mb-6">Project Resources</h2>
+            
+            {resourcesLoading ? (
+              <div className="text-center py-8 text-gray-500">
+                Loading resources...
+              </div>
+            ) : resources.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                No resources assigned to this project
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {resources.map((resource) => (
+                  <div 
+                    key={resource.id} 
+                    className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-medium">{resource.name}</h3>
+                        <p className="text-sm text-gray-600">{resource.role}</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-medium">
+                          {formatCurrency(resource.hourlyRate * resource.hoursAllocated)}
+                        </div>
+                        <div className="text-xs text-gray-500">Total cost</div>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-gray-600">
+                      <div className="flex items-center">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        <span>
+                          {formatDate(resource.startDate)} - 
+                          {resource.endDate ? formatDate(resource.endDate) : 'Ongoing'}
+                        </span>
+                      </div>
+                      <div className="flex items-center">
+                        <IndianRupee className="h-4 w-4 mr-2" />
+                        <span>{formatCurrency(resource.hourlyRate)} / hour</span>
+                      </div>
+                      <div className="flex items-center">
+                        <Clock className="h-4 w-4 mr-2" />
+                        <span>{resource.hoursAllocated} hours allocated</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium">Total Resource Cost:</span>
+                    <span className="text-lg font-semibold">{formatCurrency(resourceCosts)}</span>
+                  </div>
+                  <div className="flex justify-between items-center mt-1 text-sm text-gray-600">
+                    <span>Total Hours Allocated:</span>
+                    <span>{resources.reduce((sum, r) => sum + r.hoursAllocated, 0)} hours</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </TabsContent>
         

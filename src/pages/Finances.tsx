@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
 import { Calendar, Search, Plus, ArrowDown, FileText, FileSpreadsheet, Download } from 'lucide-react';
@@ -84,77 +83,54 @@ const Finances = () => {
     );
   }
 
-  // Prepare data for payment status pie chart using real data
-  const paidAmount = payments.filter(p => (p as any).status === 'paid').reduce((sum, p) => sum + p.amount, 0);
-  const pendingAmount = payments.filter(p => (p as any).status === 'pending').reduce((sum, p) => sum + p.amount, 0);
-  const overdueAmount = payments.filter(p => (p as any).status === 'overdue').reduce((sum, p) => sum + p.amount, 0);
-  
-  const paymentStatusData = [
-    { name: 'Paid', value: paidAmount, label: `Paid: ${formatCurrency(paidAmount)}` },
-    { name: 'Pending', value: pendingAmount, label: `Pending: ${formatCurrency(pendingAmount)}` },
-    { name: 'Overdue', value: overdueAmount, label: `Overdue: ${formatCurrency(overdueAmount)}` }
-  ].filter(item => item.value > 0);
-  
-  // Prepare data for expense categories pie chart using real data
-  const salaryExpenses = expenses.filter(e => (e as any).category === 'salary').reduce((sum, e) => sum + e.amount, 0);
-  const equipmentExpenses = expenses.filter(e => (e as any).category === 'equipment').reduce((sum, e) => sum + e.amount, 0);
-  const consultingExpenses = expenses.filter(e => (e as any).category === 'consulting').reduce((sum, e) => sum + e.amount, 0);
-  const softwareExpenses = expenses.filter(e => (e as any).category === 'software').reduce((sum, e) => sum + e.amount, 0);
-  const officeExpenses = expenses.filter(e => (e as any).category === 'office').reduce((sum, e) => sum + e.amount, 0);
-  const travelExpenses = expenses.filter(e => (e as any).category === 'travel').reduce((sum, e) => sum + e.amount, 0);
-  const marketingExpenses = expenses.filter(e => (e as any).category === 'marketing').reduce((sum, e) => sum + e.amount, 0);
-  const utilitiesExpenses = expenses.filter(e => (e as any).category === 'utilities').reduce((sum, e) => sum + e.amount, 0);
-  const taxesExpenses = expenses.filter(e => (e as any).category === 'taxes').reduce((sum, e) => sum + e.amount, 0);
-  const otherExpenses = expenses.filter(e => (e as any).category === 'other' || !(e as any).category).reduce((sum, e) => sum + e.amount, 0);
-  
-  const expenseCategoryData = [
-    { name: 'Salary', value: salaryExpenses, label: `Salary: ${formatCurrency(salaryExpenses)}` },
-    { name: 'Equipment', value: equipmentExpenses, label: `Equipment: ${formatCurrency(equipmentExpenses)}` },
-    { name: 'Consulting', value: consultingExpenses, label: `Consulting: ${formatCurrency(consultingExpenses)}` },
-    { name: 'Software', value: softwareExpenses, label: `Software: ${formatCurrency(softwareExpenses)}` },
-    { name: 'Office', value: officeExpenses, label: `Office: ${formatCurrency(officeExpenses)}` },
-    { name: 'Travel', value: travelExpenses, label: `Travel: ${formatCurrency(travelExpenses)}` },
-    { name: 'Marketing', value: marketingExpenses, label: `Marketing: ${formatCurrency(marketingExpenses)}` },
-    { name: 'Utilities', value: utilitiesExpenses, label: `Utilities: ${formatCurrency(utilitiesExpenses)}` },
-    { name: 'Taxes', value: taxesExpenses, label: `Taxes: ${formatCurrency(taxesExpenses)}` },
-    { name: 'Other', value: otherExpenses, label: `Other: ${formatCurrency(otherExpenses)}` }
-  ].filter(item => item.value > 0);
-  
-  const PAYMENT_COLORS = ['#10b981', '#f59e0b', '#ef4444'];
-  const EXPENSE_COLORS = ['#3b82f6', '#8b5cf6', '#6366f1', '#9ca3af', '#10b981', '#f59e0b', '#ef4444', '#8dd1e1', '#d084d0', '#ffb347'];
-
-  // Fixed project/company name resolution with proper type checking
-  const getProjectName = (projectId: string | undefined | null): string => {
-    if (!projectId) {
-      console.log('No project ID provided');
+  // Fixed project name resolution with proper handling of different data types
+  const getProjectName = (projectData: any): string => {
+    if (!projectData) {
+      console.log('No project data provided');
       return 'No Project';
     }
+
+    let projectId: string;
     
-    // Ensure projectId is a string
-    const projectIdStr = typeof projectId === 'string' ? projectId : String(projectId);
+    // Handle case where projectData is an object with id or _id
+    if (typeof projectData === 'object' && projectData !== null) {
+      projectId = projectData.id || projectData._id || String(projectData);
+    } else {
+      projectId = String(projectData);
+    }
     
-    const project = projectLookup.get(projectIdStr);
+    console.log('Looking up project with ID:', projectId, 'Type:', typeof projectId);
+    
+    const project = projectLookup.get(projectId);
     if (project && project.name) {
-      console.log(`Found project: ${project.name} for ID: ${projectIdStr}`);
+      console.log(`Found project: ${project.name} for ID: ${projectId}`);
       return project.name;
     }
     
-    console.log(`Project not found for ID: ${projectIdStr}`);
-    return `Project ${projectIdStr.length > 8 ? projectIdStr.substring(0, 8) + '...' : projectIdStr}`;
+    console.log(`Project not found for ID: ${projectId}`);
+    return `Project ${projectId.length > 8 ? projectId.substring(0, 8) + '...' : projectId}`;
   };
   
-  const getProjectCompany = (projectId: string | undefined | null): string => {
-    if (!projectId) {
-      console.log('No project ID provided for company lookup');
+  const getProjectCompany = (projectData: any): string => {
+    if (!projectData) {
+      console.log('No project data provided for company lookup');
       return 'No Company';
     }
+
+    let projectId: string;
     
-    // Ensure projectId is a string
-    const projectIdStr = typeof projectId === 'string' ? projectId : String(projectId);
+    // Handle case where projectData is an object with id or _id
+    if (typeof projectData === 'object' && projectData !== null) {
+      projectId = projectData.id || projectData._id || String(projectData);
+    } else {
+      projectId = String(projectData);
+    }
     
-    const project = projectLookup.get(projectIdStr);
+    console.log('Looking up company for project ID:', projectId);
+    
+    const project = projectLookup.get(projectId);
     if (!project) {
-      console.log(`Project not found for company lookup: ${projectIdStr}`);
+      console.log(`Project not found for company lookup: ${projectId}`);
       return 'Unknown Company';
     }
     
@@ -166,7 +142,7 @@ const Finances = () => {
     
     // Fallback to company lookup
     if (project.companyId) {
-      const companyIdStr = typeof project.companyId === 'string' ? project.companyId : String(project.companyId);
+      const companyIdStr = String(project.companyId);
       const company = companyLookup.get(companyIdStr);
       if (company && company.name) {
         console.log(`Found company from lookup: ${company.name}`);
@@ -174,7 +150,7 @@ const Finances = () => {
       }
     }
     
-    console.log(`Company not found for project: ${projectIdStr}`);
+    console.log(`Company not found for project: ${projectId}`);
     return 'Unknown Company';
   };
 
