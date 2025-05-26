@@ -36,7 +36,7 @@ export const approvalService = {
   async approveItem(id: string, type: string): Promise<void> {
     try {
       console.log(`Approving ${type} with ID: ${id}`);
-      // Only expenses need approval, so we always use the finances endpoint
+      // Use the correct endpoint for approving expenses
       await apiClient.put(`/approvals/finances/${id}/approve`);
       toast({
         title: "Success",
@@ -56,7 +56,7 @@ export const approvalService = {
   async rejectItem(id: string, type: string, reason: string): Promise<void> {
     try {
       console.log(`Rejecting ${type} with ID: ${id}, reason: ${reason}`);
-      // Only expenses need approval, so we always use the finances endpoint
+      // Use the correct endpoint for rejecting expenses
       await apiClient.put(`/approvals/finances/${id}/reject`, { reason });
       toast({
         title: "Success",

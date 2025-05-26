@@ -1,4 +1,3 @@
-
 const express = require('express');
 const { check, validationResult } = require('express-validator');
 const Transaction = require('../models/Transaction');
@@ -20,6 +19,14 @@ router.get('/', auth, async (req, res) => {
     if (project) filter.project = project;
     if (type) filter.type = type;
     if (status) filter.status = status;
+    
+    // For project-specific queries, only show approved expenses and all payments/income
+    if (project) {
+      filter.$or = [
+        { type: { $in: ['payment', 'income'] } }, // All payments and income
+        { type: 'expense', approvalStatus: 'approved' } // Only approved expenses
+      ];
+    }
     
     // Date range filter
     if (startDate || endDate) {
@@ -71,6 +78,12 @@ router.get('/summary', auth, async (req, res) => {
       filter.project = { $in: projects.map(p => p._id) };
     }
     
+    // Only include approved expenses and all payments/income in summary
+    filter.$or = [
+      { type: { $in: ['payment', 'income'] } }, // All payments and income
+      { type: 'expense', approvalStatus: 'approved' } // Only approved expenses
+    ];
+    
     // Get all transactions with the filter
     const transactions = await Transaction.find(filter);
     
@@ -80,7 +93,7 @@ router.get('/summary', auth, async (req, res) => {
       .reduce((sum, t) => sum + t.amount, 0);
       
     const totalExpenses = transactions
-      .filter(t => t.type === 'expense')
+      .filter(t => t.type === 'expense' && t.approvalStatus === 'approved')
       .reduce((sum, t) => sum + t.amount, 0);
       
     const pendingPayments = transactions
@@ -195,9 +208,10 @@ router.get('/chart-data', auth, async (req, res) => {
         date: { $gte: startOfMonth, $lte: endOfMonth }
       });
       
-      // Get expense transactions for this month
+      // Get approved expense transactions for this month
       const expenseTransactions = await Transaction.find({
         type: 'expense',
+        approvalStatus: 'approved',
         date: { $gte: startOfMonth, $lte: endOfMonth }
       });
       
@@ -258,8 +272,11 @@ router.get('/category-expenses', auth, async (req, res) => {
     });
     categoryData['other'] = 0; // For uncategorized expenses
     
-    // Get all expense transactions
-    const expenses = await Transaction.find({ type: 'expense' });
+    // Get all approved expense transactions only
+    const expenses = await Transaction.find({ 
+      type: 'expense',
+      approvalStatus: 'approved'
+    });
     
     // Calculate total for each category
     expenses.forEach(expense => {
@@ -441,6 +458,20 @@ router.post(
         });
       }
       
+      // Determine approval status based on type and user role
+      let approvalStatus = 'pending';
+      let approvedBy = null;
+      
+      if (type === 'expense') {
+        // Expenses need approval unless created by admin
+        approvalStatus = req.user.role === 'admin' ? 'approved' : 'pending';
+        approvedBy = req.user.role === 'admin' ? req.user.id : null;
+      } else {
+        // Payments and income are auto-approved
+        approvalStatus = 'approved';
+        approvedBy = req.user.id;
+      }
+      
       // Create transaction
       const transaction = new Transaction({
         type,
@@ -451,8 +482,8 @@ router.post(
         date,
         attachments: attachments || [],
         createdBy: req.user.id,
-        approvalStatus: req.user.role === 'admin' ? 'approved' : 'pending',
-        approvedBy: req.user.role === 'admin' ? req.user.id : null,
+        approvalStatus,
+        approvedBy,
         // Set status for both payments and expenses
         status: status || 'pending'
       });
@@ -687,7 +718,7 @@ router.put(
           $set: {
             approvalStatus: 'rejected',
             rejectionReason: reason,
-            approvedBy: req.user.id
+            rejectedBy: req.user.id
           }
         },
         { new: true }

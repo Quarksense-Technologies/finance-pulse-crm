@@ -31,7 +31,7 @@ const TransactionSchema = new mongoose.Schema({
     type: String, 
     enum: ['pending', 'approved', 'rejected'],
     default: function() {
-      // Only expenses need approval by default, payments are auto-approved
+      // Only expenses need approval by default, payments and income are auto-approved
       return this.type === 'expense' ? 'pending' : 'approved';
     }
   },

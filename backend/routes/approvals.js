@@ -18,42 +18,60 @@ router.get('/pending', auth, roleCheck(['admin', 'manager']), async (req, res) =
       approvalStatus: 'pending',
       type: 'expense' // Only expenses need approval
     })
-      .populate('project', 'name')
-      .populate('createdBy', 'name')
+      .populate({
+        path: 'project',
+        select: 'name',
+        model: 'Project'
+      })
+      .populate({
+        path: 'createdBy',
+        select: 'name',
+        model: 'User'
+      })
       .sort({ createdAt: -1 });
     
     console.log(`Found ${pendingTransactions.length} pending expense transactions`);
     
     // Format response for frontend
-    const approvalItems = pendingTransactions.map((item) => {
+    const approvalItems = [];
+    
+    for (const item of pendingTransactions) {
       // Get project name safely
       let projectName = 'Unknown Project';
-      let projectId = 'unknown';
+      let projectId = null;
       
       if (item.project) {
-        if (typeof item.project === 'object' && item.project.name) {
-          projectName = item.project.name;
+        if (typeof item.project === 'object') {
+          projectName = item.project.name || 'Unknown Project';
           projectId = item.project._id;
-        } else if (typeof item.project === 'string') {
-          projectId = item.project;
-          // Project name will be fetched separately if needed
+        } else {
+          // If project is just an ObjectId string, fetch the project
+          try {
+            const project = await Project.findById(item.project);
+            if (project) {
+              projectName = project.name;
+              projectId = project._id;
+            }
+          } catch (err) {
+            console.error('Error fetching project:', err);
+          }
         }
       }
       
       // Get creator name safely
       let creatorName = 'Unknown User';
-      let creatorId = 'unknown';
+      let creatorId = null;
       
       if (item.createdBy) {
-        if (typeof item.createdBy === 'object' && item.createdBy.name) {
-          creatorName = item.createdBy.name;
+        if (typeof item.createdBy === 'object') {
+          creatorName = item.createdBy.name || 'Unknown User';
           creatorId = item.createdBy._id;
-        } else if (typeof item.createdBy === 'string') {
+        } else {
           creatorId = item.createdBy;
         }
       }
       
-      return {
+      approvalItems.push({
         id: item._id,
         type: item.type, // This will be 'expense'
         description: item.description || `Expense claim - ${item.amount}`,
@@ -68,22 +86,8 @@ router.get('/pending', auth, roleCheck(['admin', 'manager']), async (req, res) =
         status: item.approvalStatus,
         projectId: projectId,
         projectName: projectName,
-        project: item.project // Include full project object
-      };
-    });
-    
-    // For any items with unpopulated project names, fetch them
-    for (let item of approvalItems) {
-      if (item.projectName === 'Unknown Project' && item.projectId !== 'unknown') {
-        try {
-          const project = await Project.findById(item.projectId);
-          if (project) {
-            item.projectName = project.name;
-          }
-        } catch (err) {
-          console.error('Error fetching project name for ID:', item.projectId, err);
-        }
-      }
+        project: item.project
+      });
     }
     
     console.log('Formatted approval items:', approvalItems);
