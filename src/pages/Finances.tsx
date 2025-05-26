@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
 import { Calendar, Search, Plus, ArrowDown, FileText, FileSpreadsheet, Download } from 'lucide-react';
@@ -122,21 +123,24 @@ const Finances = () => {
   const PAYMENT_COLORS = ['#10b981', '#f59e0b', '#ef4444'];
   const EXPENSE_COLORS = ['#3b82f6', '#8b5cf6', '#6366f1', '#9ca3af', '#10b981', '#f59e0b', '#ef4444', '#8dd1e1', '#d084d0', '#ffb347'];
 
-  // Improved project/company name resolution with better error handling
+  // Fixed project/company name resolution with proper type checking
   const getProjectName = (projectId: string | undefined | null): string => {
     if (!projectId) {
       console.log('No project ID provided');
       return 'No Project';
     }
     
-    const project = projectLookup.get(projectId);
+    // Ensure projectId is a string
+    const projectIdStr = typeof projectId === 'string' ? projectId : String(projectId);
+    
+    const project = projectLookup.get(projectIdStr);
     if (project && project.name) {
-      console.log(`Found project: ${project.name} for ID: ${projectId}`);
+      console.log(`Found project: ${project.name} for ID: ${projectIdStr}`);
       return project.name;
     }
     
-    console.log(`Project not found for ID: ${projectId}`);
-    return `Project ${projectId.substring(0, 8)}...`;
+    console.log(`Project not found for ID: ${projectIdStr}`);
+    return `Project ${projectIdStr.length > 8 ? projectIdStr.substring(0, 8) + '...' : projectIdStr}`;
   };
   
   const getProjectCompany = (projectId: string | undefined | null): string => {
@@ -145,9 +149,12 @@ const Finances = () => {
       return 'No Company';
     }
     
-    const project = projectLookup.get(projectId);
+    // Ensure projectId is a string
+    const projectIdStr = typeof projectId === 'string' ? projectId : String(projectId);
+    
+    const project = projectLookup.get(projectIdStr);
     if (!project) {
-      console.log(`Project not found for company lookup: ${projectId}`);
+      console.log(`Project not found for company lookup: ${projectIdStr}`);
       return 'Unknown Company';
     }
     
@@ -159,14 +166,15 @@ const Finances = () => {
     
     // Fallback to company lookup
     if (project.companyId) {
-      const company = companyLookup.get(project.companyId);
+      const companyIdStr = typeof project.companyId === 'string' ? project.companyId : String(project.companyId);
+      const company = companyLookup.get(companyIdStr);
       if (company && company.name) {
         console.log(`Found company from lookup: ${company.name}`);
         return company.name;
       }
     }
     
-    console.log(`Company not found for project: ${projectId}`);
+    console.log(`Company not found for project: ${projectIdStr}`);
     return 'Unknown Company';
   };
 

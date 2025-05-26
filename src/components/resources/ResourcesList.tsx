@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Trash2, Edit, Calendar, IndianRupee } from 'lucide-react';
 import { formatDate, formatCurrency } from '@/utils/financialUtils';
 import { Button } from "@/components/ui/button";
-import { useResources, useDeleteResource } from '@/hooks/api/useResources';
+import { useAllResources, useDeleteResource } from '@/hooks/api/useResources';
 import { toast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -25,9 +25,11 @@ const ResourcesList = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [resourceToDelete, setResourceToDelete] = useState<string | null>(null);
   
-  // Fetch resources from the API
-  const { data: resources = [], isLoading } = useResources();
+  // Use useAllResources instead of useResources to get all resources
+  const { data: resources = [], isLoading, refetch } = useAllResources();
   const deleteResourceMutation = useDeleteResource();
+
+  console.log('Resources data in ResourcesList:', resources);
 
   if (isLoading) {
     return <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">Loading resources...</div>;
@@ -41,8 +43,9 @@ const ResourcesList = () => {
           title: "Resource Deleted",
           description: "The resource has been successfully removed.",
         });
+        // Force refetch after deletion
+        refetch();
       } catch (error) {
-        // Error handling is done by the API service
         console.error('Error deleting resource:', error);
       } finally {
         setResourceToDelete(null);

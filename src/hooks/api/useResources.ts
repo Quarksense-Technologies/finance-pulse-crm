@@ -7,6 +7,8 @@ export const useResources = (projectId?: string) => {
     queryKey: ['resources', projectId],
     queryFn: () => resourceService.getResources(projectId),
     enabled: !!projectId,
+    staleTime: 0, // Always refetch to ensure fresh data
+    cacheTime: 0, // Don't cache stale data
   });
 };
 
@@ -14,6 +16,8 @@ export const useAllResources = () => {
   return useQuery({
     queryKey: ['resources'],
     queryFn: () => resourceService.getResources(),
+    staleTime: 0, // Always refetch to ensure fresh data
+    cacheTime: 0, // Don't cache stale data
   });
 };
 
@@ -31,25 +35,23 @@ export const useCreateResource = () => {
   return useMutation({
     mutationFn: (data: CreateResourceData) => resourceService.createResource(data),
     onSuccess: (data, variables) => {
-      console.log('Resource created successfully, invalidating caches...');
+      console.log('Resource created successfully, invalidating all caches...');
       
-      // Invalidate all resource queries
-      queryClient.invalidateQueries({ queryKey: ['resources'] });
-      queryClient.invalidateQueries({ queryKey: ['resources', variables.projectId] });
+      // Clear all resource-related queries completely
+      queryClient.removeQueries({ queryKey: ['resources'] });
+      queryClient.removeQueries({ queryKey: ['resourcesSummary'] });
+      queryClient.removeQueries({ queryKey: ['projects'] });
+      queryClient.removeQueries({ queryKey: ['project', variables.projectId] });
       
-      // Invalidate the specific project to update its resources
-      queryClient.invalidateQueries({ queryKey: ['project', variables.projectId] });
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      // Force immediate refetch of all queries
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['resources'] });
+        queryClient.refetchQueries({ queryKey: ['resourcesSummary'] });
+        queryClient.refetchQueries({ queryKey: ['projects'] });
+        queryClient.refetchQueries({ queryKey: ['project', variables.projectId] });
+      }, 100);
       
-      // Invalidate resource summary
-      queryClient.invalidateQueries({ queryKey: ['resourcesSummary'] });
-      
-      // Force immediate refetch of all relevant queries
-      queryClient.refetchQueries({ queryKey: ['resources'] });
-      queryClient.refetchQueries({ queryKey: ['projects'] });
-      queryClient.refetchQueries({ queryKey: ['project', variables.projectId] });
-      
-      console.log('Cache invalidation and refetch completed');
+      console.log('All caches cleared and refetch initiated');
     },
   });
 };
@@ -61,14 +63,17 @@ export const useUpdateResource = () => {
     mutationFn: ({ id, data }: { id: string; data: UpdateResourceData }) => 
       resourceService.updateResource(id, data),
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['resources'] });
-      queryClient.invalidateQueries({ queryKey: ['resource', variables.id] });
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
-      queryClient.invalidateQueries({ queryKey: ['resourcesSummary'] });
+      // Clear all resource-related queries completely
+      queryClient.removeQueries({ queryKey: ['resources'] });
+      queryClient.removeQueries({ queryKey: ['resourcesSummary'] });
+      queryClient.removeQueries({ queryKey: ['projects'] });
       
-      // Force refetch
-      queryClient.refetchQueries({ queryKey: ['resources'] });
-      queryClient.refetchQueries({ queryKey: ['projects'] });
+      // Force immediate refetch
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['resources'] });
+        queryClient.refetchQueries({ queryKey: ['resourcesSummary'] });
+        queryClient.refetchQueries({ queryKey: ['projects'] });
+      }, 100);
     },
   });
 };
@@ -79,13 +84,17 @@ export const useDeleteResource = () => {
   return useMutation({
     mutationFn: resourceService.deleteResource,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['resources'] });
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
-      queryClient.invalidateQueries({ queryKey: ['resourcesSummary'] });
+      // Clear all resource-related queries completely
+      queryClient.removeQueries({ queryKey: ['resources'] });
+      queryClient.removeQueries({ queryKey: ['resourcesSummary'] });
+      queryClient.removeQueries({ queryKey: ['projects'] });
       
-      // Force refetch
-      queryClient.refetchQueries({ queryKey: ['resources'] });
-      queryClient.refetchQueries({ queryKey: ['projects'] });
+      // Force immediate refetch
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['resources'] });
+        queryClient.refetchQueries({ queryKey: ['resourcesSummary'] });
+        queryClient.refetchQueries({ queryKey: ['projects'] });
+      }, 100);
     },
   });
 };
