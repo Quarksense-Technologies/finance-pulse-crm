@@ -170,10 +170,12 @@ const Finances = () => {
     return 'Unknown Company';
   };
 
-  // Custom label rendering function for pie charts
-  const renderCustomizedLabel = (entry: any) => {
-    if (entry.value === 0) return null;
-    const percent = ((entry.value / entry.payload.reduce((sum: number, item: any) => sum + item.value, 0)) * 100).toFixed(0);
+  // Fixed custom label rendering function for pie charts
+  const renderCustomizedLabel = (entry: any, data: any[]) => {
+    if (entry.value === 0 || !data || data.length === 0) return null;
+    
+    const total = data.reduce((sum, item) => sum + item.value, 0);
+    const percent = ((entry.value / total) * 100).toFixed(0);
     return `${entry.name}: ${percent}%`;
   };
 
@@ -386,7 +388,7 @@ const Finances = () => {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={renderCustomizedLabel}
+                      label={(entry) => renderCustomizedLabel(entry, tab === 'payments' ? paymentStatusData : expenseCategoryData)}
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
