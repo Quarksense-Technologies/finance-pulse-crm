@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Search, Plus, Calendar, Users } from 'lucide-react';
@@ -22,6 +21,7 @@ const Projects = () => {
   
   // Debug logging
   console.log('Projects page - Auth state:', { isAuthenticated, user });
+  console.log('Projects page - Token exists:', !!localStorage.getItem('token'));
   
   // Get the companyId from location state if available
   useEffect(() => {
@@ -40,7 +40,12 @@ const Projects = () => {
   });
   
   // Debug logging
-  console.log('Projects data:', { projects, isLoading, error });
+  console.log('Projects data:', { 
+    projects, 
+    isLoading, 
+    error: error?.message || error,
+    projectsCount: projects.length 
+  });
   
   // Mutation hook for creating projects
   const createProject = useCreateProject();
@@ -57,6 +62,8 @@ const Projects = () => {
   });
 
   const handleAddProject = (projectData: Partial<Project>) => {
+    console.log('Adding project with data:', projectData);
+    
     createProject.mutate(projectData as any, {
       onSuccess: () => {
         toast({
@@ -75,7 +82,7 @@ const Projects = () => {
         console.error('Error creating project:', error);
         toast({
           title: "Error",
-          description: error.response?.data?.message || "Failed to add project",
+          description: error.response?.data?.message || error.message || "Failed to add project",
           variant: "destructive"
         });
       }
@@ -101,7 +108,9 @@ const Projects = () => {
     refetch();
   };
 
-  if (!isAuthenticated) {
+  // Check if user is not authenticated
+  if (!isAuthenticated || !localStorage.getItem('token')) {
+    console.log('User not authenticated, redirecting to login');
     return (
       <div className="flex justify-center items-center h-64">
         <div className="text-center">
@@ -129,11 +138,15 @@ const Projects = () => {
   }
 
   if (error) {
+    console.error('Projects error:', error);
     return (
       <div className="flex flex-col justify-center items-center h-64">
         <div className="text-red-500 mb-4 text-center">
           <div className="text-lg font-semibold mb-2">Error loading projects</div>
           <div className="text-sm">{(error as any).message || "Failed to load projects"}</div>
+          {(error as any).response?.status === 401 && (
+            <div className="text-xs mt-2 text-gray-500">Authentication required</div>
+          )}
         </div>
         <div className="flex gap-2">
           <button 
