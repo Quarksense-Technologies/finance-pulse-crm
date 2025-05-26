@@ -3,7 +3,7 @@ import axios from 'axios';
 import { toast } from "@/hooks/use-toast";
 
 const apiClient = axios.create({
-  baseURL: 'https://bms.quarksense.in/api',
+  baseURL: 'http://localhost:5000/api',
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
