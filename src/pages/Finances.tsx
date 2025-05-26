@@ -29,24 +29,12 @@ const Finances = () => {
   
   const { data: companies = [] } = useCompanies();
   const { data: projects = [] } = useProjects();
-  const { data: transactions = [] } = useTransactions({ type: tab });
+  const { data: transactions = [] } = useTransactions({ type: tab === 'payments' ? 'payment' : 'expense' });
   const { exportToFormat } = useExportTransactions();
 
-  // Mock data for now since we don't have complete finance endpoints
-  const mockPayments = [
-    { id: '1', projectId: '1', amount: 5000, date: '2025-01-15', status: 'paid', description: 'Initial payment' },
-    { id: '2', projectId: '2', amount: 3000, date: '2025-01-20', status: 'pending', description: 'Monthly payment' },
-    { id: '3', projectId: '1', amount: 2000, date: '2025-01-10', status: 'overdue', description: 'Final payment' },
-  ];
-
-  const mockExpenses = [
-    { id: '1', projectId: '1', amount: 1500, date: '2025-01-15', category: 'manpower', description: 'Developer wages' },
-    { id: '2', projectId: '2', amount: 800, date: '2025-01-20', category: 'materials', description: 'Software licenses' },
-    { id: '3', projectId: '1', amount: 500, date: '2025-01-10', category: 'services', description: 'Consulting fees' },
-  ];
-
-  const payments = transactions.filter(t => t.type === 'payment') || mockPayments;
-  const expenses = transactions.filter(t => t.type === 'expense') || mockExpenses;
+  // Filter transactions by type
+  const payments = transactions.filter(t => t.type === 'payment' || t.type === 'income');
+  const expenses = transactions.filter(t => t.type === 'expense');
 
   // Prepare data for payment status pie chart
   const paidAmount = payments.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
@@ -60,15 +48,15 @@ const Finances = () => {
   ];
   
   // Prepare data for expense categories pie chart
-  const manpowerExpenses = expenses.filter(e => e.category === 'manpower').reduce((sum, e) => sum + e.amount, 0);
-  const materialsExpenses = expenses.filter(e => e.category === 'materials').reduce((sum, e) => sum + e.amount, 0);
-  const servicesExpenses = expenses.filter(e => e.category === 'services').reduce((sum, e) => sum + e.amount, 0);
-  const otherExpenses = expenses.filter(e => e.category === 'other').reduce((sum, e) => sum + e.amount, 0);
+  const manpowerExpenses = expenses.filter(e => e.category === 'salary').reduce((sum, e) => sum + e.amount, 0);
+  const materialsExpenses = expenses.filter(e => e.category === 'equipment').reduce((sum, e) => sum + e.amount, 0);
+  const servicesExpenses = expenses.filter(e => e.category === 'consulting').reduce((sum, e) => sum + e.amount, 0);
+  const otherExpenses = expenses.filter(e => e.category === 'other' || !e.category).reduce((sum, e) => sum + e.amount, 0);
   
   const expenseCategoryData = [
-    { name: 'Manpower', value: manpowerExpenses },
-    { name: 'Materials', value: materialsExpenses },
-    { name: 'Services', value: servicesExpenses },
+    { name: 'Salary', value: manpowerExpenses },
+    { name: 'Equipment', value: materialsExpenses },
+    { name: 'Consulting', value: servicesExpenses },
     { name: 'Other', value: otherExpenses }
   ];
   
@@ -152,18 +140,18 @@ const Finances = () => {
   const filteredPayments = searchQuery.trim() === '' 
     ? payments 
     : payments.filter(payment => 
-        getProjectName(payment.projectId).toLowerCase().includes(searchQuery.toLowerCase()) ||
-        getProjectCompany(payment.projectId).toLowerCase().includes(searchQuery.toLowerCase()) ||
+        getProjectName(payment.project).toLowerCase().includes(searchQuery.toLowerCase()) ||
+        getProjectCompany(payment.project).toLowerCase().includes(searchQuery.toLowerCase()) ||
         payment.description.toLowerCase().includes(searchQuery.toLowerCase())
       );
 
   const filteredExpenses = searchQuery.trim() === '' 
     ? expenses 
     : expenses.filter(expense => 
-        getProjectName(expense.projectId).toLowerCase().includes(searchQuery.toLowerCase()) ||
-        getProjectCompany(expense.projectId).toLowerCase().includes(searchQuery.toLowerCase()) ||
+        getProjectName(expense.project).toLowerCase().includes(searchQuery.toLowerCase()) ||
+        getProjectCompany(expense.project).toLowerCase().includes(searchQuery.toLowerCase()) ||
         expense.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        expense.category.toLowerCase().includes(searchQuery.toLowerCase())
+        (expense.category && expense.category.toLowerCase().includes(searchQuery.toLowerCase()))
       );
 
   return (
@@ -331,11 +319,11 @@ const Finances = () => {
                         const projectIds = companyProjects.map(p => p.id);
                         
                         const totalPayments = payments
-                          .filter(p => projectIds.includes(p.projectId) && p.status === 'paid')
+                          .filter(p => projectIds.includes(p.project) && p.status === 'paid')
                           .reduce((sum, p) => sum + p.amount, 0);
                         
                         const pendingPayments = payments
-                          .filter(p => projectIds.includes(p.projectId) && (p.status === 'pending' || p.status === 'overdue'))
+                          .filter(p => projectIds.includes(p.project) && (p.status === 'pending' || p.status === 'overdue'))
                           .reduce((sum, p) => sum + p.amount, 0);
                         
                         return {
@@ -368,7 +356,7 @@ const Finances = () => {
                         const projectIds = companyProjects.map(p => p.id);
                         
                         const totalExpenses = expenses
-                          .filter(e => projectIds.includes(e.projectId))
+                          .filter(e => projectIds.includes(e.project))
                           .reduce((sum, e) => sum + e.amount, 0);
                         
                         return {
@@ -421,15 +409,15 @@ const Finances = () => {
                   {tab === 'payments' ? (
                     payments.slice(0, 5).map(payment => (
                       <tr key={payment.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">{getProjectName(payment.projectId)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">{getProjectCompany(payment.projectId)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{getProjectName(payment.project)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{getProjectCompany(payment.project)}</td>
                         <td className="px-6 py-4">{payment.description}</td>
                         <td className="px-6 py-4 whitespace-nowrap">{formatDate(payment.date)}</td>
                         <td className="px-6 py-4 whitespace-nowrap font-medium">{formatCurrency(payment.amount)}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <StatusBadge 
-                            status={payment.status} 
-                            colorClassName={getPaymentStatusColor(payment.status)} 
+                            status={payment.status || 'pending'} 
+                            colorClassName={getPaymentStatusColor(payment.status || 'pending')} 
                           />
                         </td>
                       </tr>
@@ -437,15 +425,15 @@ const Finances = () => {
                   ) : (
                     expenses.slice(0, 5).map(expense => (
                       <tr key={expense.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">{getProjectName(expense.projectId)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">{getProjectCompany(expense.projectId)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{getProjectName(expense.project)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{getProjectCompany(expense.project)}</td>
                         <td className="px-6 py-4">{expense.description}</td>
                         <td className="px-6 py-4 whitespace-nowrap">{formatDate(expense.date)}</td>
                         <td className="px-6 py-4 whitespace-nowrap font-medium">{formatCurrency(expense.amount)}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <StatusBadge 
-                            status={expense.category} 
-                            colorClassName={getExpenseCategoryColor(expense.category)} 
+                            status={expense.category || 'other'} 
+                            colorClassName={getExpenseCategoryColor(expense.category || 'other')} 
                           />
                         </td>
                       </tr>
@@ -526,14 +514,14 @@ const Finances = () => {
                     filteredPayments.map(payment => (
                       <TableRow key={payment.id}>
                         <TableCell>{formatDate(payment.date)}</TableCell>
-                        <TableCell>{getProjectName(payment.projectId)}</TableCell>
-                        <TableCell>{getProjectCompany(payment.projectId)}</TableCell>
+                        <TableCell>{getProjectName(payment.project)}</TableCell>
+                        <TableCell>{getProjectCompany(payment.project)}</TableCell>
                         <TableCell>{payment.description}</TableCell>
                         <TableCell>{formatCurrency(payment.amount)}</TableCell>
                         <TableCell>
                           <StatusBadge 
-                            status={payment.status} 
-                            colorClassName={getPaymentStatusColor(payment.status)} 
+                            status={payment.status || 'pending'} 
+                            colorClassName={getPaymentStatusColor(payment.status || 'pending')} 
                           />
                         </TableCell>
                       </TableRow>
@@ -542,14 +530,14 @@ const Finances = () => {
                     filteredExpenses.map(expense => (
                       <TableRow key={expense.id}>
                         <TableCell>{formatDate(expense.date)}</TableCell>
-                        <TableCell>{getProjectName(expense.projectId)}</TableCell>
-                        <TableCell>{getProjectCompany(expense.projectId)}</TableCell>
+                        <TableCell>{getProjectName(expense.project)}</TableCell>
+                        <TableCell>{getProjectCompany(expense.project)}</TableCell>
                         <TableCell>{expense.description}</TableCell>
                         <TableCell>{formatCurrency(expense.amount)}</TableCell>
                         <TableCell>
                           <StatusBadge 
-                            status={expense.category} 
-                            colorClassName={getExpenseCategoryColor(expense.category)} 
+                            status={expense.category || 'other'} 
+                            colorClassName={getExpenseCategoryColor(expense.category || 'other')} 
                           />
                         </TableCell>
                       </TableRow>
