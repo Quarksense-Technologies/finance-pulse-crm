@@ -1,81 +1,48 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Expense } from '@/data/types';
 import { useProjects } from '@/hooks/api/useProjects';
-import { Plus } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useQuery } from '@tanstack/react-query';
-import { financeService } from '@/services/api/financeService';
+import { useCreateTransaction } from '@/hooks/api/useFinances';
+import { toast } from "@/components/ui/use-toast";
 
 interface ExpenseFormProps {
   preselectedProjectId?: string;
-  onSubmit: (data: Partial<Expense>) => void;
+  onSubmit?: () => void;
 }
 
-// Default expense categories
-const DEFAULT_CATEGORIES = ['manpower', 'materials', 'services', 'other'];
-
 const ExpenseForm: React.FC<ExpenseFormProps> = ({ preselectedProjectId, onSubmit }) => {
-  // Fetch categories from API
-  const { data: savedCategories = [] } = useQuery({
-    queryKey: ['expenseCategories'],
-    queryFn: financeService.getExpenseCategories,
-  });
-
-  const [customCategories, setCustomCategories] = useState<string[]>([]);
-  const [newCategory, setNewCategory] = useState('');
-  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const { data: projects = [] } = useProjects();
+  const createTransactionMutation = useCreateTransaction();
   
-  // Set custom categories from API when data is loaded
-  useEffect(() => {
-    // Filter out default categories to get only custom ones
-    const customFromAPI = savedCategories.filter(cat => !DEFAULT_CATEGORIES.includes(cat));
-    setCustomCategories(customFromAPI);
-  }, [savedCategories]);
-  
-  // Fetch projects from API
-  const { data: projects = [], isLoading } = useProjects();
-  
-  // All available categories (default + custom)
-  const allCategories = [...DEFAULT_CATEGORIES, ...customCategories];
-
   const form = useForm({
     defaultValues: {
       projectId: preselectedProjectId || '',
       amount: '',
       date: new Date().toISOString().slice(0, 10),
-      category: 'materials',
+      category: '',
       description: '',
     },
   });
 
-  const handleSubmit = (data: any) => {
-    onSubmit({
-      projectId: data.projectId,
-      amount: parseFloat(data.amount),
-      date: data.date,
-      category: data.category,
-      description: data.description,
-    });
-    form.reset();
-  };
-
-  const handleAddCategory = async () => {
-    if (newCategory && !allCategories.includes(newCategory)) {
-      try {
-        // Save new category to database
-        await financeService.saveExpenseCategory(newCategory);
-        setCustomCategories([...customCategories, newCategory]);
-        setNewCategory('');
-        setIsAddingCategory(false);
-      } catch (error) {
-        console.error('Error saving category:', error);
-      }
+  const handleSubmit = async (data: any) => {
+    try {
+      await createTransactionMutation.mutateAsync({
+        type: 'expense',
+        amount: parseFloat(data.amount),
+        description: data.description,
+        category: data.category,
+        project: data.projectId,
+        date: data.date,
+      });
+      
+      form.reset();
+      if (onSubmit) onSubmit();
+    } catch (error) {
+      console.error('Error creating expense:', error);
     }
   };
 
@@ -89,13 +56,13 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ preselectedProjectId, onSubmi
             <FormItem>
               <FormLabel>Project</FormLabel>
               <Select 
-                disabled={!!preselectedProjectId || isLoading}
+                disabled={!!preselectedProjectId}
                 onValueChange={field.onChange} 
                 defaultValue={field.value}
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder={isLoading ? "Loading projects..." : "Select a project"} />
+                    <SelectValue placeholder="Select a project" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -145,50 +112,25 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ preselectedProjectId, onSubmi
           render={({ field }) => (
             <FormItem>
               <FormLabel>Category</FormLabel>
-              <div className="flex gap-2">
-                <div className="flex-1">
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {allCategories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category.charAt(0).toUpperCase() + category.slice(1)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <Popover open={isAddingCategory} onOpenChange={setIsAddingCategory}>
-                  <PopoverTrigger asChild>
-                    <Button 
-                      type="button" 
-                      variant="outline"
-                      onClick={() => setIsAddingCategory(true)}
-                      className="px-2"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-60 p-4">
-                    <div className="space-y-2">
-                      <h4 className="font-medium">Add Custom Category</h4>
-                      <div className="flex gap-2">
-                        <Input 
-                          value={newCategory} 
-                          onChange={(e) => setNewCategory(e.target.value)}
-                          placeholder="New category" 
-                        />
-                        <Button type="button" onClick={handleAddCategory}>Add</Button>
-                      </div>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </div>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="salary">Salary</SelectItem>
+                  <SelectItem value="equipment">Equipment</SelectItem>
+                  <SelectItem value="software">Software</SelectItem>
+                  <SelectItem value="consulting">Consulting</SelectItem>
+                  <SelectItem value="office">Office</SelectItem>
+                  <SelectItem value="travel">Travel</SelectItem>
+                  <SelectItem value="marketing">Marketing</SelectItem>
+                  <SelectItem value="utilities">Utilities</SelectItem>
+                  <SelectItem value="taxes">Taxes</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
@@ -209,7 +151,9 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ preselectedProjectId, onSubmi
         />
 
         <div className="flex justify-end">
-          <Button type="submit">Save Expense</Button>
+          <Button type="submit" disabled={createTransactionMutation.isPending}>
+            {createTransactionMutation.isPending ? 'Saving...' : 'Save Expense'}
+          </Button>
         </div>
       </form>
     </Form>

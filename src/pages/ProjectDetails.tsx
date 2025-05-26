@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, IndianRupee, Building, CheckCircle, Clock, X } from 'lucide-react';
@@ -7,46 +6,33 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatCurrency, formatDate, getProjectStatusColor, formatProjectStatus } from '@/utils/financialUtils';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { useProject } from '@/hooks/api/useProjects';
+import { useTransactions } from '@/hooks/api/useFinances';
 import PaymentForm from '@/components/forms/PaymentForm';
 import ExpenseForm from '@/components/forms/ExpenseForm';
 import ProjectManagement from '@/components/projects/ProjectManagement';
 import ProjectStatusUpdate from '@/components/projects/ProjectStatusUpdate';
-import ApproveTransactionButton from '@/components/finances/ApproveTransactionButton';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { toast } from "@/hooks/use-toast";
 
 const ProjectDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [refreshKey, setRefreshKey] = useState(0);
   const [activeTab, setActiveTab] = useState<string>('overview');
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
 
   const { data: project, isLoading, error } = useProject(id || '');
+  const { data: transactions = [] } = useTransactions({ project: id });
 
   const handleGoBack = () => {
     navigate('/projects');
   };
 
-  const handlePaymentSubmit = (data: any) => {
-    // Payment submit logic
+  const handlePaymentSubmit = () => {
     setIsPaymentDialogOpen(false);
-    setRefreshKey(prev => prev + 1);
-    toast({
-      title: "Payment Added",
-      description: `Payment of ${formatCurrency(data.amount)} has been recorded`,
-    });
   };
 
-  const handleExpenseSubmit = (data: any) => {
-    // Expense submit logic
+  const handleExpenseSubmit = () => {
     setIsExpenseDialogOpen(false);
-    setRefreshKey(prev => prev + 1);
-    toast({
-      title: "Expense Added",
-      description: `Expense of ${formatCurrency(data.amount)} has been recorded`,
-    });
   };
 
   if (isLoading) {
@@ -68,39 +54,23 @@ const ProjectDetails = () => {
     );
   }
 
-  // Calculate total revenue, expenses, and profit
-  const totalPaidPayments = project.payments
-    ? project.payments.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0)
-    : 0;
-    
-  const totalExpenses = project.expenses
-    ? project.expenses.reduce((sum, e) => sum + e.amount, 0)
-    : 0;
-    
-  const profit = totalPaidPayments - totalExpenses;
-  
-  const pendingPayments = project.payments
-    ? project.payments.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0)
-    : 0;
-    
-  const overduePayments = project.payments
-    ? project.payments.filter(p => p.status === 'overdue').reduce((sum, p) => sum + p.amount, 0)
-    : 0;
+  // Filter transactions for this project
+  const payments = transactions.filter(t => t.type === 'payment' || t.type === 'income');
+  const expenses = transactions.filter(t => t.type === 'expense');
 
-  const handleProjectUpdate = () => {
-    setRefreshKey(prev => prev + 1);
-  };
+  // Calculate totals
+  const totalPaidPayments = payments.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
+  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const profit = totalPaidPayments - totalExpenses;
+  const pendingPayments = payments.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0);
+  const overduePayments = payments.filter(p => p.status === 'overdue').reduce((sum, p) => sum + p.amount, 0);
 
   const handleStatusUpdate = () => {
-    setRefreshKey(prev => prev + 1);
-  };
-  
-  const handleApprovalAction = () => {
-    setRefreshKey(prev => prev + 1);
+    // Status update handled by the hook
   };
 
   return (
-    <div className="animate-fade-in" key={refreshKey}>
+    <div className="animate-fade-in">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
@@ -317,12 +287,15 @@ const ProjectDetails = () => {
                       Add a new payment for this project
                     </DialogDescription>
                   </DialogHeader>
-                  <PaymentForm onSubmit={handlePaymentSubmit} preselectedProjectId={project.id} />
+                  <PaymentForm 
+                    preselectedProjectId={project.id}
+                    onSubmit={handlePaymentSubmit}
+                  />
                 </DialogContent>
               </Dialog>
             </div>
             
-            {project.payments && project.payments.length > 0 ? (
+            {payments.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="min-w-full">
                   <thead className="bg-gray-50 text-xs uppercase text-gray-700">
@@ -331,12 +304,10 @@ const ProjectDetails = () => {
                       <th className="px-6 py-3 text-left">Description</th>
                       <th className="px-6 py-3 text-left">Amount</th>
                       <th className="px-6 py-3 text-left">Status</th>
-                      <th className="px-6 py-3 text-left">Approval</th>
-                      <th className="px-6 py-3 text-left">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {project.payments.map((payment) => (
+                    {payments.map((payment) => (
                       <tr key={payment.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">{formatDate(payment.date)}</td>
                         <td className="px-6 py-4">{payment.description}</td>
@@ -346,28 +317,6 @@ const ProjectDetails = () => {
                             status={payment.status} 
                             colorClassName={getProjectStatusColor(payment.status)} 
                           />
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {payment.approvalStatus && (
-                            <StatusBadge 
-                              status={payment.approvalStatus} 
-                              colorClassName={
-                                payment.approvalStatus === 'approved' 
-                                  ? 'bg-green-100 text-green-800'
-                                  : payment.approvalStatus === 'rejected'
-                                  ? 'bg-red-100 text-red-800'
-                                  : 'bg-yellow-100 text-yellow-800'
-                              } 
-                            />
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {payment.approvalStatus === 'pending' && (
-                            <ApproveTransactionButton
-                              transactionId={payment.id}
-                              onActionCompleted={handleApprovalAction}
-                            />
-                          )}
                         </td>
                       </tr>
                     ))}
@@ -398,12 +347,15 @@ const ProjectDetails = () => {
                       Add a new expense for this project
                     </DialogDescription>
                   </DialogHeader>
-                  <ExpenseForm onSubmit={handleExpenseSubmit} preselectedProjectId={project.id} />
+                  <ExpenseForm 
+                    preselectedProjectId={project.id}
+                    onSubmit={handleExpenseSubmit}
+                  />
                 </DialogContent>
               </Dialog>
             </div>
             
-            {project.expenses && project.expenses.length > 0 ? (
+            {expenses.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="min-w-full">
                   <thead className="bg-gray-50 text-xs uppercase text-gray-700">
@@ -412,12 +364,10 @@ const ProjectDetails = () => {
                       <th className="px-6 py-3 text-left">Description</th>
                       <th className="px-6 py-3 text-left">Category</th>
                       <th className="px-6 py-3 text-left">Amount</th>
-                      <th className="px-6 py-3 text-left">Approval</th>
-                      <th className="px-6 py-3 text-left">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {project.expenses.map((expense) => (
+                    {expenses.map((expense) => (
                       <tr key={expense.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">{formatDate(expense.date)}</td>
                         <td className="px-6 py-4">{expense.description}</td>
@@ -428,28 +378,6 @@ const ProjectDetails = () => {
                           />
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap font-medium">{formatCurrency(expense.amount)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {expense.approvalStatus && (
-                            <StatusBadge 
-                              status={expense.approvalStatus} 
-                              colorClassName={
-                                expense.approvalStatus === 'approved' 
-                                  ? 'bg-green-100 text-green-800'
-                                  : expense.approvalStatus === 'rejected'
-                                  ? 'bg-red-100 text-red-800'
-                                  : 'bg-yellow-100 text-yellow-800'
-                              } 
-                            />
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {expense.approvalStatus === 'pending' && (
-                            <ApproveTransactionButton
-                              transactionId={expense.id}
-                              onActionCompleted={handleApprovalAction}
-                            />
-                          )}
-                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -467,67 +395,15 @@ const ProjectDetails = () => {
         <TabsContent value="resources">
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
             <h2 className="text-xl font-semibold mb-6">Resources</h2>
-            
-            {project.resources && project.resources.length > 0 ? (
-              <div>
-                <div className="mb-4">
-                  <div className="flex justify-between mb-2">
-                    <div className="text-sm font-medium text-gray-500">Total Manpower Allocated</div>
-                    <div className="font-semibold">{project.manpowerAllocated || 0} hours</div>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div 
-                      className="bg-blue-600 h-2.5 rounded-full" 
-                      style={{ width: `${Math.min((project.manpowerAllocated || 0) / 1000 * 100, 100)}%` }}
-                    ></div>
-                  </div>
-                </div>
-                
-                <div className="overflow-x-auto">
-                  <table className="min-w-full">
-                    <thead className="bg-gray-50 text-xs uppercase text-gray-700">
-                      <tr>
-                        <th className="px-6 py-3 text-left">Resource Name</th>
-                        <th className="px-6 py-3 text-left">Role</th>
-                        <th className="px-6 py-3 text-left">Hours</th>
-                        <th className="px-6 py-3 text-left">Rate</th>
-                        <th className="px-6 py-3 text-left">Total Cost</th>
-                        <th className="px-6 py-3 text-left">Duration</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {project.resources.map((resource) => (
-                        <tr key={resource.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4">{resource.name}</td>
-                          <td className="px-6 py-4">{resource.role}</td>
-                          <td className="px-6 py-4 whitespace-nowrap">{resource.hoursAllocated} hrs</td>
-                          <td className="px-6 py-4 whitespace-nowrap">{formatCurrency(resource.hourlyRate)}/hr</td>
-                          <td className="px-6 py-4 whitespace-nowrap font-medium">
-                            {formatCurrency(resource.hoursAllocated * resource.hourlyRate)}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            {formatDate(resource.startDate)} - {resource.endDate ? formatDate(resource.endDate) : 'Ongoing'}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                No resources allocated to this project
-              </div>
-            )}
+            <div className="text-center py-8 text-gray-500">
+              No resources assigned to this project
+            </div>
           </div>
         </TabsContent>
         
-        {/* Project Management tab */}
+        {/* Management tab */}
         <TabsContent value="management">
-          <ProjectManagement 
-            project={project} 
-            onProjectUpdated={handleProjectUpdate} 
-          />
+          <ProjectManagement project={project} />
         </TabsContent>
       </Tabs>
     </div>

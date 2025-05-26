@@ -5,16 +5,17 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Payment } from '@/data/types';
 import { useProjects } from '@/hooks/api/useProjects';
+import { useCreateTransaction } from '@/hooks/api/useFinances';
 
 interface PaymentFormProps {
   preselectedProjectId?: string;
-  onSubmit: (data: Partial<Payment>) => void;
+  onSubmit?: () => void;
 }
 
 const PaymentForm: React.FC<PaymentFormProps> = ({ preselectedProjectId, onSubmit }) => {
   const { data: projects = [] } = useProjects();
+  const createTransactionMutation = useCreateTransaction();
   
   const form = useForm({
     defaultValues: {
@@ -26,16 +27,21 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ preselectedProjectId, onSubmi
     },
   });
 
-  const handleSubmit = (data: any) => {
-    onSubmit({
-      id: `payment-${Date.now()}`,
-      projectId: data.projectId,
-      amount: parseFloat(data.amount),
-      date: data.date,
-      status: data.status as 'paid' | 'pending' | 'overdue',
-      description: data.description,
-    });
-    form.reset();
+  const handleSubmit = async (data: any) => {
+    try {
+      await createTransactionMutation.mutateAsync({
+        type: 'payment',
+        amount: parseFloat(data.amount),
+        description: data.description,
+        project: data.projectId,
+        date: data.date,
+      });
+      
+      form.reset();
+      if (onSubmit) onSubmit();
+    } catch (error) {
+      console.error('Error creating payment:', error);
+    }
   };
 
   return (
@@ -136,7 +142,9 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ preselectedProjectId, onSubmi
         />
 
         <div className="flex justify-end">
-          <Button type="submit">Save Payment</Button>
+          <Button type="submit" disabled={createTransactionMutation.isPending}>
+            {createTransactionMutation.isPending ? 'Saving...' : 'Save Payment'}
+          </Button>
         </div>
       </form>
     </Form>
