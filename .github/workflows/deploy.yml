@@ -1,0 +1,42 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USER }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build & Push Backend
+      run: |
+        docker build -t ${{ secrets.DOCKERHUB_USER }}/finance-pulse-backend:latest \
+          -f backend/Dockerfile .
+        docker push ${{ secrets.DOCKERHUB_USER }}/finance-pulse-backend:latest
+
+    - name: Build & Push Frontend
+      run: |
+        docker build -t ${{ secrets.DOCKERHUB_USER }}/finance-pulse-frontend:latest .
+        docker push ${{ secrets.DOCKERHUB_USER }}/finance-pulse-frontend:latest
+
+    - name: SSH & Deploy
+      uses: appleboy/ssh-action@v0.1.7
+      with:
+        host: 65.2.127.222
+        username: deploy
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          cd ~/app
+          git fetch origin main
+          git reset --hard origin/main
+          docker compose -f docker-compose.prod.yml pull
+          docker compose -f docker-compose.prod.yml up -d
