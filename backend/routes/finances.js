@@ -428,6 +428,7 @@ router.post(
         category,
         project,
         date,
+        status,
         attachments
       } = req.body;
 
@@ -452,7 +453,8 @@ router.post(
         createdBy: req.user.id,
         approvalStatus: req.user.role === 'admin' ? 'approved' : 'pending',
         approvedBy: req.user.role === 'admin' ? req.user.id : null,
-        status: type === 'payment' ? (req.body.status || 'pending') : undefined
+        // Set status for both payments and expenses
+        status: status || 'pending'
       });
       
       await transaction.save();
@@ -533,7 +535,8 @@ router.put(
           updateData.project = project;
         }
         if (date) updateData.date = date;
-        if (type === 'payment' && status) updateData.status = status;
+        // Allow status updates for both payments and expenses
+        if (status) updateData.status = status;
         if (attachments) updateData.attachments = attachments;
       }
       

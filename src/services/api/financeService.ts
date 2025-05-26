@@ -1,4 +1,3 @@
-
 import { toast } from "@/components/ui/use-toast";
 import apiClient from './client';
 import { Payment, Expense, FinancialSummary, Transaction } from '@/data/types';
@@ -82,7 +81,7 @@ export const financeService = {
     }
   },
 
-  // Create a transaction (updated to accept both expense and income types)
+  // Create a transaction (updated to properly handle status for both expenses and payments)
   async createTransaction(transactionData: CreateTransactionData): Promise<Transaction> {
     try {
       const response = await apiClient.post('/finances', transactionData);
