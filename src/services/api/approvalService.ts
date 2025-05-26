@@ -30,7 +30,9 @@ export const approvalService = {
   
   async approveItem(id: string, type: string): Promise<void> {
     try {
-      await apiClient.put(`/${type}/${id}/approve`);
+      // Map frontend types to backend endpoints
+      const endpointType = type === 'payment' || type === 'expense' ? 'finances' : type;
+      await apiClient.put(`/approvals/${endpointType}/${id}/approve`);
       toast({
         title: "Success",
         description: "Item approved successfully",
@@ -48,7 +50,9 @@ export const approvalService = {
   
   async rejectItem(id: string, type: string, reason: string): Promise<void> {
     try {
-      await apiClient.put(`/${type}/${id}/reject`, { reason });
+      // Map frontend types to backend endpoints
+      const endpointType = type === 'payment' || type === 'expense' ? 'finances' : type;
+      await apiClient.put(`/approvals/${endpointType}/${id}/reject`, { reason });
       toast({
         title: "Success",
         description: "Item rejected successfully",

@@ -27,7 +27,7 @@ export const resourceService = {
     try {
       let url = '/resources';
       if (projectId) {
-        url = `/projects/${projectId}/resources`;
+        url = `/resources/project/${projectId}`;
       }
       
       console.log(`Fetching resources from: ${url}`);
