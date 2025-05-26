@@ -30,11 +30,12 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ preselectedProjectId, onSubmi
   const handleSubmit = async (data: any) => {
     try {
       await createTransactionMutation.mutateAsync({
-        type: 'payment',
+        type: 'income', // Changed from 'payment' to 'income' to match API expectation
         amount: parseFloat(data.amount),
         description: data.description,
         project: data.projectId,
         date: data.date,
+        status: data.status,
       });
       
       form.reset();

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, IndianRupee, Building, CheckCircle, Clock, X } from 'lucide-react';
@@ -58,15 +59,19 @@ const ProjectDetails = () => {
   const payments = transactions.filter(t => t.type === 'payment' || t.type === 'income');
   const expenses = transactions.filter(t => t.type === 'expense');
 
-  // Calculate totals
-  const totalPaidPayments = payments.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
+  // Calculate totals - safely access status property
+  const totalPaidPayments = payments.filter(p => (p as any).status === 'paid').reduce((sum, p) => sum + p.amount, 0);
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
   const profit = totalPaidPayments - totalExpenses;
-  const pendingPayments = payments.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0);
-  const overduePayments = payments.filter(p => p.status === 'overdue').reduce((sum, p) => sum + p.amount, 0);
+  const pendingPayments = payments.filter(p => (p as any).status === 'pending').reduce((sum, p) => sum + p.amount, 0);
+  const overduePayments = payments.filter(p => (p as any).status === 'overdue').reduce((sum, p) => sum + p.amount, 0);
 
   const handleStatusUpdate = () => {
     // Status update handled by the hook
+  };
+
+  const handleProjectUpdated = () => {
+    // Handle project update
   };
 
   return (
@@ -192,7 +197,7 @@ const ProjectDetails = () => {
               </Button>
             </div>
             
-            {project.payments && project.payments.length > 0 ? (
+            {payments && payments.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="min-w-full">
                   <thead className="bg-gray-50 text-xs uppercase text-gray-700">
@@ -204,15 +209,15 @@ const ProjectDetails = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {project.payments.slice(0, 3).map((payment) => (
+                    {payments.slice(0, 3).map((payment) => (
                       <tr key={payment.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">{formatDate(payment.date)}</td>
                         <td className="px-6 py-4">{payment.description}</td>
                         <td className="px-6 py-4 whitespace-nowrap font-medium">{formatCurrency(payment.amount)}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <StatusBadge 
-                            status={payment.status} 
-                            colorClassName={getProjectStatusColor(payment.status)} 
+                            status={(payment as any).status || 'pending'} 
+                            colorClassName={getProjectStatusColor((payment as any).status || 'pending')} 
                           />
                         </td>
                       </tr>
@@ -235,7 +240,7 @@ const ProjectDetails = () => {
               </Button>
             </div>
             
-            {project.expenses && project.expenses.length > 0 ? (
+            {expenses && expenses.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="min-w-full">
                   <thead className="bg-gray-50 text-xs uppercase text-gray-700">
@@ -247,13 +252,13 @@ const ProjectDetails = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {project.expenses.slice(0, 3).map((expense) => (
+                    {expenses.slice(0, 3).map((expense) => (
                       <tr key={expense.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">{formatDate(expense.date)}</td>
                         <td className="px-6 py-4">{expense.description}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <StatusBadge 
-                            status={expense.category} 
+                            status={(expense as any).category || 'other'} 
                             colorClassName="bg-gray-100 text-gray-800" 
                           />
                         </td>
@@ -314,8 +319,8 @@ const ProjectDetails = () => {
                         <td className="px-6 py-4 whitespace-nowrap font-medium">{formatCurrency(payment.amount)}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <StatusBadge 
-                            status={payment.status} 
-                            colorClassName={getProjectStatusColor(payment.status)} 
+                            status={(payment as any).status || 'pending'} 
+                            colorClassName={getProjectStatusColor((payment as any).status || 'pending')} 
                           />
                         </td>
                       </tr>
@@ -373,7 +378,7 @@ const ProjectDetails = () => {
                         <td className="px-6 py-4">{expense.description}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <StatusBadge 
-                            status={expense.category} 
+                            status={(expense as any).category || 'other'} 
                             colorClassName="bg-gray-100 text-gray-800" 
                           />
                         </td>
@@ -403,7 +408,7 @@ const ProjectDetails = () => {
         
         {/* Management tab */}
         <TabsContent value="management">
-          <ProjectManagement project={project} />
+          <ProjectManagement project={project} onProjectUpdated={handleProjectUpdated} />
         </TabsContent>
       </Tabs>
     </div>

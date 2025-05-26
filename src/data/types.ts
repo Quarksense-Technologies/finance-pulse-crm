@@ -72,6 +72,7 @@ export interface Transaction {
   category?: string;
   project: string; // Project ID
   date: string;
+  status?: 'paid' | 'pending' | 'overdue'; // Add status property
   attachments?: Array<{
     name: string;
     url: string;

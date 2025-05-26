@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Calendar, Search, Plus, ArrowDown, FileText, FileSpreadsheet, Download } from 'lucide-react';
@@ -95,20 +94,20 @@ const Finances = () => {
     return company ? company.name : 'Unknown';
   };
 
-  const handlePaymentSubmit = (data: any) => {
-    console.log('Payment submitted:', data);
+  const handlePaymentSubmit = () => {
+    console.log('Payment submitted');
     toast({
       title: "Payment Added",
-      description: `Payment of ${formatCurrency(data.amount)} has been recorded.`,
+      description: "Payment has been recorded successfully.",
     });
     setIsPaymentDialogOpen(false);
   };
 
-  const handleExpenseSubmit = (data: any) => {
-    console.log('Expense submitted:', data);
+  const handleExpenseSubmit = () => {
+    console.log('Expense submitted');
     toast({
-      title: "Expense Added",
-      description: `Expense of ${formatCurrency(data.amount)} has been recorded.`,
+      title: "Expense Added", 
+      description: "Expense has been recorded successfully.",
     });
     setIsExpenseDialogOpen(false);
   };

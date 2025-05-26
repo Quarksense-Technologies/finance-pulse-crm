@@ -99,17 +99,17 @@ const ApprovalCard = ({ item, onApprove, onReject, isLoading }: ApprovalCardProp
             {item.type === 'payment' ? 'Payment Request' : 'Expense Claim'} - {formatCurrency(item.amount)}
           </CardTitle>
           <CardDescription>
-            Requested on {formatDate(item.createdAt)} by {item.createdBy.name}
+            Requested on {formatDate(item.createdAt || item.date)} by {item.createdBy?.name || 'Unknown User'}
           </CardDescription>
         </div>
-        <StatusBadge status={item.status} />
+        <StatusBadge status={item.approvalStatus || 'pending'} />
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <h4 className="text-sm font-semibold mb-2">Details</h4>
             <p className="text-sm">{item.description}</p>
-            <p className="text-sm text-gray-500 mt-1">Project: {item.projectName}</p>
+            <p className="text-sm text-gray-500 mt-1">Project: {item.project?.name || 'Unknown Project'}</p>
           </div>
           <div className="flex justify-end items-center">
             <div className="flex gap-2">
