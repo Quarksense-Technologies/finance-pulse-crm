@@ -21,19 +21,51 @@ router.get('/', auth, async (req, res) => {
     if (status) filter.status = status;
     if (companyId) filter.companyId = companyId;
     
-    // Get projects with filter
+    // Get projects with filter and populate company details
     let projects = await Project.find(filter)
       .populate('companyId', 'name') // Get only company name
       .sort({ createdAt: -1 });
     
-    // Format projects with company name
-    projects = projects.map(project => {
+    // Format projects with company name and calculate profits
+    const projectsWithDetails = await Promise.all(projects.map(async (project) => {
       const formattedProject = project.toJSON();
-      formattedProject.companyName = project.companyId ? project.companyId.name : '';
+      formattedProject.companyName = project.companyId ? project.companyId.name : 'Unknown Company';
+      
+      // Get payments (income)
+      const payments = await Transaction.find({
+        project: project._id,
+        type: { $in: ['payment', 'income'] },
+        approvalStatus: 'approved'
+      });
+      
+      // Get expenses
+      const expenses = await Transaction.find({
+        project: project._id,
+        type: 'expense',
+        approvalStatus: 'approved'
+      });
+      
+      // Get resources
+      const resources = await Resource.find({
+        projectId: project._id
+      });
+      
+      // Calculate totals
+      const totalPayments = payments.reduce((sum, p) => sum + p.amount, 0);
+      const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+      const resourceCosts = resources.reduce((sum, r) => sum + (r.hoursAllocated * r.hourlyRate), 0);
+      
+      formattedProject.totalPayments = totalPayments;
+      formattedProject.totalExpenses = totalExpenses + resourceCosts;
+      formattedProject.profit = totalPayments - (totalExpenses + resourceCosts);
+      formattedProject.payments = payments;
+      formattedProject.expenses = expenses;
+      formattedProject.resources = resources;
+      
       return formattedProject;
-    });
+    }));
     
-    res.status(200).json(projects);
+    res.status(200).json(projectsWithDetails);
   } catch (error) {
     console.error('Error fetching projects:', error);
     res.status(500).json({
@@ -77,9 +109,17 @@ router.get('/:id', auth, async (req, res) => {
       projectId: project._id
     }).sort({ startDate: -1 });
     
+    // Calculate totals
+    const totalPayments = payments.reduce((sum, p) => sum + p.amount, 0);
+    const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+    const resourceCosts = resources.reduce((sum, r) => sum + (r.hoursAllocated * r.hourlyRate), 0);
+    
     // Format response
     const response = project.toJSON();
-    response.companyName = project.companyId ? project.companyId.name : '';
+    response.companyName = project.companyId ? project.companyId.name : 'Unknown Company';
+    response.totalPayments = totalPayments;
+    response.totalExpenses = totalExpenses + resourceCosts;
+    response.profit = totalPayments - (totalExpenses + resourceCosts);
     response.payments = payments;
     response.expenses = expenses;
     response.resources = resources;
@@ -261,7 +301,7 @@ router.put(
 );
 
 // @route   DELETE /api/projects/:id
-// @desc    Delete project
+// @desc    Delete project (with cascading deletes)
 // @access  Admin only
 router.delete('/:id', auth, roleCheck(['admin']), async (req, res) => {
   try {
@@ -275,23 +315,13 @@ router.delete('/:id', auth, roleCheck(['admin']), async (req, res) => {
       });
     }
 
-    // Check for associated transactions
-    const transactions = await Transaction.find({ project: project._id });
-    if (transactions.length > 0) {
-      return res.status(400).json({
-        message: 'Cannot delete project with associated transactions',
-        success: false
-      });
-    }
+    // Delete associated transactions first
+    await Transaction.deleteMany({ project: project._id });
+    console.log(`Deleted transactions for project ${project._id}`);
     
-    // Check for associated resources
-    const resources = await Resource.find({ projectId: project._id });
-    if (resources.length > 0) {
-      return res.status(400).json({
-        message: 'Cannot delete project with associated resources',
-        success: false
-      });
-    }
+    // Delete associated resources
+    await Resource.deleteMany({ projectId: project._id });
+    console.log(`Deleted resources for project ${project._id}`);
     
     // Remove project from company
     await Company.findByIdAndUpdate(
@@ -303,7 +333,7 @@ router.delete('/:id', auth, roleCheck(['admin']), async (req, res) => {
     await Project.findByIdAndDelete(req.params.id);
     
     res.status(200).json({
-      message: 'Project deleted successfully',
+      message: 'Project and all associated data deleted successfully',
       success: true
     });
   } catch (error) {

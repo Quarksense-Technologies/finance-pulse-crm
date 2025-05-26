@@ -1,4 +1,3 @@
-
 import { toast } from "@/hooks/use-toast";
 import apiClient from './client';
 import { Project, Payment, Expense, Resource } from '@/data/types';
@@ -50,6 +49,14 @@ const transformProject = (backendProject: any): Project => {
     companyName = backendProject.companyName;
   }
   
+  // Calculate profit from backend data if available
+  let profit = 0;
+  if (backendProject.profit !== undefined) {
+    profit = backendProject.profit;
+  } else if (backendProject.totalPayments !== undefined && backendProject.totalExpenses !== undefined) {
+    profit = backendProject.totalPayments - backendProject.totalExpenses;
+  }
+  
   return {
     id: backendProject._id || backendProject.id,
     name: backendProject.name || '',
@@ -65,7 +72,10 @@ const transformProject = (backendProject: any): Project => {
     team: backendProject.team || [],
     payments: backendProject.payments || [],
     expenses: backendProject.expenses || [],
-    resources: backendProject.resources || []
+    resources: backendProject.resources || [],
+    totalPayments: backendProject.totalPayments || 0,
+    totalExpenses: backendProject.totalExpenses || 0,
+    profit: profit
   };
 };
 
@@ -79,12 +89,8 @@ export const projectService = {
         throw new Error('No authentication token found');
       }
       
-      // Add populate parameter to include resources
       const response = await apiClient.get('/projects', { 
-        params: { 
-          ...filters,
-          populate: 'resources,companyId' 
-        } 
+        params: filters
       });
       console.log('Raw projects response:', response.data);
       
@@ -122,8 +128,7 @@ export const projectService = {
   async getProjectById(id: string): Promise<Project> {
     try {
       console.log(`Fetching project details for ID: ${id}`);
-      // Add populate parameter to include resources and company details
-      const response = await apiClient.get(`/projects/${id}?populate=resources,companyId`);
+      const response = await apiClient.get(`/projects/${id}`);
       console.log('Project details response:', response.data);
       return transformProject(response.data);
     } catch (error: any) {
@@ -200,7 +205,7 @@ export const projectService = {
       
       toast({
         title: "Success",
-        description: "Project deleted successfully",
+        description: "Project and all associated data deleted successfully",
       });
     } catch (error: any) {
       console.error(`Error deleting project ${id}:`, error);

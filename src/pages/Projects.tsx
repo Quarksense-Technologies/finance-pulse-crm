@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, Plus, Calendar, Users, Trash2 } from 'lucide-react';
+import { Search, Plus, Calendar, Users, Trash2, TrendingUp, TrendingDown } from 'lucide-react';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Project } from '@/data/types';
 import StatusBadge from '@/components/ui/StatusBadge';
-import { formatDate, getProjectStatusColor, calculateProjectProfit, formatCurrency } from '@/utils/financialUtils';
+import { formatDate, getProjectStatusColor, formatCurrency } from '@/utils/financialUtils';
 import { toast } from "@/hooks/use-toast";
 import ProjectForm from '@/components/forms/ProjectForm';
 import { useProjects, useCreateProject, useDeleteProject } from '@/hooks/api/useProjects';
@@ -245,7 +245,7 @@ const Projects = () => {
                       <AlertDialogHeader>
                         <AlertDialogTitle>Delete Project</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Are you sure you want to delete "{project.name}"? This action cannot be undone.
+                          Are you sure you want to delete "{project.name}"? This action will also delete all associated transactions and resources and cannot be undone.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
@@ -290,13 +290,31 @@ const Projects = () => {
                   </div>
                   
                   <div className="flex justify-between text-sm mt-1">
-                    <span className="text-gray-500">Profit:</span>
-                    <span className={`font-medium ${
-                      calculateProjectProfit(project) >= 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {calculateProjectProfit(project) >= 0 ? '+' : ''}
-                      {formatCurrency(calculateProjectProfit(project))}
-                    </span>
+                    <span className="text-gray-500">Budget:</span>
+                    <span className="font-medium">{project.budget ? formatCurrency(project.budget) : 'Not set'}</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center text-sm mt-1">
+                    <span className="text-gray-500">Profit/Loss:</span>
+                    <div className="flex items-center">
+                      {project.profit !== undefined ? (
+                        <>
+                          {project.profit >= 0 ? (
+                            <TrendingUp className="w-4 h-4 mr-1 text-green-600" />
+                          ) : (
+                            <TrendingDown className="w-4 h-4 mr-1 text-red-600" />
+                          )}
+                          <span className={`font-medium ${
+                            project.profit >= 0 ? 'text-green-600' : 'text-red-600'
+                          }`}>
+                            {project.profit >= 0 ? '+' : ''}
+                            {formatCurrency(project.profit)}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-gray-400">Not calculated</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </Link>

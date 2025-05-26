@@ -97,94 +97,92 @@ const Finances = () => {
   const PAYMENT_COLORS = ['#10b981', '#f59e0b', '#ef4444'];
   const EXPENSE_COLORS = ['#3b82f6', '#8b5cf6', '#6366f1', '#9ca3af', '#10b981', '#f59e0b', '#ef4444', '#8dd1e1', '#d084d0', '#ffb347'];
 
-  // Improved project/company name resolution with better matching logic
+  // Improved project/company name resolution with better error handling
   const getProjectName = (projectId: string | undefined | null): string => {
     if (!projectId) return 'No Project';
     
-    // Convert projectId to string for consistent comparison
-    const projectIdStr = String(projectId);
-    console.log('Looking for project ID:', projectIdStr);
-    
-    // Try multiple matching strategies
-    const project = projects.find(p => {
-      const pId = String(p.id || '');
-      const pObjectId = String((p as any)._id || '');
+    try {
+      const projectIdStr = String(projectId);
+      console.log('Looking for project ID:', projectIdStr);
       
-      return pId === projectIdStr || 
-             pObjectId === projectIdStr ||
-             pId.includes(projectIdStr) ||
-             projectIdStr.includes(pId);
-    });
-    
-    if (project) {
-      console.log('Found project:', project.name);
-      return project.name;
+      const project = projects.find(p => {
+        const pId = String(p.id || '');
+        return pId === projectIdStr || pId.includes(projectIdStr) || projectIdStr.includes(pId);
+      });
+      
+      if (project && project.name) {
+        console.log('Found project:', project.name);
+        return project.name;
+      }
+      
+      console.log('Project not found for ID:', projectIdStr);
+      return `Project ${projectIdStr.substring(0, 8)}...`;
+    } catch (error) {
+      console.error('Error in getProjectName:', error);
+      return 'Unknown Project';
     }
-    
-    console.log('Project not found for ID:', projectIdStr, 'Available projects:', projects.map(p => ({ id: p.id, _id: (p as any)._id, name: p.name })));
-    return `Unknown Project`;
   };
   
   const getProjectCompany = (projectId: string | undefined | null): string => {
     if (!projectId) return 'No Company';
     
-    // Convert projectId to string for consistent comparison
-    const projectIdStr = String(projectId);
-    console.log('Looking for company for project ID:', projectIdStr);
-    
-    // Try multiple matching strategies
-    const project = projects.find(p => {
-      const pId = String(p.id || '');
-      const pObjectId = String((p as any)._id || '');
+    try {
+      const projectIdStr = String(projectId);
+      console.log('Looking for company for project ID:', projectIdStr);
       
-      return pId === projectIdStr || 
-             pObjectId === projectIdStr ||
-             pId.includes(projectIdStr) ||
-             projectIdStr.includes(pId);
-    });
-    
-    if (!project) {
-      console.log('Project not found for company lookup:', projectIdStr);
-      return 'Unknown Company';
-    }
-    
-    console.log('Found project for company lookup:', project);
-    
-    // If project has companyName directly
-    if (project.companyName && project.companyName !== 'Unknown Company') {
-      return project.companyName;
-    }
-    
-    // Look up company by companyId
-    if (project.companyId) {
-      const company = companies.find(c => {
-        const cId = String(c.id || '');
-        const cObjectId = String((c as any)._id || '');
-        const projCompanyId = String(project.companyId || '');
-        
-        return cId === projCompanyId || 
-               cObjectId === projCompanyId ||
-               cId.includes(projCompanyId) ||
-               projCompanyId.includes(cId);
+      const project = projects.find(p => {
+        const pId = String(p.id || '');
+        return pId === projectIdStr || pId.includes(projectIdStr) || projectIdStr.includes(pId);
       });
       
-      if (company) {
-        console.log('Found company:', company.name);
-        return company.name;
+      if (!project) {
+        console.log('Project not found for company lookup:', projectIdStr);
+        return 'Unknown Company';
       }
+      
+      console.log('Found project for company lookup:', project);
+      
+      // Return company name directly from project
+      if (project.companyName && project.companyName !== 'Unknown Company') {
+        return project.companyName;
+      }
+      
+      // Fallback to company lookup
+      if (project.companyId) {
+        const company = companies.find(c => {
+          const cId = String(c.id || '');
+          const projCompanyId = String(project.companyId || '');
+          return cId === projCompanyId || cId.includes(projCompanyId) || projCompanyId.includes(cId);
+        });
+        
+        if (company && company.name) {
+          console.log('Found company:', company.name);
+          return company.name;
+        }
+      }
+      
+      console.log('Company not found for project:', project);
+      return 'Unknown Company';
+    } catch (error) {
+      console.error('Error in getProjectCompany:', error);
+      return 'Unknown Company';
     }
-    
-    console.log('Company not found for project:', project);
-    return 'Unknown Company';
   };
 
   // Fixed custom label rendering function for pie charts
   const renderCustomizedLabel = (entry: any, data: any[]) => {
-    if (entry.value === 0 || !data || data.length === 0) return null;
+    if (!entry || entry.value === 0 || !data || data.length === 0) return null;
     
-    const total = data.reduce((sum, item) => sum + item.value, 0);
-    const percent = ((entry.value / total) * 100).toFixed(0);
-    return `${entry.name}: ${percent}%`;
+    try {
+      const total = data.reduce((sum, item) => sum + (item.value || 0), 0);
+      if (total === 0) return null;
+      
+      const percent = ((entry.value / total) * 100).toFixed(0);
+      return `${entry.name}: ${percent}%`;
+    } catch (error) {
+      console.error('Error in renderCustomizedLabel:', error);
+      return null;
+    }
   };
 
   const handlePaymentSubmit = () => {
