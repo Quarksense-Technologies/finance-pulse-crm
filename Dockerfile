@@ -5,6 +5,8 @@ COPY package*.json bun.lockb ./
 RUN npm ci --legacy-peer-deps
 COPY . .
 ENV NODE_OPTIONS="--max_old_space_size=4096"
+ENV VITE_BUILD_MAX_WORKERS=2
+
 
 RUN npm run build        # outputs to /app/dist
 
