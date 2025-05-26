@@ -1,66 +1,48 @@
+
 import React, { useEffect, useState } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { DollarSign, Users, Briefcase, ArrowUp, ArrowDown } from 'lucide-react';
 import StatCard from '@/components/ui/StatCard';
-import { initializeData, calculateFinancialSummary, calculateManpowerSummary } from '@/data/mockData';
-import { companies, projects, payments, expenses } from '@/data/mockData';
 import { formatCurrency } from '@/utils/financialUtils';
+import { useCompanies } from '@/hooks/api/useCompanies';
+import { useProjects } from '@/hooks/api/useProjects';
+import { useFinancialSummary } from '@/hooks/api/useFinances';
 
 const Dashboard = () => {
-  const [financialSummary, setFinancialSummary] = useState(calculateFinancialSummary());
-  const [manpowerSummary, setManpowerSummary] = useState(calculateManpowerSummary());
+  const { data: companies = [] } = useCompanies();
+  const { data: projects = [] } = useProjects();
+  const { data: financialSummary } = useFinancialSummary();
 
-  useEffect(() => {
-    // Initialize data relationships
-    initializeData();
-    
-    // Recalculate summaries
-    setFinancialSummary(calculateFinancialSummary());
-    setManpowerSummary(calculateManpowerSummary());
-  }, []);
+  // Mock data for now since we don't have payment/expense endpoints yet
+  const mockFinancialSummary = {
+    totalRevenue: 125000,
+    totalExpenses: 85000,
+    profit: 40000,
+    pendingPayments: 15000,
+    overduePayments: 5000
+  };
+
+  const summary = financialSummary || mockFinancialSummary;
 
   // Prepare data for payment status pie chart
   const paymentStatusData = [
-    { name: 'Paid', value: financialSummary.totalRevenue },
-    { name: 'Pending', value: financialSummary.pendingPayments },
-    { name: 'Overdue', value: financialSummary.overduePayments }
+    { name: 'Revenue', value: summary.totalRevenue },
+    { name: 'Pending', value: summary.pendingPayments },
+    { name: 'Overdue', value: summary.overduePayments }
   ];
   
   const COLORS = ['#10b981', '#f59e0b', '#ef4444'];
 
   // Prepare data for monthly revenue and expenses bar chart
-  // Group payments and expenses by month
   const getMonthlyData = () => {
-    const currentYear = new Date().getFullYear();
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
     
-    const monthlyData = months.map(month => {
-      return {
-        name: month,
-        revenue: 0,
-        expenses: 0
-      };
-    });
-    
-    // Add revenue data
-    payments.forEach(payment => {
-      const date = new Date(payment.date);
-      const monthIndex = date.getMonth();
-      
-      if (monthIndex < 6 && payment.status === 'paid') {
-        monthlyData[monthIndex].revenue += payment.amount;
-      }
-    });
-    
-    // Add expense data
-    expenses.forEach(expense => {
-      const date = new Date(expense.date);
-      const monthIndex = date.getMonth();
-      
-      if (monthIndex < 6) {
-        monthlyData[monthIndex].expenses += expense.amount;
-      }
-    });
+    // Mock monthly data - in real implementation this would come from API
+    const monthlyData = months.map((month, index) => ({
+      name: month,
+      revenue: Math.floor(Math.random() * 20000) + 10000,
+      expenses: Math.floor(Math.random() * 15000) + 8000
+    }));
     
     return monthlyData;
   };
@@ -68,8 +50,8 @@ const Dashboard = () => {
   const monthlyData = getMonthlyData();
 
   // Calculate percentage changes
-  const revenueChange = financialSummary.totalRevenue > 0 ? 15.8 : 0; // Mock percentage change
-  const expenseChange = financialSummary.totalExpenses > 0 ? 8.2 : 0; // Mock percentage change
+  const revenueChange = summary.totalRevenue > 0 ? 15.8 : 0;
+  const expenseChange = summary.totalExpenses > 0 ? 8.2 : 0;
 
   return (
     <div className="animate-fade-in">
@@ -79,7 +61,7 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
           title="Total Revenue"
-          value={formatCurrency(financialSummary.totalRevenue)}
+          value={formatCurrency(summary.totalRevenue)}
           icon={<DollarSign className="h-6 w-6 text-primary" />}
           trend="up"
           trendValue={`${revenueChange}%`}
@@ -87,7 +69,7 @@ const Dashboard = () => {
         
         <StatCard
           title="Total Expenses"
-          value={formatCurrency(financialSummary.totalExpenses)}
+          value={formatCurrency(summary.totalExpenses)}
           icon={<DollarSign className="h-6 w-6 text-destructive" />}
           trend="up"
           trendValue={`${expenseChange}%`}
@@ -95,19 +77,19 @@ const Dashboard = () => {
         
         <StatCard
           title="Profit"
-          value={formatCurrency(financialSummary.profit)}
+          value={formatCurrency(summary.profit)}
           icon={<ArrowUp className="h-6 w-6 text-green-600" />}
-          trend={financialSummary.profit > 0 ? "up" : "down"}
-          trendValue={`${Math.abs(((financialSummary.profit / financialSummary.totalRevenue) * 100) || 0).toFixed(1)}%`}
+          trend={summary.profit > 0 ? "up" : "down"}
+          trendValue={`${Math.abs(((summary.profit / summary.totalRevenue) * 100) || 0).toFixed(1)}%`}
         />
         
         <StatCard
           title="Pending Payments"
-          value={formatCurrency(financialSummary.pendingPayments + financialSummary.overduePayments)}
+          value={formatCurrency(summary.pendingPayments + summary.overduePayments)}
           icon={<ArrowDown className="h-6 w-6 text-yellow-600" />}
           trend="neutral"
-          trendValue={`${((financialSummary.pendingPayments + financialSummary.overduePayments) / 
-            (financialSummary.totalRevenue + financialSummary.pendingPayments + financialSummary.overduePayments) * 100).toFixed(1)}%`}
+          trendValue={`${((summary.pendingPayments + summary.overduePayments) / 
+            (summary.totalRevenue + summary.pendingPayments + summary.overduePayments) * 100).toFixed(1)}%`}
         />
       </div>
       
@@ -126,8 +108,8 @@ const Dashboard = () => {
         />
         
         <StatCard
-          title="Total Manpower Allocated"
-          value={`${manpowerSummary.totalAllocated} hrs`}
+          title="Total Projects"
+          value={projects.length}
           icon={<Users className="h-6 w-6 text-purple-600" />}
         />
       </div>
@@ -135,7 +117,7 @@ const Dashboard = () => {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white shadow-sm rounded-lg p-6 border border-gray-100">
-          <h2 className="text-lg font-semibold mb-4">Payment Status</h2>
+          <h2 className="text-lg font-semibold mb-4">Financial Overview</h2>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>

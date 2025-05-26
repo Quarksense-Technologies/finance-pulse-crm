@@ -1,4 +1,3 @@
-
 // src/hooks/useAuth.tsx
 import * as React from 'react';
 import { authService } from '@/services/api/authService';
@@ -26,8 +25,10 @@ export type Permission =
   | 'approve_transactions'
   | 'add_company'
   | 'edit_company'
+  | 'delete_company'
   | 'add_project'
   | 'edit_project'
+  | 'delete_project'
   | 'add_payment'
   | 'add_expense'
   | 'view_reports';

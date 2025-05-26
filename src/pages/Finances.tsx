@@ -1,21 +1,22 @@
+
 import React, { useState } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Calendar, Search, Plus, ArrowDown, FileText, FileSpreadsheet, Download } from 'lucide-react';
-import { payments, expenses, companies, projects } from '@/data/mockData';
 import { formatCurrency, formatDate, getPaymentStatusColor, getExpenseCategoryColor } from '@/utils/financialUtils';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import PaymentForm from '@/components/forms/PaymentForm';
 import ExpenseForm from '@/components/forms/ExpenseForm';
-import { financeService } from '@/services/api/financeService';
-import { useExportTransactions } from '@/hooks/api/useFinances';
+import { useCompanies } from '@/hooks/api/useCompanies';
+import { useProjects } from '@/hooks/api/useProjects';
+import { useFinances, useExportTransactions } from '@/hooks/api/useFinances';
 
 const Finances = () => {
   const [tab, setTab] = useState<'payments' | 'expenses'>('payments');
@@ -26,7 +27,26 @@ const Finances = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isExporting, setIsExporting] = useState(false);
   
+  const { data: companies = [] } = useCompanies();
+  const { data: projects = [] } = useProjects();
+  const { data: transactions = [] } = useFinances({ type: tab });
   const { exportToFormat } = useExportTransactions();
+
+  // Mock data for now since we don't have complete finance endpoints
+  const mockPayments = [
+    { id: '1', projectId: '1', amount: 5000, date: '2025-01-15', status: 'paid', description: 'Initial payment' },
+    { id: '2', projectId: '2', amount: 3000, date: '2025-01-20', status: 'pending', description: 'Monthly payment' },
+    { id: '3', projectId: '1', amount: 2000, date: '2025-01-10', status: 'overdue', description: 'Final payment' },
+  ];
+
+  const mockExpenses = [
+    { id: '1', projectId: '1', amount: 1500, date: '2025-01-15', category: 'manpower', description: 'Developer wages' },
+    { id: '2', projectId: '2', amount: 800, date: '2025-01-20', category: 'materials', description: 'Software licenses' },
+    { id: '3', projectId: '1', amount: 500, date: '2025-01-10', category: 'services', description: 'Consulting fees' },
+  ];
+
+  const payments = transactions.filter(t => t.type === 'payment') || mockPayments;
+  const expenses = transactions.filter(t => t.type === 'expense') || mockExpenses;
 
   // Prepare data for payment status pie chart
   const paidAmount = payments.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
@@ -454,7 +474,7 @@ const Finances = () => {
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
                   </div>
-                  <Select defaultValue="all" onValueChange={(val) => setTab(val as 'payments' | 'expenses')}>
+                  <Select defaultValue="payments" onValueChange={(val) => setTab(val as 'payments' | 'expenses')}>
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="Transaction type" />
                     </SelectTrigger>

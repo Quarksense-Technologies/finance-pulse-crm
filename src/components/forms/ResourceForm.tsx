@@ -5,8 +5,8 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { projects } from '@/data/mockData';
 import { Resource } from '@/data/types';
+import { useProjects } from '@/hooks/api/useProjects';
 
 interface ResourceFormProps {
   preselectedProjectId?: string;
@@ -14,6 +14,8 @@ interface ResourceFormProps {
 }
 
 const ResourceForm: React.FC<ResourceFormProps> = ({ preselectedProjectId, onSubmit }) => {
+  const { data: projects = [] } = useProjects();
+  
   const form = useForm({
     defaultValues: {
       projectId: preselectedProjectId || '',
