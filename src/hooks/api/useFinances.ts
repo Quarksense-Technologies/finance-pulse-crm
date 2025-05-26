@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { financeService, CreateTransactionData } from '@/services/api/financeService';
 import { Payment, Expense, Transaction } from '@/data/types';
@@ -24,19 +25,31 @@ export const useCreateTransaction = () => {
   return useMutation({
     mutationFn: (data: CreateTransactionData) => financeService.createTransaction(data),
     onSuccess: (data, variables) => {
-      // Invalidate all transaction-related queries
+      console.log('Transaction created successfully, invalidating caches...');
+      
+      // Invalidate all possible transaction query combinations
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions', undefined] });
+      queryClient.invalidateQueries({ queryKey: ['transactions', {}] });
+      
+      // Invalidate type-specific queries
+      queryClient.invalidateQueries({ queryKey: ['transactions', { type: 'payment' }] });
+      queryClient.invalidateQueries({ queryKey: ['transactions', { type: 'income' }] });
+      queryClient.invalidateQueries({ queryKey: ['transactions', { type: 'expense' }] });
+      
+      // Invalidate other financial data
       queryClient.invalidateQueries({ queryKey: ['financialSummary'] });
       queryClient.invalidateQueries({ queryKey: ['financialChartData'] });
       queryClient.invalidateQueries({ queryKey: ['categoryExpenses'] });
       
-      // Invalidate specific project data
-      queryClient.invalidateQueries({ queryKey: ['project', variables.project] });
+      // Invalidate project data
       queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['project', variables.project] });
       
-      // Force refetch all queries to ensure immediate updates
+      // Force immediate refetch of all transaction queries
       queryClient.refetchQueries({ queryKey: ['transactions'] });
-      queryClient.refetchQueries({ queryKey: ['projects'] });
+      
+      console.log('Cache invalidation completed');
     },
   });
 };
@@ -63,7 +76,6 @@ export const useUpdateTransaction = () => {
       
       // Force refetch
       queryClient.refetchQueries({ queryKey: ['transactions'] });
-      queryClient.refetchQueries({ queryKey: ['projects'] });
     },
   });
 };
@@ -83,7 +95,6 @@ export const useDeleteTransaction = () => {
       
       // Force refetch
       queryClient.refetchQueries({ queryKey: ['transactions'] });
-      queryClient.refetchQueries({ queryKey: ['projects'] });
     },
   });
 };
@@ -104,7 +115,6 @@ export const useApproveTransaction = () => {
       
       // Force refetch
       queryClient.refetchQueries({ queryKey: ['transactions'] });
-      queryClient.refetchQueries({ queryKey: ['projects'] });
     },
   });
 };
@@ -126,7 +136,6 @@ export const useRejectTransaction = () => {
       
       // Force refetch
       queryClient.refetchQueries({ queryKey: ['transactions'] });
-      queryClient.refetchQueries({ queryKey: ['projects'] });
     },
   });
 };

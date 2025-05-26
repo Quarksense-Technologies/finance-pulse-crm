@@ -29,15 +29,21 @@ const Finances = () => {
   
   const { data: companies = [] } = useCompanies();
   const { data: projects = [] } = useProjects();
-  const { data: transactions = [] } = useTransactions({ type: tab === 'payments' ? 'payment' : 'expense' });
+  
+  // Use separate queries for better cache management
+  const { data: allTransactions = [], isLoading, refetch } = useTransactions();
   const { exportToFormat } = useExportTransactions();
 
-  // Filter transactions by type - using real API data
-  const payments = transactions.filter(t => t.type === 'payment' || t.type === 'income');
-  const expenses = transactions.filter(t => t.type === 'expense');
+  console.log('All transactions loaded:', allTransactions.length);
 
-  // Early return if no transactions data
-  if (!transactions) {
+  // Filter transactions by type - using real API data
+  const payments = allTransactions.filter(t => t.type === 'payment' || t.type === 'income');
+  const expenses = allTransactions.filter(t => t.type === 'expense');
+
+  console.log('Payments:', payments.length, 'Expenses:', expenses.length);
+
+  // Early return if loading
+  if (isLoading) {
     return (
       <div className="animate-fade-in">
         <h1 className="text-2xl font-bold mb-6">Financial Management</h1>
@@ -95,21 +101,25 @@ const Finances = () => {
   };
 
   const handlePaymentSubmit = () => {
-    console.log('Payment submitted');
+    console.log('Payment submitted, refreshing data...');
     toast({
       title: "Payment Added",
       description: "Payment has been recorded successfully.",
     });
     setIsPaymentDialogOpen(false);
+    // Force refetch to ensure immediate update
+    refetch();
   };
 
   const handleExpenseSubmit = () => {
-    console.log('Expense submitted');
+    console.log('Expense submitted, refreshing data...');
     toast({
       title: "Expense Added", 
       description: "Expense has been recorded successfully.",
     });
     setIsExpenseDialogOpen(false);
+    // Force refetch to ensure immediate update
+    refetch();
   };
 
   // Export functions
@@ -227,7 +237,7 @@ const Finances = () => {
               }`}
               onClick={() => setTab('payments')}
             >
-              Payments
+              Payments ({payments.length})
             </button>
             <button
               className={`pb-2 px-4 ${
@@ -237,7 +247,7 @@ const Finances = () => {
               }`}
               onClick={() => setTab('expenses')}
             >
-              Expenses
+              Expenses ({expenses.length})
             </button>
           </div>
 
