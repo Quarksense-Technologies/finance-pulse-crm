@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
 import { Calendar, Search, Plus, ArrowDown, FileText, FileSpreadsheet, Download } from 'lucide-react';
@@ -96,12 +95,15 @@ const Finances = () => {
   const PAYMENT_COLORS = ['#10b981', '#f59e0b', '#ef4444'];
   const EXPENSE_COLORS = ['#3b82f6', '#8b5cf6', '#6366f1', '#9ca3af', '#10b981', '#f59e0b', '#ef4444', '#8dd1e1', '#d084d0', '#ffb347'];
 
-  // Improved project/company name resolution with better fallbacks
-  const getProjectName = (projectId: string): string => {
+  // Improved project/company name resolution with better type checking and fallbacks
+  const getProjectName = (projectId: string | undefined | null): string => {
     console.log('Looking for project:', projectId, 'in projects:', projects);
     if (!projectId) return 'No Project';
     
-    const project = projects.find(p => p.id === projectId || p.id === projectId.toString());
+    // Ensure projectId is a string
+    const projectIdStr = String(projectId);
+    
+    const project = projects.find(p => p.id === projectIdStr || p.id === projectIdStr.toString());
     if (project) {
       console.log('Found project:', project.name);
       return project.name;
@@ -109,9 +111,9 @@ const Finances = () => {
     
     // Try to find by checking if projectId might be stored differently
     const alternativeProject = projects.find(p => 
-      p.id?.toString() === projectId?.toString() ||
-      (p as any)._id === projectId ||
-      (p as any)._id?.toString() === projectId?.toString()
+      p.id?.toString() === projectIdStr?.toString() ||
+      (p as any)._id === projectIdStr ||
+      (p as any)._id?.toString() === projectIdStr?.toString()
     );
     
     if (alternativeProject) {
@@ -120,18 +122,21 @@ const Finances = () => {
     }
     
     console.log('Project not found for ID:', projectId);
-    return `Project ${projectId.slice(-6)}`;
+    return `Project ${projectIdStr.slice(-6)}`;
   };
   
-  const getProjectCompany = (projectId: string): string => {
+  const getProjectCompany = (projectId: string | undefined | null): string => {
     console.log('Looking for company for project:', projectId);
     if (!projectId) return 'No Company';
     
+    // Ensure projectId is a string
+    const projectIdStr = String(projectId);
+    
     const project = projects.find(p => 
-      p.id === projectId || 
-      p.id === projectId.toString() ||
-      (p as any)._id === projectId ||
-      (p as any)._id?.toString() === projectId?.toString()
+      p.id === projectIdStr || 
+      p.id === projectIdStr.toString() ||
+      (p as any)._id === projectIdStr ||
+      (p as any)._id?.toString() === projectIdStr?.toString()
     );
     
     if (!project) {
