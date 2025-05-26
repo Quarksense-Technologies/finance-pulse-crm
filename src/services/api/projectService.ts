@@ -26,12 +26,35 @@ export interface UpdateProjectData {
 const transformProject = (backendProject: any): Project => {
   console.log('Transforming project data:', backendProject);
   
+  // Handle different ways the backend might return company data
+  let companyId = '';
+  let companyName = 'Unknown Company';
+  
+  if (backendProject.companyId) {
+    if (typeof backendProject.companyId === 'string') {
+      companyId = backendProject.companyId;
+    } else if (backendProject.companyId._id) {
+      companyId = backendProject.companyId._id;
+      companyName = backendProject.companyId.name || 'Unknown Company';
+    } else if (backendProject.companyId.id) {
+      companyId = backendProject.companyId.id;
+      companyName = backendProject.companyId.name || 'Unknown Company';
+    }
+  } else if (backendProject.company) {
+    companyId = backendProject.company;
+  }
+  
+  // Use companyName from direct field if available
+  if (backendProject.companyName) {
+    companyName = backendProject.companyName;
+  }
+  
   return {
     id: backendProject._id || backendProject.id,
     name: backendProject.name || '',
     description: backendProject.description || '',
-    companyId: backendProject.companyId?._id || backendProject.companyId || backendProject.company,
-    companyName: backendProject.companyName || backendProject.companyId?.name || 'Unknown Company',
+    companyId: companyId,
+    companyName: companyName,
     startDate: backendProject.startDate,
     endDate: backendProject.endDate,
     status: backendProject.status || 'planning',
