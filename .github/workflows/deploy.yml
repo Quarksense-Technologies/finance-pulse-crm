@@ -24,9 +24,9 @@ jobs:
       id: backend
       run: |
         IMAGE=${{ secrets.DOCKERHUB_USER }}/finance-pulse-backend:latest
-        docker build -t $IMAGE -f backend/Dockerfile backend
+        docker build -t $IMAGE \
+        -f backend/Dockerfile .       # <-- note the dot context
         docker push $IMAGE
-        echo "::set-output name=image::$IMAGE"
 
     - name: Build & Push Frontend
       id: frontend
