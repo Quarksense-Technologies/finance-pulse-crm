@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
 import { Calendar, Search, Plus, ArrowDown, FileText, FileSpreadsheet, Download } from 'lucide-react';
 import { formatCurrency, formatDate, getPaymentStatusColor, getExpenseCategoryColor } from '@/utils/financialUtils';
@@ -39,6 +39,31 @@ const Finances = () => {
   console.log('Companies loaded:', companies.length);
   console.log('Sample transaction:', allTransactions[0]);
   console.log('Sample project:', projects[0]);
+
+  // Create lookup maps for better performance
+  const projectLookup = useMemo(() => {
+    const lookup = new Map();
+    projects.forEach(project => {
+      if (project.id) {
+        lookup.set(project.id, project);
+        lookup.set(project.id.toString(), project);
+      }
+    });
+    console.log('Project lookup map created:', lookup.size, 'entries');
+    return lookup;
+  }, [projects]);
+
+  const companyLookup = useMemo(() => {
+    const lookup = new Map();
+    companies.forEach(company => {
+      if (company.id) {
+        lookup.set(company.id, company);
+        lookup.set(company.id.toString(), company);
+      }
+    });
+    console.log('Company lookup map created:', lookup.size, 'entries');
+    return lookup;
+  }, [companies]);
 
   // Filter transactions by type - using real API data
   const payments = allTransactions.filter(t => t.type === 'payment' || t.type === 'income');
@@ -99,74 +124,50 @@ const Finances = () => {
 
   // Improved project/company name resolution with better error handling
   const getProjectName = (projectId: string | undefined | null): string => {
-    if (!projectId) return 'No Project';
-    
-    try {
-      const projectIdStr = String(projectId);
-      console.log('Looking for project ID:', projectIdStr);
-      
-      const project = projects.find(p => {
-        const pId = String(p.id || '');
-        return pId === projectIdStr || pId.includes(projectIdStr) || projectIdStr.includes(pId);
-      });
-      
-      if (project && project.name) {
-        console.log('Found project:', project.name);
-        return project.name;
-      }
-      
-      console.log('Project not found for ID:', projectIdStr);
-      return `Project ${projectIdStr.substring(0, 8)}...`;
-    } catch (error) {
-      console.error('Error in getProjectName:', error);
-      return 'Unknown Project';
+    if (!projectId) {
+      console.log('No project ID provided');
+      return 'No Project';
     }
+    
+    const project = projectLookup.get(projectId);
+    if (project && project.name) {
+      console.log(`Found project: ${project.name} for ID: ${projectId}`);
+      return project.name;
+    }
+    
+    console.log(`Project not found for ID: ${projectId}`);
+    return `Project ${projectId.substring(0, 8)}...`;
   };
   
   const getProjectCompany = (projectId: string | undefined | null): string => {
-    if (!projectId) return 'No Company';
+    if (!projectId) {
+      console.log('No project ID provided for company lookup');
+      return 'No Company';
+    }
     
-    try {
-      const projectIdStr = String(projectId);
-      console.log('Looking for company for project ID:', projectIdStr);
-      
-      const project = projects.find(p => {
-        const pId = String(p.id || '');
-        return pId === projectIdStr || pId.includes(projectIdStr) || projectIdStr.includes(pId);
-      });
-      
-      if (!project) {
-        console.log('Project not found for company lookup:', projectIdStr);
-        return 'Unknown Company';
-      }
-      
-      console.log('Found project for company lookup:', project);
-      
-      // Return company name directly from project
-      if (project.companyName && project.companyName !== 'Unknown Company') {
-        return project.companyName;
-      }
-      
-      // Fallback to company lookup
-      if (project.companyId) {
-        const company = companies.find(c => {
-          const cId = String(c.id || '');
-          const projCompanyId = String(project.companyId || '');
-          return cId === projCompanyId || cId.includes(projCompanyId) || projCompanyId.includes(cId);
-        });
-        
-        if (company && company.name) {
-          console.log('Found company:', company.name);
-          return company.name;
-        }
-      }
-      
-      console.log('Company not found for project:', project);
-      return 'Unknown Company';
-    } catch (error) {
-      console.error('Error in getProjectCompany:', error);
+    const project = projectLookup.get(projectId);
+    if (!project) {
+      console.log(`Project not found for company lookup: ${projectId}`);
       return 'Unknown Company';
     }
+    
+    // First try to get company name directly from project
+    if (project.companyName && project.companyName !== 'Unknown Company') {
+      console.log(`Found company name from project: ${project.companyName}`);
+      return project.companyName;
+    }
+    
+    // Fallback to company lookup
+    if (project.companyId) {
+      const company = companyLookup.get(project.companyId);
+      if (company && company.name) {
+        console.log(`Found company from lookup: ${company.name}`);
+        return company.name;
+      }
+    }
+    
+    console.log(`Company not found for project: ${projectId}`);
+    return 'Unknown Company';
   };
 
   // Fixed custom label rendering function for pie charts

@@ -30,9 +30,35 @@ export const resourceService = {
         url = `/projects/${projectId}/resources`;
       }
       
+      console.log(`Fetching resources from: ${url}`);
       const response = await apiClient.get(url);
       console.log('Resources response:', response.data);
-      return response.data;
+      
+      // Transform the response to ensure consistent format
+      let resources = response.data;
+      if (response.data.data) {
+        resources = response.data.data;
+      }
+      
+      if (!Array.isArray(resources)) {
+        console.error('Expected resources array, got:', typeof resources, resources);
+        return [];
+      }
+      
+      // Transform resources to ensure proper format
+      const transformedResources = resources.map((resource: any) => ({
+        id: resource._id || resource.id,
+        name: resource.name || '',
+        projectId: resource.projectId || '',
+        role: resource.role || '',
+        hoursAllocated: resource.hoursAllocated || 0,
+        hourlyRate: resource.hourlyRate || 0,
+        startDate: resource.startDate,
+        endDate: resource.endDate
+      }));
+      
+      console.log('Transformed resources:', transformedResources);
+      return transformedResources;
     } catch (error: any) {
       console.error('Error fetching resources:', error);
       throw error;
@@ -42,7 +68,16 @@ export const resourceService = {
   async getResourceById(id: string): Promise<Resource> {
     try {
       const response = await apiClient.get(`/resources/${id}`);
-      return response.data;
+      return {
+        id: response.data._id || response.data.id,
+        name: response.data.name || '',
+        projectId: response.data.projectId || '',
+        role: response.data.role || '',
+        hoursAllocated: response.data.hoursAllocated || 0,
+        hourlyRate: response.data.hourlyRate || 0,
+        startDate: response.data.startDate,
+        endDate: response.data.endDate
+      };
     } catch (error: any) {
       console.error(`Error fetching resource ${id}:`, error);
       throw error;
@@ -59,7 +94,17 @@ export const resourceService = {
         title: "Success",
         description: "Resource allocated successfully",
       });
-      return response.data;
+      
+      return {
+        id: response.data._id || response.data.id,
+        name: response.data.name || '',
+        projectId: response.data.projectId || resourceData.projectId,
+        role: response.data.role || '',
+        hoursAllocated: response.data.hoursAllocated || 0,
+        hourlyRate: response.data.hourlyRate || 0,
+        startDate: response.data.startDate,
+        endDate: response.data.endDate
+      };
     } catch (error: any) {
       console.error('Error creating resource:', error);
       const errorMessage = error.response?.data?.message || error.message || 'Failed to create resource';
