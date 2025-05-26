@@ -17,6 +17,7 @@ import ExpenseForm from '@/components/forms/ExpenseForm';
 import { useCompanies } from '@/hooks/api/useCompanies';
 import { useProjects } from '@/hooks/api/useProjects';
 import { useTransactions, useExportTransactions } from '@/hooks/api/useFinances';
+import { Transaction } from '@/data/types';
 
 const Finances = () => {
   const [tab, setTab] = useState<'payments' | 'expenses'>('payments');
@@ -37,9 +38,9 @@ const Finances = () => {
   const expenses = transactions.filter(t => t.type === 'expense');
 
   // Prepare data for payment status pie chart
-  const paidAmount = payments.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
-  const pendingAmount = payments.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0);
-  const overdueAmount = payments.filter(p => p.status === 'overdue').reduce((sum, p) => sum + p.amount, 0);
+  const paidAmount = payments.filter(p => (p as any).status === 'paid').reduce((sum, p) => sum + p.amount, 0);
+  const pendingAmount = payments.filter(p => (p as any).status === 'pending').reduce((sum, p) => sum + p.amount, 0);
+  const overdueAmount = payments.filter(p => (p as any).status === 'overdue').reduce((sum, p) => sum + p.amount, 0);
   
   const paymentStatusData = [
     { name: 'Paid', value: paidAmount },
@@ -48,10 +49,10 @@ const Finances = () => {
   ];
   
   // Prepare data for expense categories pie chart
-  const manpowerExpenses = expenses.filter(e => e.category === 'salary').reduce((sum, e) => sum + e.amount, 0);
-  const materialsExpenses = expenses.filter(e => e.category === 'equipment').reduce((sum, e) => sum + e.amount, 0);
-  const servicesExpenses = expenses.filter(e => e.category === 'consulting').reduce((sum, e) => sum + e.amount, 0);
-  const otherExpenses = expenses.filter(e => e.category === 'other' || !e.category).reduce((sum, e) => sum + e.amount, 0);
+  const manpowerExpenses = expenses.filter(e => (e as any).category === 'salary').reduce((sum, e) => sum + e.amount, 0);
+  const materialsExpenses = expenses.filter(e => (e as any).category === 'equipment').reduce((sum, e) => sum + e.amount, 0);
+  const servicesExpenses = expenses.filter(e => (e as any).category === 'consulting').reduce((sum, e) => sum + e.amount, 0);
+  const otherExpenses = expenses.filter(e => (e as any).category === 'other' || !(e as any).category).reduce((sum, e) => sum + e.amount, 0);
   
   const expenseCategoryData = [
     { name: 'Salary', value: manpowerExpenses },
@@ -151,7 +152,7 @@ const Finances = () => {
         getProjectName(expense.project).toLowerCase().includes(searchQuery.toLowerCase()) ||
         getProjectCompany(expense.project).toLowerCase().includes(searchQuery.toLowerCase()) ||
         expense.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (expense.category && expense.category.toLowerCase().includes(searchQuery.toLowerCase()))
+        ((expense as any).category && (expense as any).category.toLowerCase().includes(searchQuery.toLowerCase()))
       );
 
   return (
@@ -319,11 +320,11 @@ const Finances = () => {
                         const projectIds = companyProjects.map(p => p.id);
                         
                         const totalPayments = payments
-                          .filter(p => projectIds.includes(p.project) && p.status === 'paid')
+                          .filter(p => projectIds.includes(p.project) && (p as any).status === 'paid')
                           .reduce((sum, p) => sum + p.amount, 0);
                         
                         const pendingPayments = payments
-                          .filter(p => projectIds.includes(p.project) && (p.status === 'pending' || p.status === 'overdue'))
+                          .filter(p => projectIds.includes(p.project) && ((p as any).status === 'pending' || (p as any).status === 'overdue'))
                           .reduce((sum, p) => sum + p.amount, 0);
                         
                         return {
@@ -416,8 +417,8 @@ const Finances = () => {
                         <td className="px-6 py-4 whitespace-nowrap font-medium">{formatCurrency(payment.amount)}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <StatusBadge 
-                            status={payment.status || 'pending'} 
-                            colorClassName={getPaymentStatusColor(payment.status || 'pending')} 
+                            status={(payment as any).status || 'pending'} 
+                            colorClassName={getPaymentStatusColor((payment as any).status || 'pending')} 
                           />
                         </td>
                       </tr>
@@ -432,8 +433,8 @@ const Finances = () => {
                         <td className="px-6 py-4 whitespace-nowrap font-medium">{formatCurrency(expense.amount)}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <StatusBadge 
-                            status={expense.category || 'other'} 
-                            colorClassName={getExpenseCategoryColor(expense.category || 'other')} 
+                            status={(expense as any).category || 'other'} 
+                            colorClassName={getExpenseCategoryColor((expense as any).category || 'other')} 
                           />
                         </td>
                       </tr>
@@ -520,8 +521,8 @@ const Finances = () => {
                         <TableCell>{formatCurrency(payment.amount)}</TableCell>
                         <TableCell>
                           <StatusBadge 
-                            status={payment.status || 'pending'} 
-                            colorClassName={getPaymentStatusColor(payment.status || 'pending')} 
+                            status={(payment as any).status || 'pending'} 
+                            colorClassName={getPaymentStatusColor((payment as any).status || 'pending')} 
                           />
                         </TableCell>
                       </TableRow>
@@ -536,8 +537,8 @@ const Finances = () => {
                         <TableCell>{formatCurrency(expense.amount)}</TableCell>
                         <TableCell>
                           <StatusBadge 
-                            status={expense.category || 'other'} 
-                            colorClassName={getExpenseCategoryColor(expense.category || 'other')} 
+                            status={(expense as any).category || 'other'} 
+                            colorClassName={getExpenseCategoryColor((expense as any).category || 'other')} 
                           />
                         </TableCell>
                       </TableRow>
