@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
 import { Calendar, Search, Plus, ArrowDown, FileText, FileSpreadsheet, Download } from 'lucide-react';
 import { formatCurrency, formatDate, getPaymentStatusColor, getExpenseCategoryColor } from '@/utils/financialUtils';
 import StatusBadge from '@/components/ui/StatusBadge';
@@ -35,6 +36,8 @@ const Finances = () => {
   const { exportToFormat } = useExportTransactions();
 
   console.log('All transactions loaded:', allTransactions.length);
+  console.log('Projects loaded:', projects.length);
+  console.log('Companies loaded:', companies.length);
 
   // Filter transactions by type - using real API data
   const payments = allTransactions.filter(t => t.type === 'payment' || t.type === 'income');
@@ -60,44 +63,113 @@ const Finances = () => {
   const overdueAmount = payments.filter(p => (p as any).status === 'overdue').reduce((sum, p) => sum + p.amount, 0);
   
   const paymentStatusData = [
-    { name: 'Paid', value: paidAmount },
-    { name: 'Pending', value: pendingAmount },
-    { name: 'Overdue', value: overdueAmount }
-  ];
+    { name: 'Paid', value: paidAmount, label: `Paid: ${formatCurrency(paidAmount)}` },
+    { name: 'Pending', value: pendingAmount, label: `Pending: ${formatCurrency(pendingAmount)}` },
+    { name: 'Overdue', value: overdueAmount, label: `Overdue: ${formatCurrency(overdueAmount)}` }
+  ].filter(item => item.value > 0);
   
   // Prepare data for expense categories pie chart using real data
   const salaryExpenses = expenses.filter(e => (e as any).category === 'salary').reduce((sum, e) => sum + e.amount, 0);
   const equipmentExpenses = expenses.filter(e => (e as any).category === 'equipment').reduce((sum, e) => sum + e.amount, 0);
   const consultingExpenses = expenses.filter(e => (e as any).category === 'consulting').reduce((sum, e) => sum + e.amount, 0);
+  const softwareExpenses = expenses.filter(e => (e as any).category === 'software').reduce((sum, e) => sum + e.amount, 0);
+  const officeExpenses = expenses.filter(e => (e as any).category === 'office').reduce((sum, e) => sum + e.amount, 0);
+  const travelExpenses = expenses.filter(e => (e as any).category === 'travel').reduce((sum, e) => sum + e.amount, 0);
+  const marketingExpenses = expenses.filter(e => (e as any).category === 'marketing').reduce((sum, e) => sum + e.amount, 0);
+  const utilitiesExpenses = expenses.filter(e => (e as any).category === 'utilities').reduce((sum, e) => sum + e.amount, 0);
+  const taxesExpenses = expenses.filter(e => (e as any).category === 'taxes').reduce((sum, e) => sum + e.amount, 0);
   const otherExpenses = expenses.filter(e => (e as any).category === 'other' || !(e as any).category).reduce((sum, e) => sum + e.amount, 0);
   
   const expenseCategoryData = [
-    { name: 'Salary', value: salaryExpenses },
-    { name: 'Equipment', value: equipmentExpenses },
-    { name: 'Consulting', value: consultingExpenses },
-    { name: 'Other', value: otherExpenses }
-  ];
+    { name: 'Salary', value: salaryExpenses, label: `Salary: ${formatCurrency(salaryExpenses)}` },
+    { name: 'Equipment', value: equipmentExpenses, label: `Equipment: ${formatCurrency(equipmentExpenses)}` },
+    { name: 'Consulting', value: consultingExpenses, label: `Consulting: ${formatCurrency(consultingExpenses)}` },
+    { name: 'Software', value: softwareExpenses, label: `Software: ${formatCurrency(softwareExpenses)}` },
+    { name: 'Office', value: officeExpenses, label: `Office: ${formatCurrency(officeExpenses)}` },
+    { name: 'Travel', value: travelExpenses, label: `Travel: ${formatCurrency(travelExpenses)}` },
+    { name: 'Marketing', value: marketingExpenses, label: `Marketing: ${formatCurrency(marketingExpenses)}` },
+    { name: 'Utilities', value: utilitiesExpenses, label: `Utilities: ${formatCurrency(utilitiesExpenses)}` },
+    { name: 'Taxes', value: taxesExpenses, label: `Taxes: ${formatCurrency(taxesExpenses)}` },
+    { name: 'Other', value: otherExpenses, label: `Other: ${formatCurrency(otherExpenses)}` }
+  ].filter(item => item.value > 0);
   
   const PAYMENT_COLORS = ['#10b981', '#f59e0b', '#ef4444'];
-  const EXPENSE_COLORS = ['#3b82f6', '#8b5cf6', '#6366f1', '#9ca3af'];
+  const EXPENSE_COLORS = ['#3b82f6', '#8b5cf6', '#6366f1', '#9ca3af', '#10b981', '#f59e0b', '#ef4444', '#8dd1e1', '#d084d0', '#ffb347'];
 
-  // Get company & project names by ID
-  const getCompanyName = (companyId: string): string => {
-    const company = companies.find(c => c.id === companyId);
-    return company ? company.name : 'Unknown';
+  // Improved project/company name resolution with better fallbacks
+  const getProjectName = (projectId: string): string => {
+    console.log('Looking for project:', projectId, 'in projects:', projects);
+    if (!projectId) return 'No Project';
+    
+    const project = projects.find(p => p.id === projectId || p.id === projectId.toString());
+    if (project) {
+      console.log('Found project:', project.name);
+      return project.name;
+    }
+    
+    // Try to find by checking if projectId might be stored differently
+    const alternativeProject = projects.find(p => 
+      p.id?.toString() === projectId?.toString() ||
+      (p as any)._id === projectId ||
+      (p as any)._id?.toString() === projectId?.toString()
+    );
+    
+    if (alternativeProject) {
+      console.log('Found alternative project:', alternativeProject.name);
+      return alternativeProject.name;
+    }
+    
+    console.log('Project not found for ID:', projectId);
+    return `Project ${projectId.slice(-6)}`;
   };
   
-  const getProjectName = (projectId: string): string => {
-    const project = projects.find(p => p.id === projectId);
-    return project ? project.name : 'Unknown';
+  const getProjectCompany = (projectId: string): string => {
+    console.log('Looking for company for project:', projectId);
+    if (!projectId) return 'No Company';
+    
+    const project = projects.find(p => 
+      p.id === projectId || 
+      p.id === projectId.toString() ||
+      (p as any)._id === projectId ||
+      (p as any)._id?.toString() === projectId?.toString()
+    );
+    
+    if (!project) {
+      console.log('Project not found for company lookup:', projectId);
+      return 'Unknown Company';
+    }
+    
+    console.log('Found project for company lookup:', project);
+    
+    // If project has companyName directly
+    if (project.companyName && project.companyName !== 'Unknown Company') {
+      return project.companyName;
+    }
+    
+    // Look up company by companyId
+    if (project.companyId) {
+      const company = companies.find(c => 
+        c.id === project.companyId || 
+        c.id === project.companyId.toString() ||
+        (c as any)._id === project.companyId ||
+        (c as any)._id?.toString() === project.companyId?.toString()
+      );
+      
+      if (company) {
+        console.log('Found company:', company.name);
+        return company.name;
+      }
+    }
+    
+    console.log('Company not found for project:', project);
+    return 'Unknown Company';
   };
 
-  const getProjectCompany = (projectId: string): string => {
-    const project = projects.find(p => p.id === projectId);
-    if (!project) return 'Unknown';
-    
-    const company = companies.find(c => c.id === project.companyId);
-    return company ? company.name : 'Unknown';
+  // Custom label rendering function for pie charts
+  const renderCustomizedLabel = (entry: any) => {
+    if (entry.value === 0) return null;
+    const percent = ((entry.value / entry.payload.reduce((sum: number, item: any) => sum + item.value, 0)) * 100).toFixed(0);
+    return `${entry.name}: ${percent}%`;
   };
 
   const handlePaymentSubmit = () => {
@@ -309,7 +381,7 @@ const Finances = () => {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      label={renderCustomizedLabel}
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
