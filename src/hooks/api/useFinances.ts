@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { financeService, CreateTransactionData } from '@/services/api/financeService';
 import { Payment, Expense, Transaction } from '@/data/types';
@@ -24,9 +23,20 @@ export const useCreateTransaction = () => {
   
   return useMutation({
     mutationFn: (data: CreateTransactionData) => financeService.createTransaction(data),
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
+      // Invalidate all transaction-related queries
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['financialSummary'] });
+      queryClient.invalidateQueries({ queryKey: ['financialChartData'] });
+      queryClient.invalidateQueries({ queryKey: ['categoryExpenses'] });
+      
+      // Invalidate specific project data
+      queryClient.invalidateQueries({ queryKey: ['project', variables.project] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      
+      // Force refetch all queries to ensure immediate updates
+      queryClient.refetchQueries({ queryKey: ['transactions'] });
+      queryClient.refetchQueries({ queryKey: ['projects'] });
     },
   });
 };
@@ -38,9 +48,22 @@ export const useUpdateTransaction = () => {
     mutationFn: ({ id, data }: { id: string; data: Partial<CreateTransactionData> }) => 
       financeService.updateTransaction(id, data),
     onSuccess: (data, variables) => {
+      // Invalidate all transaction-related queries
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['transaction', variables.id] });
       queryClient.invalidateQueries({ queryKey: ['financialSummary'] });
+      queryClient.invalidateQueries({ queryKey: ['financialChartData'] });
+      queryClient.invalidateQueries({ queryKey: ['categoryExpenses'] });
+      
+      // Invalidate project data
+      if (variables.data.project) {
+        queryClient.invalidateQueries({ queryKey: ['project', variables.data.project] });
+      }
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      
+      // Force refetch
+      queryClient.refetchQueries({ queryKey: ['transactions'] });
+      queryClient.refetchQueries({ queryKey: ['projects'] });
     },
   });
 };
@@ -51,8 +74,16 @@ export const useDeleteTransaction = () => {
   return useMutation({
     mutationFn: financeService.deleteTransaction,
     onSuccess: () => {
+      // Invalidate all transaction-related queries
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['financialSummary'] });
+      queryClient.invalidateQueries({ queryKey: ['financialChartData'] });
+      queryClient.invalidateQueries({ queryKey: ['categoryExpenses'] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      
+      // Force refetch
+      queryClient.refetchQueries({ queryKey: ['transactions'] });
+      queryClient.refetchQueries({ queryKey: ['projects'] });
     },
   });
 };
@@ -63,9 +94,17 @@ export const useApproveTransaction = () => {
   return useMutation({
     mutationFn: financeService.approveTransaction,
     onSuccess: (_, id) => {
+      // Invalidate all transaction-related queries
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['transaction', id] });
       queryClient.invalidateQueries({ queryKey: ['financialSummary'] });
+      queryClient.invalidateQueries({ queryKey: ['financialChartData'] });
+      queryClient.invalidateQueries({ queryKey: ['categoryExpenses'] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      
+      // Force refetch
+      queryClient.refetchQueries({ queryKey: ['transactions'] });
+      queryClient.refetchQueries({ queryKey: ['projects'] });
     },
   });
 };
@@ -77,9 +116,17 @@ export const useRejectTransaction = () => {
     mutationFn: ({ id, reason }: { id: string; reason: string }) => 
       financeService.rejectTransaction(id, reason),
     onSuccess: (_, variables) => {
+      // Invalidate all transaction-related queries
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['transaction', variables.id] });
       queryClient.invalidateQueries({ queryKey: ['financialSummary'] });
+      queryClient.invalidateQueries({ queryKey: ['financialChartData'] });
+      queryClient.invalidateQueries({ queryKey: ['categoryExpenses'] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      
+      // Force refetch
+      queryClient.refetchQueries({ queryKey: ['transactions'] });
+      queryClient.refetchQueries({ queryKey: ['projects'] });
     },
   });
 };

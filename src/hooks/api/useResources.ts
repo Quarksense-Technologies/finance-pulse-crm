@@ -27,6 +27,12 @@ export const useCreateResource = () => {
       queryClient.invalidateQueries({ queryKey: ['resources'] });
       queryClient.invalidateQueries({ queryKey: ['resourcesSummary'] });
       queryClient.invalidateQueries({ queryKey: ['project', variables.projectId] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      
+      // Force refetch to ensure immediate updates
+      queryClient.refetchQueries({ queryKey: ['resources'] });
+      queryClient.refetchQueries({ queryKey: ['projects'] });
+      queryClient.refetchQueries({ queryKey: ['project', variables.projectId] });
     },
   });
 };
@@ -42,6 +48,11 @@ export const useUpdateResource = () => {
       queryClient.invalidateQueries({ queryKey: ['resource', data.id] });
       queryClient.invalidateQueries({ queryKey: ['resourcesSummary'] });
       queryClient.invalidateQueries({ queryKey: ['project', data.projectId] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      
+      // Force refetch
+      queryClient.refetchQueries({ queryKey: ['resources'] });
+      queryClient.refetchQueries({ queryKey: ['projects'] });
     },
   });
 };
@@ -54,6 +65,11 @@ export const useDeleteResource = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['resources'] });
       queryClient.invalidateQueries({ queryKey: ['resourcesSummary'] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      
+      // Force refetch
+      queryClient.refetchQueries({ queryKey: ['resources'] });
+      queryClient.refetchQueries({ queryKey: ['projects'] });
     },
   });
 };
