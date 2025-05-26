@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Calendar, Search, Plus, ArrowDown, FileText, FileSpreadsheet, Download } from 'lucide-react';
@@ -32,11 +33,23 @@ const Finances = () => {
   const { data: transactions = [] } = useTransactions({ type: tab === 'payments' ? 'payment' : 'expense' });
   const { exportToFormat } = useExportTransactions();
 
-  // Filter transactions by type - now using Transaction type from API
+  // Filter transactions by type - using real API data
   const payments = transactions.filter(t => t.type === 'payment' || t.type === 'income');
   const expenses = transactions.filter(t => t.type === 'expense');
 
-  // Prepare data for payment status pie chart
+  // Early return if no transactions data
+  if (!transactions) {
+    return (
+      <div className="animate-fade-in">
+        <h1 className="text-2xl font-bold mb-6">Financial Management</h1>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-gray-500">Loading transaction data...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Prepare data for payment status pie chart using real data
   const paidAmount = payments.filter(p => (p as any).status === 'paid').reduce((sum, p) => sum + p.amount, 0);
   const pendingAmount = payments.filter(p => (p as any).status === 'pending').reduce((sum, p) => sum + p.amount, 0);
   const overdueAmount = payments.filter(p => (p as any).status === 'overdue').reduce((sum, p) => sum + p.amount, 0);
@@ -47,16 +60,16 @@ const Finances = () => {
     { name: 'Overdue', value: overdueAmount }
   ];
   
-  // Prepare data for expense categories pie chart
-  const manpowerExpenses = expenses.filter(e => (e as any).category === 'salary').reduce((sum, e) => sum + e.amount, 0);
-  const materialsExpenses = expenses.filter(e => (e as any).category === 'equipment').reduce((sum, e) => sum + e.amount, 0);
-  const servicesExpenses = expenses.filter(e => (e as any).category === 'consulting').reduce((sum, e) => sum + e.amount, 0);
+  // Prepare data for expense categories pie chart using real data
+  const salaryExpenses = expenses.filter(e => (e as any).category === 'salary').reduce((sum, e) => sum + e.amount, 0);
+  const equipmentExpenses = expenses.filter(e => (e as any).category === 'equipment').reduce((sum, e) => sum + e.amount, 0);
+  const consultingExpenses = expenses.filter(e => (e as any).category === 'consulting').reduce((sum, e) => sum + e.amount, 0);
   const otherExpenses = expenses.filter(e => (e as any).category === 'other' || !(e as any).category).reduce((sum, e) => sum + e.amount, 0);
   
   const expenseCategoryData = [
-    { name: 'Salary', value: manpowerExpenses },
-    { name: 'Equipment', value: materialsExpenses },
-    { name: 'Consulting', value: servicesExpenses },
+    { name: 'Salary', value: salaryExpenses },
+    { name: 'Equipment', value: equipmentExpenses },
+    { name: 'Consulting', value: consultingExpenses },
     { name: 'Other', value: otherExpenses }
   ];
   
@@ -136,7 +149,7 @@ const Finances = () => {
     window.URL.revokeObjectURL(url);
   };
 
-  // Filter transactions based on search query - using Transaction type
+  // Filter transactions based on search query
   const filteredPayments = searchQuery.trim() === '' 
     ? payments 
     : payments.filter((payment: Transaction) => 

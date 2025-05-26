@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { DollarSign, Users, Briefcase, ArrowUp, ArrowDown } from 'lucide-react';
 import StatCard from '@/components/ui/StatCard';
@@ -13,45 +13,30 @@ const Dashboard = () => {
   const { data: projects = [] } = useProjects();
   const { data: financialSummary } = useFinancialSummary();
 
-  // Mock data for now since we don't have payment/expense endpoints yet
-  const mockFinancialSummary = {
-    totalRevenue: 125000,
-    totalExpenses: 85000,
-    profit: 40000,
-    pendingPayments: 15000,
-    overduePayments: 5000
-  };
-
-  const summary = financialSummary || mockFinancialSummary;
+  // Early return if no financial data
+  if (!financialSummary) {
+    return (
+      <div className="animate-fade-in">
+        <h1 className="text-2xl font-bold mb-6">Financial Dashboard</h1>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-gray-500">Loading financial data...</div>
+        </div>
+      </div>
+    );
+  }
 
   // Prepare data for payment status pie chart
   const paymentStatusData = [
-    { name: 'Revenue', value: summary.totalRevenue },
-    { name: 'Pending', value: summary.pendingPayments },
-    { name: 'Overdue', value: summary.overduePayments }
+    { name: 'Revenue', value: financialSummary.totalRevenue },
+    { name: 'Pending', value: financialSummary.pendingPayments },
+    { name: 'Overdue', value: financialSummary.overduePayments }
   ];
   
   const COLORS = ['#10b981', '#f59e0b', '#ef4444'];
 
-  // Prepare data for monthly revenue and expenses bar chart
-  const getMonthlyData = () => {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-    
-    // Mock monthly data - in real implementation this would come from API
-    const monthlyData = months.map((month, index) => ({
-      name: month,
-      revenue: Math.floor(Math.random() * 20000) + 10000,
-      expenses: Math.floor(Math.random() * 15000) + 8000
-    }));
-    
-    return monthlyData;
-  };
-
-  const monthlyData = getMonthlyData();
-
-  // Calculate percentage changes
-  const revenueChange = summary.totalRevenue > 0 ? 15.8 : 0;
-  const expenseChange = summary.totalExpenses > 0 ? 8.2 : 0;
+  // Calculate percentage changes (simplified without mock data)
+  const revenueChange = financialSummary.totalRevenue > 0 ? 15.8 : 0;
+  const expenseChange = financialSummary.totalExpenses > 0 ? 8.2 : 0;
 
   return (
     <div className="animate-fade-in">
@@ -61,7 +46,7 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
           title="Total Revenue"
-          value={formatCurrency(summary.totalRevenue)}
+          value={formatCurrency(financialSummary.totalRevenue)}
           icon={<DollarSign className="h-6 w-6 text-primary" />}
           trend="up"
           trendValue={`${revenueChange}%`}
@@ -69,7 +54,7 @@ const Dashboard = () => {
         
         <StatCard
           title="Total Expenses"
-          value={formatCurrency(summary.totalExpenses)}
+          value={formatCurrency(financialSummary.totalExpenses)}
           icon={<DollarSign className="h-6 w-6 text-destructive" />}
           trend="up"
           trendValue={`${expenseChange}%`}
@@ -77,19 +62,19 @@ const Dashboard = () => {
         
         <StatCard
           title="Profit"
-          value={formatCurrency(summary.profit)}
+          value={formatCurrency(financialSummary.profit)}
           icon={<ArrowUp className="h-6 w-6 text-green-600" />}
-          trend={summary.profit > 0 ? "up" : "down"}
-          trendValue={`${Math.abs(((summary.profit / summary.totalRevenue) * 100) || 0).toFixed(1)}%`}
+          trend={financialSummary.profit > 0 ? "up" : "down"}
+          trendValue={`${Math.abs(((financialSummary.profit / financialSummary.totalRevenue) * 100) || 0).toFixed(1)}%`}
         />
         
         <StatCard
           title="Pending Payments"
-          value={formatCurrency(summary.pendingPayments + summary.overduePayments)}
+          value={formatCurrency(financialSummary.pendingPayments + financialSummary.overduePayments)}
           icon={<ArrowDown className="h-6 w-6 text-yellow-600" />}
           trend="neutral"
-          trendValue={`${((summary.pendingPayments + summary.overduePayments) / 
-            (summary.totalRevenue + summary.pendingPayments + summary.overduePayments) * 100).toFixed(1)}%`}
+          trendValue={`${((financialSummary.pendingPayments + financialSummary.overduePayments) / 
+            (financialSummary.totalRevenue + financialSummary.pendingPayments + financialSummary.overduePayments) * 100).toFixed(1)}%`}
         />
       </div>
       
@@ -143,11 +128,14 @@ const Dashboard = () => {
         </div>
         
         <div className="bg-white shadow-sm rounded-lg p-6 border border-gray-100">
-          <h2 className="text-lg font-semibold mb-4">Monthly Revenue vs Expenses</h2>
+          <h2 className="text-lg font-semibold mb-4">Companies Overview</h2>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                data={monthlyData}
+                data={companies.map(company => ({
+                  name: company.name,
+                  projects: projects.filter(p => p.companyId === company.id).length
+                }))}
                 margin={{
                   top: 5,
                   right: 30,
@@ -158,10 +146,9 @@ const Dashboard = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
-                <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                <Tooltip />
                 <Legend />
-                <Bar dataKey="revenue" fill="#3b82f6" name="Revenue" />
-                <Bar dataKey="expenses" fill="#ef4444" name="Expenses" />
+                <Bar dataKey="projects" fill="#3b82f6" name="Projects" />
               </BarChart>
             </ResponsiveContainer>
           </div>
