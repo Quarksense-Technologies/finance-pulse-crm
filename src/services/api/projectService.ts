@@ -23,18 +23,43 @@ export interface UpdateProjectData {
   budget?: number;
 }
 
+// Transform backend project data to frontend format
+const transformProject = (backendProject: any): Project => {
+  return {
+    id: backendProject._id,
+    name: backendProject.name,
+    description: backendProject.description,
+    companyId: backendProject.companyId?._id || backendProject.companyId,
+    companyName: backendProject.companyName || backendProject.companyId?.name || 'Unknown Company',
+    startDate: backendProject.startDate,
+    endDate: backendProject.endDate,
+    status: backendProject.status,
+    budget: backendProject.budget,
+    manpowerAllocated: backendProject.manpowerAllocated || 0,
+    managers: backendProject.managers || [],
+    team: backendProject.team || [],
+    payments: backendProject.payments || [],
+    expenses: backendProject.expenses || [],
+    resources: backendProject.resources || []
+  };
+};
+
 export const projectService = {
   async getProjects(filters?: { status?: string; companyId?: string }): Promise<Project[]> {
     try {
       console.log('Fetching projects with filters:', filters);
       const response = await apiClient.get('/projects', { params: filters });
       console.log('Projects response:', response.data);
-      return response.data;
+      
+      // Transform backend data to frontend format
+      const projects = Array.isArray(response.data) ? response.data : [];
+      return projects.map(transformProject);
     } catch (error: any) {
       console.error('Error fetching projects:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to load projects';
       toast({
         title: "Error",
-        description: "Failed to load projects: " + (error.response?.data?.message || error.message),
+        description: errorMessage,
         variant: "destructive"
       });
       throw error;
@@ -46,12 +71,13 @@ export const projectService = {
       console.log(`Fetching project details for ID: ${id}`);
       const response = await apiClient.get(`/projects/${id}`);
       console.log('Project details response:', response.data);
-      return response.data;
+      return transformProject(response.data);
     } catch (error: any) {
       console.error(`Error fetching project ${id}:`, error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to load project details';
       toast({
         title: "Error",
-        description: "Failed to load project details: " + (error.response?.data?.message || error.message),
+        description: errorMessage,
         variant: "destructive"
       });
       throw error;
@@ -65,12 +91,13 @@ export const projectService = {
         title: "Success",
         description: "Project created successfully",
       });
-      return response.data;
+      return transformProject(response.data);
     } catch (error: any) {
       console.error('Error creating project:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to create project';
       toast({
         title: "Error",
-        description: error.response?.data?.message || "Failed to create project",
+        description: errorMessage,
         variant: "destructive"
       });
       throw error;
@@ -85,12 +112,13 @@ export const projectService = {
         title: "Success",
         description: "Project updated successfully",
       });
-      return response.data;
+      return transformProject(response.data);
     } catch (error: any) {
       console.error(`Error updating project ${id}:`, error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to update project';
       toast({
         title: "Error",
-        description: error.response?.data?.message || "Failed to update project",
+        description: errorMessage,
         variant: "destructive"
       });
       throw error;
@@ -106,9 +134,10 @@ export const projectService = {
       });
     } catch (error: any) {
       console.error(`Error deleting project ${id}:`, error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to delete project';
       toast({
         title: "Error",
-        description: error.response?.data?.message || "Failed to delete project",
+        description: errorMessage,
         variant: "destructive"
       });
       throw error;
@@ -126,9 +155,10 @@ export const projectService = {
       return response.data;
     } catch (error: any) {
       console.error('Error adding payment:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to add payment';
       toast({
         title: "Error",
-        description: error.response?.data?.message || "Failed to add payment",
+        description: errorMessage,
         variant: "destructive"
       });
       throw error;
@@ -146,9 +176,10 @@ export const projectService = {
       return response.data;
     } catch (error: any) {
       console.error('Error adding expense:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to add expense';
       toast({
         title: "Error",
-        description: error.response?.data?.message || "Failed to add expense",
+        description: errorMessage,
         variant: "destructive"
       });
       throw error;
@@ -166,9 +197,10 @@ export const projectService = {
       return response.data;
     } catch (error: any) {
       console.error('Error adding resource:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to assign resource';
       toast({
         title: "Error",
-        description: error.response?.data?.message || "Failed to assign resource",
+        description: errorMessage,
         variant: "destructive"
       });
       throw error;

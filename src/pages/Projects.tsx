@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Search, Plus, Calendar, Users } from 'lucide-react';
@@ -17,7 +18,10 @@ const Projects = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | undefined>(undefined);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  
+  // Debug logging
+  console.log('Projects page - Auth state:', { isAuthenticated, user });
   
   // Get the companyId from location state if available
   useEffect(() => {
@@ -31,9 +35,12 @@ const Projects = () => {
   }, [location.state]);
   
   // Use React Query to fetch projects
-  const { data: projects = [], isLoading, error } = useProjects({
+  const { data: projects = [], isLoading, error, refetch } = useProjects({
     status: statusFilter !== 'all' ? statusFilter : undefined
   });
+  
+  // Debug logging
+  console.log('Projects data:', { projects, isLoading, error });
   
   // Mutation hook for creating projects
   const createProject = useCreateProject();
@@ -61,8 +68,11 @@ const Projects = () => {
         navigate('.', { replace: true, state: {} });
         // Reset selected company
         setSelectedCompanyId(undefined);
+        // Refetch projects
+        refetch();
       },
       onError: (error: any) => {
+        console.error('Error creating project:', error);
         toast({
           title: "Error",
           description: error.response?.data?.message || "Failed to add project",
@@ -86,26 +96,59 @@ const Projects = () => {
     setSelectedCompanyId(undefined);
   };
 
+  const handleRetry = () => {
+    console.log('Retrying to fetch projects...');
+    refetch();
+  };
+
   if (!isAuthenticated) {
-    return <div className="flex justify-center items-center h-64">Please login to view projects...</div>;
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div className="text-gray-500 mb-4">Please login to view projects</div>
+          <button 
+            onClick={() => navigate('/login')} 
+            className="px-4 py-2 bg-primary text-white rounded-md"
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (isLoading) {
-    return <div className="flex justify-center items-center h-64">Loading projects...</div>;
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <div>Loading projects...</div>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
     return (
       <div className="flex flex-col justify-center items-center h-64">
-        <div className="text-red-500 mb-4">
-          Error loading projects: {(error as any).message || "Failed to load projects"}
+        <div className="text-red-500 mb-4 text-center">
+          <div className="text-lg font-semibold mb-2">Error loading projects</div>
+          <div className="text-sm">{(error as any).message || "Failed to load projects"}</div>
         </div>
-        <button 
-          onClick={() => navigate('/login')} 
-          className="px-4 py-2 bg-primary text-white rounded-md"
-        >
-          Return to Login
-        </button>
+        <div className="flex gap-2">
+          <button 
+            onClick={handleRetry} 
+            className="px-4 py-2 bg-primary text-white rounded-md"
+          >
+            Retry
+          </button>
+          <button 
+            onClick={() => navigate('/login')} 
+            className="px-4 py-2 bg-gray-500 text-white rounded-md"
+          >
+            Back to Login
+          </button>
+        </div>
       </div>
     );
   }
@@ -201,7 +244,12 @@ const Projects = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {filteredProjects.length === 0 ? (
           <div className="col-span-2 text-center py-10">
-            <p className="text-gray-500">No projects found. Create a new project to get started.</p>
+            <p className="text-gray-500">
+              {projects.length === 0 
+                ? "No projects found. Create a new project to get started." 
+                : "No projects match your search criteria."
+              }
+            </p>
           </div>
         ) : (
           filteredProjects.map((project) => (
@@ -233,7 +281,7 @@ const Projects = () => {
               <div className="mt-4 border-t border-gray-100 pt-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Company:</span>
-                  <span className="font-medium">{project.companyName || project.companyId}</span>
+                  <span className="font-medium">{project.companyName || 'Unknown Company'}</span>
                 </div>
                 
                 <div className="flex justify-between text-sm mt-1">
