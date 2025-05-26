@@ -1,4 +1,3 @@
-
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const dotenv = require('dotenv');
@@ -33,33 +32,36 @@ const seedData = async () => {
 
     console.log('Cleared existing data');
 
-    // Create users
+    // Create exactly 3 users with 3 different roles
     const adminUser = await User.create({
       name: "Admin User",
       email: "admin@example.com",
-      password: "password123",
+      password: "admin123",
       role: "admin",
       createdAt: new Date("2025-01-01")
     });
 
     const managerUser = await User.create({
-      name: "Manager User",
+      name: "Manager User", 
       email: "manager@example.com",
-      password: "password123",
+      password: "manager123",
       role: "manager",
       createdAt: new Date("2025-01-05")
     });
 
     const regularUser = await User.create({
       name: "Regular User",
-      email: "user@example.com",
-      password: "password123",
+      email: "user@example.com", 
+      password: "user123",
       role: "user",
       managerId: managerUser._id,
       createdAt: new Date("2025-01-10")
     });
 
-    console.log('Created users');
+    console.log('Created 3 users with different roles:');
+    console.log('- Admin: admin@example.com / admin123');
+    console.log('- Manager: manager@example.com / manager123'); 
+    console.log('- User: user@example.com / user123');
 
     // Create companies
     const acmeCompany = await Company.create({
