@@ -51,9 +51,15 @@ const Finances = () => {
       if (project.id) {
         lookup.set(project.id, project);
         lookup.set(project.id.toString(), project);
+        // Also try with _id field
+        if (project._id) {
+          lookup.set(project._id, project);
+          lookup.set(project._id.toString(), project);
+        }
       }
     });
     console.log('Project lookup map created:', lookup.size, 'entries');
+    console.log('Project lookup keys:', Array.from(lookup.keys()).slice(0, 5));
     return lookup;
   }, [projects]);
 
@@ -63,13 +69,18 @@ const Finances = () => {
       if (company.id) {
         lookup.set(company.id, company);
         lookup.set(company.id.toString(), company);
+        // Also try with _id field
+        if (company._id) {
+          lookup.set(company._id, company);
+          lookup.set(company._id.toString(), company);
+        }
       }
     });
     console.log('Company lookup map created:', lookup.size, 'entries');
     return lookup;
   }, [companies]);
 
-  // Filter transactions by type - using real API data
+  // Filter transactions by type - using real API data (now properly filtered)
   const payments = allTransactions.filter(t => t.type === 'payment' || t.type === 'income');
   const expenses = allTransactions.filter(t => t.type === 'expense');
 
@@ -438,16 +449,42 @@ const Finances = () => {
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={companies.map(company => {
-                        const companyProjects = projects.filter(p => p.companyId === company.id);
-                        const projectIds = companyProjects.map(p => p.id);
+                        // Get all projects for this company using both id and _id
+                        const companyProjects = projects.filter(p => 
+                          p.companyId === company.id || 
+                          p.companyId === company._id ||
+                          p.company === company.id ||
+                          p.company === company._id
+                        );
+                        
+                        // Get all possible project IDs (both string and ObjectId formats)
+                        const projectIds = [];
+                        companyProjects.forEach(p => {
+                          if (p.id) projectIds.push(p.id, p.id.toString());
+                          if (p._id) projectIds.push(p._id, p._id.toString());
+                        });
+                        
+                        console.log(`Company ${company.name} projects:`, companyProjects.length, 'Project IDs:', projectIds);
                         
                         const totalPayments = payments
-                          .filter((p: Transaction) => projectIds.includes(p.project) && (p as any).status === 'paid')
+                          .filter((p: Transaction) => {
+                            const projectMatch = projectIds.includes(p.project) || 
+                                               projectIds.includes(String(p.project));
+                            const statusMatch = (p as any).status === 'paid';
+                            return projectMatch && statusMatch;
+                          })
                           .reduce((sum, p) => sum + p.amount, 0);
                         
                         const pendingPayments = payments
-                          .filter((p: Transaction) => projectIds.includes(p.project) && ((p as any).status === 'pending' || (p as any).status === 'overdue'))
+                          .filter((p: Transaction) => {
+                            const projectMatch = projectIds.includes(p.project) || 
+                                               projectIds.includes(String(p.project));
+                            const statusMatch = ((p as any).status === 'pending' || (p as any).status === 'overdue');
+                            return projectMatch && statusMatch;
+                          })
                           .reduce((sum, p) => sum + p.amount, 0);
+                        
+                        console.log(`Company ${company.name}: received=${totalPayments}, pending=${pendingPayments}`);
                         
                         return {
                           name: company.name,
@@ -475,12 +512,30 @@ const Finances = () => {
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={companies.map(company => {
-                        const companyProjects = projects.filter(p => p.companyId === company.id);
-                        const projectIds = companyProjects.map(p => p.id);
+                        // Get all projects for this company using both id and _id
+                        const companyProjects = projects.filter(p => 
+                          p.companyId === company.id || 
+                          p.companyId === company._id ||
+                          p.company === company.id ||
+                          p.company === company._id
+                        );
+                        
+                        // Get all possible project IDs (both string and ObjectId formats)
+                        const projectIds = [];
+                        companyProjects.forEach(p => {
+                          if (p.id) projectIds.push(p.id, p.id.toString());
+                          if (p._id) projectIds.push(p._id, p._id.toString());
+                        });
                         
                         const totalExpenses = expenses
-                          .filter((e: Transaction) => projectIds.includes(e.project))
+                          .filter((e: Transaction) => {
+                            const projectMatch = projectIds.includes(e.project) || 
+                                               projectIds.includes(String(e.project));
+                            return projectMatch;
+                          })
                           .reduce((sum, e) => sum + e.amount, 0);
+                        
+                        console.log(`Company ${company.name} expenses: ${totalExpenses}`);
                         
                         return {
                           name: company.name,

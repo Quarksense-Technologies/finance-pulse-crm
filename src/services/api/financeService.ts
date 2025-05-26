@@ -59,11 +59,20 @@ export interface ExpenseFilter {
 }
 
 export const financeService = {
-  // Get all transactions with optional filters
+  // Get all transactions with optional filters - now properly filters approved expenses
   async getTransactions(filters?: PaymentFilter): Promise<Transaction[]> {
     try {
       const response = await apiClient.get('/finances', { params: filters });
-      return response.data;
+      
+      // Filter out rejected and pending expenses on frontend as well for safety
+      const transactions = response.data.filter((transaction: Transaction) => {
+        if (transaction.type === 'expense') {
+          return (transaction as any).approvalStatus === 'approved';
+        }
+        return true; // Include all payments and income
+      });
+      
+      return transactions;
     } catch (error: any) {
       console.error('Error fetching transactions:', error);
       throw error;
