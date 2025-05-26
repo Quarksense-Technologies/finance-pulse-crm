@@ -1,3 +1,4 @@
+
 import { toast } from "@/hooks/use-toast";
 import apiClient from './client';
 import { Project, Payment, Expense, Resource } from '@/data/types';
@@ -78,7 +79,13 @@ export const projectService = {
         throw new Error('No authentication token found');
       }
       
-      const response = await apiClient.get('/projects', { params: filters });
+      // Add populate parameter to include resources
+      const response = await apiClient.get('/projects', { 
+        params: { 
+          ...filters,
+          populate: 'resources,companyId' 
+        } 
+      });
       console.log('Raw projects response:', response.data);
       
       let projects = response.data;
@@ -115,7 +122,8 @@ export const projectService = {
   async getProjectById(id: string): Promise<Project> {
     try {
       console.log(`Fetching project details for ID: ${id}`);
-      const response = await apiClient.get(`/projects/${id}`);
+      // Add populate parameter to include resources and company details
+      const response = await apiClient.get(`/projects/${id}?populate=resources,companyId`);
       console.log('Project details response:', response.data);
       return transformProject(response.data);
     } catch (error: any) {

@@ -37,6 +37,8 @@ const Finances = () => {
   console.log('All transactions loaded:', allTransactions.length);
   console.log('Projects loaded:', projects.length);
   console.log('Companies loaded:', companies.length);
+  console.log('Sample transaction:', allTransactions[0]);
+  console.log('Sample project:', projects[0]);
 
   // Filter transactions by type - using real API data
   const payments = allTransactions.filter(t => t.type === 'payment' || t.type === 'income');
@@ -95,52 +97,54 @@ const Finances = () => {
   const PAYMENT_COLORS = ['#10b981', '#f59e0b', '#ef4444'];
   const EXPENSE_COLORS = ['#3b82f6', '#8b5cf6', '#6366f1', '#9ca3af', '#10b981', '#f59e0b', '#ef4444', '#8dd1e1', '#d084d0', '#ffb347'];
 
-  // Improved project/company name resolution with better type checking and fallbacks
+  // Improved project/company name resolution with better matching logic
   const getProjectName = (projectId: string | undefined | null): string => {
-    console.log('Looking for project:', projectId, 'in projects:', projects);
     if (!projectId) return 'No Project';
     
-    // Ensure projectId is a string
+    // Convert projectId to string for consistent comparison
     const projectIdStr = String(projectId);
+    console.log('Looking for project ID:', projectIdStr);
     
-    const project = projects.find(p => p.id === projectIdStr || p.id === projectIdStr.toString());
+    // Try multiple matching strategies
+    const project = projects.find(p => {
+      const pId = String(p.id || '');
+      const pObjectId = String((p as any)._id || '');
+      
+      return pId === projectIdStr || 
+             pObjectId === projectIdStr ||
+             pId.includes(projectIdStr) ||
+             projectIdStr.includes(pId);
+    });
+    
     if (project) {
       console.log('Found project:', project.name);
       return project.name;
     }
     
-    // Try to find by checking if projectId might be stored differently
-    const alternativeProject = projects.find(p => 
-      p.id?.toString() === projectIdStr?.toString() ||
-      (p as any)._id === projectIdStr ||
-      (p as any)._id?.toString() === projectIdStr?.toString()
-    );
-    
-    if (alternativeProject) {
-      console.log('Found alternative project:', alternativeProject.name);
-      return alternativeProject.name;
-    }
-    
-    console.log('Project not found for ID:', projectId);
-    return `Project ${projectIdStr.slice(-6)}`;
+    console.log('Project not found for ID:', projectIdStr, 'Available projects:', projects.map(p => ({ id: p.id, _id: (p as any)._id, name: p.name })));
+    return `Unknown Project`;
   };
   
   const getProjectCompany = (projectId: string | undefined | null): string => {
-    console.log('Looking for company for project:', projectId);
     if (!projectId) return 'No Company';
     
-    // Ensure projectId is a string
+    // Convert projectId to string for consistent comparison
     const projectIdStr = String(projectId);
+    console.log('Looking for company for project ID:', projectIdStr);
     
-    const project = projects.find(p => 
-      p.id === projectIdStr || 
-      p.id === projectIdStr.toString() ||
-      (p as any)._id === projectIdStr ||
-      (p as any)._id?.toString() === projectIdStr?.toString()
-    );
+    // Try multiple matching strategies
+    const project = projects.find(p => {
+      const pId = String(p.id || '');
+      const pObjectId = String((p as any)._id || '');
+      
+      return pId === projectIdStr || 
+             pObjectId === projectIdStr ||
+             pId.includes(projectIdStr) ||
+             projectIdStr.includes(pId);
+    });
     
     if (!project) {
-      console.log('Project not found for company lookup:', projectId);
+      console.log('Project not found for company lookup:', projectIdStr);
       return 'Unknown Company';
     }
     
@@ -153,12 +157,16 @@ const Finances = () => {
     
     // Look up company by companyId
     if (project.companyId) {
-      const company = companies.find(c => 
-        c.id === project.companyId || 
-        c.id === project.companyId.toString() ||
-        (c as any)._id === project.companyId ||
-        (c as any)._id?.toString() === project.companyId?.toString()
-      );
+      const company = companies.find(c => {
+        const cId = String(c.id || '');
+        const cObjectId = String((c as any)._id || '');
+        const projCompanyId = String(project.companyId || '');
+        
+        return cId === projCompanyId || 
+               cObjectId === projCompanyId ||
+               cId.includes(projCompanyId) ||
+               projCompanyId.includes(cId);
+      });
       
       if (company) {
         console.log('Found company:', company.name);

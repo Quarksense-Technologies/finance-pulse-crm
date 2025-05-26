@@ -31,6 +31,7 @@ export const resourceService = {
       }
       
       const response = await apiClient.get(url);
+      console.log('Resources response:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('Error fetching resources:', error);
@@ -50,7 +51,10 @@ export const resourceService = {
 
   async createResource(resourceData: CreateResourceData): Promise<Resource> {
     try {
+      console.log('Creating resource with data:', resourceData);
       const response = await apiClient.post(`/projects/${resourceData.projectId}/resources`, resourceData);
+      console.log('Resource creation response:', response.data);
+      
       toast({
         title: "Success",
         description: "Resource allocated successfully",
@@ -58,6 +62,14 @@ export const resourceService = {
       return response.data;
     } catch (error: any) {
       console.error('Error creating resource:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to create resource';
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive"
+      });
+      
       throw error;
     }
   },
@@ -72,6 +84,14 @@ export const resourceService = {
       return response.data;
     } catch (error: any) {
       console.error(`Error updating resource ${id}:`, error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to update resource';
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive"
+      });
+      
       throw error;
     }
   },
@@ -85,6 +105,14 @@ export const resourceService = {
       });
     } catch (error: any) {
       console.error(`Error deleting resource ${id}:`, error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to delete resource';
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive"
+      });
+      
       throw error;
     }
   }

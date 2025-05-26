@@ -4,8 +4,16 @@ import { resourceService, CreateResourceData, UpdateResourceData } from '@/servi
 
 export const useResources = (projectId?: string) => {
   return useQuery({
-    queryKey: ['resources', { projectId }],
+    queryKey: ['resources', projectId],
     queryFn: () => resourceService.getResources(projectId),
+    enabled: !!projectId,
+  });
+};
+
+export const useAllResources = () => {
+  return useQuery({
+    queryKey: ['resources'],
+    queryFn: () => resourceService.getResources(),
   });
 };
 
@@ -21,18 +29,18 @@ export const useCreateResource = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (resourceData: CreateResourceData) => resourceService.createResource(resourceData),
+    mutationFn: (data: CreateResourceData) => resourceService.createResource(data),
     onSuccess: (data, variables) => {
-      // Invalidate relevant queries to update UI
+      // Invalidate resources queries
       queryClient.invalidateQueries({ queryKey: ['resources'] });
-      queryClient.invalidateQueries({ queryKey: ['resourcesSummary'] });
+      queryClient.invalidateQueries({ queryKey: ['resources', variables.projectId] });
+      
+      // Invalidate the specific project to update its resources
       queryClient.invalidateQueries({ queryKey: ['project', variables.projectId] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       
-      // Force refetch to ensure immediate updates
-      queryClient.refetchQueries({ queryKey: ['resources'] });
-      queryClient.refetchQueries({ queryKey: ['projects'] });
-      queryClient.refetchQueries({ queryKey: ['project', variables.projectId] });
+      // Invalidate resource summary
+      queryClient.invalidateQueries({ queryKey: ['resourcesSummary'] });
     },
   });
 };
@@ -43,16 +51,11 @@ export const useUpdateResource = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateResourceData }) => 
       resourceService.updateResource(id, data),
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['resources'] });
-      queryClient.invalidateQueries({ queryKey: ['resource', data.id] });
-      queryClient.invalidateQueries({ queryKey: ['resourcesSummary'] });
-      queryClient.invalidateQueries({ queryKey: ['project', data.projectId] });
+      queryClient.invalidateQueries({ queryKey: ['resource', variables.id] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
-      
-      // Force refetch
-      queryClient.refetchQueries({ queryKey: ['resources'] });
-      queryClient.refetchQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['resourcesSummary'] });
     },
   });
 };
@@ -64,12 +67,8 @@ export const useDeleteResource = () => {
     mutationFn: resourceService.deleteResource,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['resources'] });
-      queryClient.invalidateQueries({ queryKey: ['resourcesSummary'] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
-      
-      // Force refetch
-      queryClient.refetchQueries({ queryKey: ['resources'] });
-      queryClient.refetchQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['resourcesSummary'] });
     },
   });
 };
