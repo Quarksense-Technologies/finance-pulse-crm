@@ -1,0 +1,17 @@
+# Dockerfile.dev
+
+FROM node:18-alpine
+WORKDIR /app
+
+# Install dependencies
+COPY package*.json bun.lockb ./
+RUN npm ci
+
+# Copy source
+COPY . .
+
+# Expose Vite default dev port
+EXPOSE 80
+
+# Run Vite in dev mode, listening on all interfaces
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "80"]

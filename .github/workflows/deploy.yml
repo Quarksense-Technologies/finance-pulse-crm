@@ -1,57 +1,58 @@
-name: Build & Deploy
+name: Build & Deploy Dev Stack
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     outputs:
       backend_image: ${{ steps.backend.outputs.image }}
-      frontend_image: ${{ steps.frontend.outputs.image }}
+      frontend_dev_image: ${{ steps.frontend.outputs.image }}
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v2
-      with:
-        username: ${{ secrets.DOCKERHUB_USER }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Build & Push Backend
-      id: backend
-      run: |
-        IMAGE=${{ secrets.DOCKERHUB_USER }}/finance-pulse-backend:latest
-        docker build -t $IMAGE \
-        -f backend/Dockerfile .       # <-- note the dot context
-        docker push $IMAGE
+      - name: Build & Push Backend
+        id: backend
+        run: |
+          IMAGE=${{ secrets.DOCKERHUB_USER }}/finance-pulse-backend:dev
+          docker build -t $IMAGE -f backend/Dockerfile backend
+          docker push $IMAGE
+          echo "::set-output name=image::$IMAGE"
 
-    - name: Build & Push Frontend
-      id: frontend
-      run: |
-        IMAGE=${{ secrets.DOCKERHUB_USER }}/finance-pulse-frontend:latest
-        docker build -t $IMAGE -f Dockerfile .
-        docker push $IMAGE
-        echo "::set-output name=image::$IMAGE"
+      - name: Build & Push Frontend (Dev)
+        id: frontend
+        run: |
+          IMAGE=${{ secrets.DOCKERHUB_USER }}/finance-pulse-frontend:dev
+          docker build -t $IMAGE -f Dockerfile.dev .
+          docker push $IMAGE
+          echo "::set-output name=image::$IMAGE"
 
-  deploy:
+  deploy-dev:
     needs: build-and-push
     runs-on: ubuntu-latest
 
     steps:
-    - name: SSH & Deploy to EC2
-      uses: appleboy/ssh-action@v0.1.7
-      with:
-        host: ec2-65-2-127-222.ap-south-1.compute.amazonaws.com
-        username: deploy
-        key: ${{ secrets.EC2_SSH_KEY }}
-        script: |
-          cd $HOME/app
+      - name: SSH & Deploy Dev Stack on EC2
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ec2-65-2-127-222.ap-south-1.compute.amazonaws.com
+          username: deploy
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd $HOME/app
 
-          # Pull the newly built images
-          docker compose -f docker-compose.prod.yml pull
+            # Pull the freshly built dev images
+            docker compose -f docker-compose.dev.yml pull
 
-          # Restart the services with the new images
-          docker compose -f docker-compose.prod.yml up -d
+            # Launch (or recreate) the dev stack (frontend on port 80)
+            docker compose -f docker-compose.dev.yml up -d --force-recreate
