@@ -1,7 +1,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { financeService } from '@/services/api/financeService';
-import { Payment, Expense } from '@/data/types';
+import { Payment, Expense, Transaction } from '@/data/types';
 import { exportPaymentsToExcel, exportExpensesToExcel, exportPaymentsToPDF, exportExpensesToPDF } from '@/utils/exportUtils';
 
 export const useTransactions = (filters?: { project?: string; type?: string; status?: string }) => {

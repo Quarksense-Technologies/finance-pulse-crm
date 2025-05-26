@@ -1,7 +1,7 @@
 
 import { toast } from "@/components/ui/use-toast";
 import apiClient from './client';
-import { Payment, Expense, FinancialSummary } from '@/data/types';
+import { Payment, Expense, FinancialSummary, Transaction } from '@/data/types';
 import { exportPaymentsToExcel, exportExpensesToExcel, exportPaymentsToPDF, exportExpensesToPDF } from '@/utils/exportUtils';
 
 export interface FinancialChartData {
@@ -51,7 +51,7 @@ export interface ExpenseFilter {
 
 export const financeService = {
   // Get all transactions with optional filters
-  async getTransactions(filters?: PaymentFilter): Promise<(Payment | Expense)[]> {
+  async getTransactions(filters?: PaymentFilter): Promise<Transaction[]> {
     try {
       const response = await apiClient.get('/finances', { params: filters });
       return response.data;
@@ -62,7 +62,7 @@ export const financeService = {
   },
 
   // Get a transaction by ID
-  async getTransactionById(id: string): Promise<Payment | Expense> {
+  async getTransactionById(id: string): Promise<Transaction> {
     try {
       const response = await apiClient.get(`/finances/${id}`);
       return response.data;
@@ -73,7 +73,7 @@ export const financeService = {
   },
 
   // Create a transaction
-  async createTransaction(transactionData: CreateExpenseData): Promise<Expense> {
+  async createTransaction(transactionData: CreateExpenseData): Promise<Transaction> {
     try {
       const response = await apiClient.post('/finances', transactionData);
       toast({
@@ -88,7 +88,7 @@ export const financeService = {
   },
 
   // Update a transaction
-  async updateTransaction(id: string, transactionData: Partial<CreateExpenseData>): Promise<Payment | Expense> {
+  async updateTransaction(id: string, transactionData: Partial<CreateExpenseData>): Promise<Transaction> {
     try {
       const response = await apiClient.put(`/finances/${id}`, transactionData);
       toast({

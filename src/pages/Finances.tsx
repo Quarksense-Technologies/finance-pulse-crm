@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Calendar, Search, Plus, ArrowDown, FileText, FileSpreadsheet, Download } from 'lucide-react';
@@ -33,9 +32,9 @@ const Finances = () => {
   const { data: transactions = [] } = useTransactions({ type: tab === 'payments' ? 'payment' : 'expense' });
   const { exportToFormat } = useExportTransactions();
 
-  // Filter transactions by type - using Transaction type from API
-  const payments = (transactions as Transaction[]).filter(t => t.type === 'payment' || t.type === 'income');
-  const expenses = (transactions as Transaction[]).filter(t => t.type === 'expense');
+  // Filter transactions by type - now using Transaction type from API
+  const payments = transactions.filter(t => t.type === 'payment' || t.type === 'income');
+  const expenses = transactions.filter(t => t.type === 'expense');
 
   // Prepare data for payment status pie chart
   const paidAmount = payments.filter(p => (p as any).status === 'paid').reduce((sum, p) => sum + p.amount, 0);
