@@ -16,6 +16,8 @@ const Approvals = () => {
   const approveItemMutation = useApproveItem();
   const rejectItemMutation = useRejectItem();
 
+  console.log('Pending approvals data:', pendingApprovals);
+
   const handleApprove = async (id: string, type: string) => {
     try {
       await approveItemMutation.mutateAsync({ id, type });
@@ -51,19 +53,19 @@ const Approvals = () => {
 
   return (
     <div className="container mx-auto py-6">
-      <h1 className="text-3xl font-bold mb-6">Approval Requests</h1>
+      <h1 className="text-3xl font-bold mb-6">Expense Approval Requests</h1>
 
       <Tabs defaultValue="pending" className="w-full">
         <TabsList className="grid w-full grid-cols-1 mb-6">
-          <TabsTrigger value="pending">Pending ({pendingApprovals.length})</TabsTrigger>
+          <TabsTrigger value="pending">Pending Expenses ({pendingApprovals.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="pending">
           {pendingApprovals.length === 0 ? (
             <Card>
               <CardHeader>
-                <CardTitle>No Pending Approvals</CardTitle>
-                <CardDescription>All approval requests have been processed.</CardDescription>
+                <CardTitle>No Pending Expense Approvals</CardTitle>
+                <CardDescription>All expense claims have been processed.</CardDescription>
               </CardHeader>
             </Card>
           ) : (
@@ -96,20 +98,25 @@ const ApprovalCard = ({ item, onApprove, onReject, isLoading }: ApprovalCardProp
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
         <div>
           <CardTitle>
-            {item.type === 'payment' ? 'Payment Request' : 'Expense Claim'} - {formatCurrency(item.amount)}
+            Expense Claim - {formatCurrency(item.amount)}
           </CardTitle>
           <CardDescription>
             Requested on {formatDate(item.createdAt || item.date)} by {item.createdBy?.name || 'Unknown User'}
           </CardDescription>
         </div>
-        <StatusBadge status={item.approvalStatus || 'pending'} />
+        <StatusBadge status={item.status || 'pending'} />
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <h4 className="text-sm font-semibold mb-2">Details</h4>
             <p className="text-sm">{item.description}</p>
-            <p className="text-sm text-gray-500 mt-1">Project: {item.project?.name || 'Unknown Project'}</p>
+            {item.category && (
+              <p className="text-sm text-gray-500 mt-1">Category: {item.category}</p>
+            )}
+            <p className="text-sm text-gray-500 mt-1">
+              Project: {item.projectName || 'Unknown Project'}
+            </p>
           </div>
           <div className="flex justify-end items-center">
             <div className="flex gap-2">

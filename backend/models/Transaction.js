@@ -30,7 +30,10 @@ const TransactionSchema = new mongoose.Schema({
   approvalStatus: { 
     type: String, 
     enum: ['pending', 'approved', 'rejected'],
-    default: 'pending'
+    default: function() {
+      // Only expenses need approval by default, payments are auto-approved
+      return this.type === 'expense' ? 'pending' : 'approved';
+    }
   },
   rejectionReason: String,
   createdBy: { 
@@ -41,6 +44,12 @@ const TransactionSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User' 
   },
+  rejectedBy: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User' 
+  },
+  approvedAt: Date,
+  rejectedAt: Date,
   attachments: [{
     name: String,
     url: String

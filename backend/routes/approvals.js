@@ -7,55 +7,84 @@ const roleCheck = require('../middleware/roleCheck');
 const router = express.Router();
 
 // @route   GET /api/approvals/pending
-// @desc    Get pending approval items
+// @desc    Get pending approval items (only expenses need approval, not payments)
 // @access  Admin or Manager
 router.get('/pending', auth, roleCheck(['admin', 'manager']), async (req, res) => {
   try {
     console.log('Fetching pending approvals...');
     
-    // Get pending transactions
-    const pendingTransactions = await Transaction.find({ approvalStatus: 'pending' })
+    // Get pending expense transactions only (payments don't need approval in this flow)
+    const pendingTransactions = await Transaction.find({ 
+      approvalStatus: 'pending',
+      type: 'expense' // Only expenses need approval
+    })
       .populate('project', 'name')
       .populate('createdBy', 'name')
       .sort({ createdAt: -1 });
     
-    console.log(`Found ${pendingTransactions.length} pending transactions`);
+    console.log(`Found ${pendingTransactions.length} pending expense transactions`);
     
     // Format response for frontend
-    const approvalItems = await Promise.all(pendingTransactions.map(async (item) => {
-      // Get project name
+    const approvalItems = pendingTransactions.map((item) => {
+      // Get project name safely
       let projectName = 'Unknown Project';
+      let projectId = 'unknown';
+      
       if (item.project) {
-        projectName = typeof item.project === 'object' ? item.project.name : 'Unknown Project';
-        
-        // If project is just an ID, fetch the project to get the name
-        if (typeof item.project !== 'object') {
-          try {
-            const project = await Project.findById(item.project);
-            if (project) {
-              projectName = project.name;
-            }
-          } catch (err) {
-            console.error('Error fetching project name:', err);
-          }
+        if (typeof item.project === 'object' && item.project.name) {
+          projectName = item.project.name;
+          projectId = item.project._id;
+        } else if (typeof item.project === 'string') {
+          projectId = item.project;
+          // Project name will be fetched separately if needed
+        }
+      }
+      
+      // Get creator name safely
+      let creatorName = 'Unknown User';
+      let creatorId = 'unknown';
+      
+      if (item.createdBy) {
+        if (typeof item.createdBy === 'object' && item.createdBy.name) {
+          creatorName = item.createdBy.name;
+          creatorId = item.createdBy._id;
+        } else if (typeof item.createdBy === 'string') {
+          creatorId = item.createdBy;
         }
       }
       
       return {
         id: item._id,
-        type: item.type,
-        description: item.description || `${item.type} - ${item.amount}`,
+        type: item.type, // This will be 'expense'
+        description: item.description || `Expense claim - ${item.amount}`,
         amount: item.amount,
+        category: item.category,
         createdBy: {
-          id: item.createdBy ? (typeof item.createdBy === 'object' ? item.createdBy._id : item.createdBy) : 'unknown',
-          name: item.createdBy && typeof item.createdBy === 'object' ? item.createdBy.name : 'Unknown User'
+          id: creatorId,
+          name: creatorName
         },
         createdAt: item.createdAt,
+        date: item.date,
         status: item.approvalStatus,
-        projectId: item.project ? (typeof item.project === 'object' ? item.project._id : item.project) : 'unknown',
-        projectName
+        projectId: projectId,
+        projectName: projectName,
+        project: item.project // Include full project object
       };
-    }));
+    });
+    
+    // For any items with unpopulated project names, fetch them
+    for (let item of approvalItems) {
+      if (item.projectName === 'Unknown Project' && item.projectId !== 'unknown') {
+        try {
+          const project = await Project.findById(item.projectId);
+          if (project) {
+            item.projectName = project.name;
+          }
+        } catch (err) {
+          console.error('Error fetching project name for ID:', item.projectId, err);
+        }
+      }
+    }
     
     console.log('Formatted approval items:', approvalItems);
     res.status(200).json(approvalItems);
@@ -68,99 +97,85 @@ router.get('/pending', auth, roleCheck(['admin', 'manager']), async (req, res) =
   }
 });
 
-// @route   PUT /api/approvals/:type/:id/approve
-// @desc    Approve an item
+// @route   PUT /api/approvals/finances/:id/approve
+// @desc    Approve a transaction (expense)
 // @access  Admin or Manager
-router.put('/:type/:id/approve', auth, roleCheck(['admin', 'manager']), async (req, res) => {
+router.put('/finances/:id/approve', auth, roleCheck(['admin', 'manager']), async (req, res) => {
   try {
-    const { type, id } = req.params;
-    console.log(`Approving ${type} with ID: ${id}`);
+    const { id } = req.params;
+    console.log(`Approving expense with ID: ${id}`);
     
-    if (type === 'finances' || type === 'transactions') {
-      // Update transaction approval status
-      const transaction = await Transaction.findByIdAndUpdate(
-        id,
-        { 
-          approvalStatus: 'approved',
-          approvedBy: req.user.id,
-          approvedAt: new Date()
-        },
-        { new: true }
-      );
-      
-      if (!transaction) {
-        return res.status(404).json({
-          message: 'Transaction not found',
-          success: false
-        });
-      }
-      
-      console.log('Transaction approved successfully:', transaction._id);
-      res.status(200).json({
-        message: 'Transaction approved successfully',
-        success: true,
-        data: transaction
-      });
-    } else {
-      res.status(400).json({
-        message: 'Invalid approval type',
+    // Update transaction approval status
+    const transaction = await Transaction.findByIdAndUpdate(
+      id,
+      { 
+        approvalStatus: 'approved',
+        approvedBy: req.user.id,
+        approvedAt: new Date()
+      },
+      { new: true }
+    ).populate('project', 'name');
+    
+    if (!transaction) {
+      return res.status(404).json({
+        message: 'Transaction not found',
         success: false
       });
     }
+    
+    console.log('Transaction approved successfully:', transaction._id);
+    res.status(200).json({
+      message: 'Expense approved successfully',
+      success: true,
+      data: transaction
+    });
   } catch (error) {
-    console.error(`Error approving ${req.params.type} ${req.params.id}:`, error);
+    console.error(`Error approving expense ${req.params.id}:`, error);
     res.status(500).json({
-      message: 'Server error approving item',
+      message: 'Server error approving expense',
       success: false
     });
   }
 });
 
-// @route   PUT /api/approvals/:type/:id/reject
-// @desc    Reject an item
+// @route   PUT /api/approvals/finances/:id/reject
+// @desc    Reject a transaction (expense)
 // @access  Admin or Manager
-router.put('/:type/:id/reject', auth, roleCheck(['admin', 'manager']), async (req, res) => {
+router.put('/finances/:id/reject', auth, roleCheck(['admin', 'manager']), async (req, res) => {
   try {
-    const { type, id } = req.params;
+    const { id } = req.params;
     const { reason } = req.body;
-    console.log(`Rejecting ${type} with ID: ${id}, reason: ${reason}`);
+    console.log(`Rejecting expense with ID: ${id}, reason: ${reason}`);
     
-    if (type === 'finances' || type === 'transactions') {
-      // Update transaction approval status
-      const transaction = await Transaction.findByIdAndUpdate(
-        id,
-        { 
-          approvalStatus: 'rejected',
-          rejectedBy: req.user.id,
-          rejectedAt: new Date(),
-          rejectionReason: reason
-        },
-        { new: true }
-      );
-      
-      if (!transaction) {
-        return res.status(404).json({
-          message: 'Transaction not found',
-          success: false
-        });
-      }
-      
-      console.log('Transaction rejected successfully:', transaction._id);
-      res.status(200).json({
-        message: 'Transaction rejected successfully',
-        success: true,
-        data: transaction
-      });
-    } else {
-      res.status(400).json({
-        message: 'Invalid approval type',
+    // Update transaction approval status
+    const transaction = await Transaction.findByIdAndUpdate(
+      id,
+      { 
+        approvalStatus: 'rejected',
+        rejectedBy: req.user.id,
+        rejectedAt: new Date(),
+        rejectionReason: reason
+      },
+      { new: true }
+    ).populate('project', 'name');
+    
+    if (!transaction) {
+      return res.status(404).json({
+        message: 'Transaction not found',
         success: false
       });
     }
+    
+    console.log('Transaction rejected successfully:', transaction._id);
+    res.status(200).json({
+      message: 'Expense rejected successfully',
+      success: true,
+      data: transaction
+    });
   } catch (error) {
-    console.error(`Error rejecting ${req.params.type} ${req.params.id}:`, error);
+    console.error(`Error rejecting expense ${req.params.id}:`, error);
     res.status(500).json({
-      message: 'Server error rejecting item',
+      message: 'Server error rejecting expense',
       success: false
     });
   }
