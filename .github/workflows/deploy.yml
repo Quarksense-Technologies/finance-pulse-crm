@@ -47,7 +47,7 @@ jobs:
       - name: SSH & Deploy Dev Stack on EC2
         uses: appleboy/ssh-action@v0.1.7
         with:
-          host: ec2-65-2-127-222.ap-south-1.compute.amazonaws.com
+          host: ec2-3-108-53-130.ap-south-1.compute.amazonaws.com
           username: deploy
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
