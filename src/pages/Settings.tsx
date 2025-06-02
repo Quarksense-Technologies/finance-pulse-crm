@@ -88,18 +88,18 @@ const Settings = () => {
   };
 
   return (
-    <div className="container mx-auto py-4 sm:py-6 max-w-4xl px-4">
+    <div className="container mx-auto py-4 sm:py-6 max-w-4xl px-4 no-horizontal-scroll">
       <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Settings</h1>
 
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-4 sm:mb-6">
+        <TabsList className="mb-4 sm:mb-6">
           <TabsTrigger value="profile" className="text-xs sm:text-sm">Profile</TabsTrigger>
           <TabsTrigger value="appearance" className="text-xs sm:text-sm">Appearance</TabsTrigger>
           <TabsTrigger value="account" className="text-xs sm:text-sm">Account</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile">
-          <Card>
+          <Card className="border border-border bg-card">
             <CardHeader>
               <CardTitle className="text-lg sm:text-xl">Profile Settings</CardTitle>
               <CardDescription className="text-sm">
@@ -114,7 +114,7 @@ const Settings = () => {
                     id="name"
                     value={profile.name}
                     onChange={(e) => setProfile({...profile, name: e.target.value})}
-                    className="w-full"
+                    className="w-full bg-background text-foreground border-border"
                   />
                 </div>
                 <div className="space-y-2">
@@ -124,7 +124,7 @@ const Settings = () => {
                     type="email"
                     value={profile.email}
                     onChange={(e) => setProfile({...profile, email: e.target.value})}
-                    className="w-full"
+                    className="w-full bg-background text-foreground border-border"
                   />
                 </div>
                 <Button type="submit" className="w-full sm:w-auto">Update Profile</Button>
@@ -134,7 +134,7 @@ const Settings = () => {
         </TabsContent>
 
         <TabsContent value="appearance">
-          <Card>
+          <Card className="border border-border bg-card">
             <CardHeader>
               <CardTitle className="text-lg sm:text-xl">Appearance</CardTitle>
               <CardDescription className="text-sm">
@@ -166,7 +166,7 @@ const Settings = () => {
         </TabsContent>
 
         <TabsContent value="account">
-          <Card>
+          <Card className="border border-border bg-card">
             <CardHeader>
               <CardTitle className="text-lg sm:text-xl">Account Settings</CardTitle>
               <CardDescription className="text-sm">
@@ -182,7 +182,8 @@ const Settings = () => {
                     type="password"
                     value={profile.currentPassword}
                     onChange={(e) => setProfile({...profile, currentPassword: e.target.value})}
-                    className="w-full"
+                    className="w-full bg-background text-foreground border-border"
+                    placeholder="Enter your current password"
                   />
                 </div>
                 <div className="space-y-2">
@@ -192,7 +193,8 @@ const Settings = () => {
                     type="password"
                     value={profile.newPassword}
                     onChange={(e) => setProfile({...profile, newPassword: e.target.value})}
-                    className="w-full"
+                    className="w-full bg-background text-foreground border-border"
+                    placeholder="Enter your new password"
                   />
                 </div>
                 <div className="space-y-2">
@@ -202,13 +204,14 @@ const Settings = () => {
                     type="password"
                     value={profile.confirmPassword}
                     onChange={(e) => setProfile({...profile, confirmPassword: e.target.value})}
-                    className="w-full"
+                    className="w-full bg-background text-foreground border-border"
+                    placeholder="Confirm your new password"
                   />
                 </div>
                 <Button type="submit" className="w-full sm:w-auto">Change Password</Button>
               </form>
               
-              <div className="pt-6 border-t">
+              <div className="pt-6 border-t border-border">
                 <h3 className="text-base sm:text-lg font-medium mb-4">Danger Zone</h3>
                 <Button variant="destructive" onClick={handleLogout} className="w-full sm:w-auto">
                   Logout
@@ -223,3 +226,4 @@ const Settings = () => {
 };
 
 export default Settings;
+

@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
 import { Calendar, Search, Plus, ArrowDown, FileText, FileSpreadsheet, Download } from 'lucide-react';
@@ -274,7 +273,7 @@ const Finances = () => {
       );
 
   return (
-    <div className="animate-fade-in p-4 sm:p-6">
+    <div className="animate-fade-in p-4 sm:p-6 no-horizontal-scroll">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4">
         <h1 className="text-xl sm:text-2xl font-bold">Financial Management</h1>
         <div className="flex gap-2 flex-wrap">
@@ -318,19 +317,19 @@ const Finances = () => {
       
       {/* Main tabs */}
       <Tabs value={transactionsTab} onValueChange={(value) => setTransactionsTab(value as 'charts' | 'transactions')}>
-        <TabsList className="mb-6 w-full sm:w-auto">
+        <TabsList className="mb-6">
           <TabsTrigger value="charts" className="text-sm">Charts & Summary</TabsTrigger>
           <TabsTrigger value="transactions" className="text-sm">All Transactions</TabsTrigger>
         </TabsList>
         
         <TabsContent value="charts">
           {/* Filter tabs */}
-          <div className="flex border-b border-gray-200 mb-6 overflow-x-auto">
+          <div className="flex border-b border-border mb-6 overflow-x-auto">
             <button
               className={`pb-2 px-4 text-sm whitespace-nowrap ${
                 tab === 'payments'
                   ? 'border-b-2 border-primary text-primary'
-                  : 'text-gray-500 hover:text-gray-700'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
               onClick={() => setTab('payments')}
             >
@@ -340,7 +339,7 @@ const Finances = () => {
               className={`pb-2 px-4 text-sm whitespace-nowrap ${
                 tab === 'expenses'
                   ? 'border-b-2 border-primary text-primary'
-                  : 'text-gray-500 hover:text-gray-700'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
               onClick={() => setTab('expenses')}
             >
@@ -350,7 +349,7 @@ const Finances = () => {
           
           {/* Charts - Improved mobile responsiveness */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6 mb-8">
-            <div className="bg-white dark:bg-card shadow-sm rounded-lg p-4 sm:p-6 border border-gray-100 dark:border-border">
+            <div className="bg-card shadow-sm rounded-lg p-4 sm:p-6 border border-border">
               <h2 className="text-base sm:text-lg font-semibold mb-4">
                 {tab === 'payments' ? 'Payment Status' : 'Expense Categories'}
               </h2>
@@ -386,7 +385,7 @@ const Finances = () => {
               </div>
             </div>
             
-            <div className="bg-white dark:bg-card shadow-sm rounded-lg p-4 sm:p-6 border border-gray-100 dark:border-border">
+            <div className="bg-card shadow-sm rounded-lg p-4 sm:p-6 border border-border">
               <h2 className="text-base sm:text-lg font-semibold mb-4">By Company</h2>
               <div className="h-64 sm:h-80">
                 <ResponsiveContainer width="100%" height="100%">
@@ -430,8 +429,8 @@ const Finances = () => {
           </div>
           
           {/* Recent transactions table - Mobile responsive */}
-          <div className="bg-white dark:bg-card shadow-sm rounded-lg border border-gray-100 dark:border-border overflow-hidden">
-            <div className="p-4 sm:p-6 border-b border-gray-100 dark:border-border">
+          <div className="bg-card shadow-sm rounded-lg border border-border overflow-hidden">
+            <div className="p-4 sm:p-6 border-b border-border">
               <h2 className="text-base sm:text-lg font-semibold">
                 {tab === 'payments' ? 'Recent Payments' : 'Recent Expenses'}
               </h2>
@@ -440,7 +439,7 @@ const Finances = () => {
             <div className="overflow-x-auto">
               <div className="min-w-[600px]">
                 <table className="w-full">
-                  <thead className="bg-gray-50 dark:bg-muted text-xs uppercase text-gray-700 dark:text-muted-foreground">
+                  <thead className="bg-muted text-xs uppercase text-muted-foreground">
                     <tr>
                       <th className="px-4 py-3 text-left">Project</th>
                       <th className="px-4 py-3 text-left">Company</th>
@@ -450,10 +449,10 @@ const Finances = () => {
                       <th className="px-4 py-3 text-left">{tab === 'payments' ? 'Status' : 'Category'}</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-border">
+                  <tbody className="divide-y divide-border">
                     {tab === 'payments' ? (
                       payments.slice(0, 5).map((payment: Transaction) => (
-                        <tr key={payment.id} className="hover:bg-gray-50 dark:hover:bg-muted/50">
+                        <tr key={payment.id} className="hover:bg-muted/50">
                           <td className="px-4 py-3 text-sm">{getProjectName(payment.project)}</td>
                           <td className="px-4 py-3 text-sm">{getProjectCompany(payment.project)}</td>
                           <td className="px-4 py-3 text-sm">{payment.description}</td>
@@ -469,7 +468,7 @@ const Finances = () => {
                       ))
                     ) : (
                       expenses.slice(0, 5).map((expense: Transaction) => (
-                        <tr key={expense.id} className="hover:bg-gray-50 dark:hover:bg-muted/50">
+                        <tr key={expense.id} className="hover:bg-muted/50">
                           <td className="px-4 py-3 text-sm">{getProjectName(expense.project)}</td>
                           <td className="px-4 py-3 text-sm">{getProjectCompany(expense.project)}</td>
                           <td className="px-4 py-3 text-sm">{expense.description}</td>
@@ -492,25 +491,25 @@ const Finances = () => {
         </TabsContent>
         
         <TabsContent value="transactions">
-          <div className="bg-white dark:bg-card rounded-lg shadow-sm border border-gray-100 dark:border-border">
-            <div className="p-6 border-b border-gray-100 dark:border-border">
+          <div className="bg-card rounded-lg shadow-sm border border-border">
+            <div className="p-6 border-b border-border">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <h2 className="text-lg font-semibold">All Transactions</h2>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <div className="relative min-w-[200px]">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <Search className="w-4 h-4 text-gray-400" />
+                      <Search className="w-4 h-4 text-muted-foreground" />
                     </div>
                     <Input
                       placeholder="Search transactions..."
-                      className="pl-10"
+                      className="pl-10 bg-background border-border"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
                   </div>
                   <div className="flex gap-2">
                     <Select defaultValue="payments" onValueChange={(val) => setTab(val as 'payments' | 'expenses')}>
-                      <SelectTrigger className="w-[150px]">
+                      <SelectTrigger className="w-[150px] bg-background border-border">
                         <SelectValue placeholder="Transaction type" />
                       </SelectTrigger>
                       <SelectContent>
@@ -522,7 +521,7 @@ const Finances = () => {
                     {/* Export dropdown */}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="outline" disabled={isExporting}>
+                        <Button variant="outline" disabled={isExporting} className="border-border">
                           <Download className="h-4 w-4 mr-2" />
                           {isExporting ? 'Exporting...' : 'Export'}
                         </Button>
