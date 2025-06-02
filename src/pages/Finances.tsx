@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
 import { Calendar, Search, Plus, ArrowDown, FileText, FileSpreadsheet, Download } from 'lucide-react';
@@ -106,15 +107,14 @@ const Finances = () => {
     }));
   }, [expenses]);
 
-  // Company chart data - Fixed to show actual data
+  // Company chart data - Fixed to use correct property names
   const companyChartData = useMemo(() => {
     return companies.map(company => {
       console.log(`Processing company: ${company.name} (ID: ${company.id})`);
       
-      // Get projects for this company
+      // Get projects for this company - Fixed to use companyId
       const companyProjects = projects.filter(p => 
         p.companyId === company.id || 
-        p.company === company.id ||
         String(p.companyId) === String(company.id)
       );
       
@@ -125,12 +125,12 @@ const Finances = () => {
       
       if (tab === 'payments') {
         const totalPayments = payments
-          .filter(p => projectIds.includes(p.project) || projectIds.includes(p.projectId))
+          .filter(p => projectIds.includes(p.project))
           .filter(p => (p as any).status === 'paid')
           .reduce((sum, p) => sum + p.amount, 0);
         
         const pendingPayments = payments
-          .filter(p => projectIds.includes(p.project) || projectIds.includes(p.projectId))
+          .filter(p => projectIds.includes(p.project))
           .filter(p => (p as any).status === 'pending' || (p as any).status === 'overdue')
           .reduce((sum, p) => sum + p.amount, 0);
         
@@ -144,7 +144,7 @@ const Finances = () => {
         };
       } else {
         const totalExpenses = expenses
-          .filter(e => projectIds.includes(e.project) || projectIds.includes(e.projectId))
+          .filter(e => projectIds.includes(e.project))
           .reduce((sum, e) => sum + e.amount, 0);
         
         console.log(`Company ${company.name}: expenses=${totalExpenses}`);
@@ -232,6 +232,25 @@ const Finances = () => {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error exporting to Excel:', error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportToPdf = async () => {
+    try {
+      setIsExporting(true);
+      const blob = await exportToFormat('json');
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${tab}-${new Date().toISOString().split('T')[0]}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exporting to PDF:', error);
     } finally {
       setIsExporting(false);
     }
