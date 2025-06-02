@@ -113,10 +113,12 @@
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Dark mode input fixes */
+  /* Dark mode input fixes - Enhanced */
   .dark input {
     @apply bg-input text-foreground border-border;
     color: hsl(var(--foreground)) !important;
+    background-color: hsl(var(--input)) !important;
+    border-color: hsl(var(--border)) !important;
   }
 
   .dark input::placeholder {
@@ -127,11 +129,21 @@
   .dark textarea {
     @apply bg-input text-foreground border-border;
     color: hsl(var(--foreground)) !important;
+    background-color: hsl(var(--input)) !important;
+    border-color: hsl(var(--border)) !important;
   }
 
   .dark textarea::placeholder {
     @apply text-muted-foreground;
     color: hsl(var(--muted-foreground)) !important;
+  }
+
+  /* Enhanced dark mode form element visibility */
+  .dark select {
+    @apply bg-input text-foreground border-border;
+    color: hsl(var(--foreground)) !important;
+    background-color: hsl(var(--input)) !important;
+    border-color: hsl(var(--border)) !important;
   }
 
   /* Dark mode text color fixes */
@@ -167,10 +179,23 @@
   /* Form element visibility in dark mode */
   .dark [data-radix-select-trigger] {
     @apply bg-input text-foreground border-border;
+    color: hsl(var(--foreground)) !important;
+    background-color: hsl(var(--input)) !important;
+    border-color: hsl(var(--border)) !important;
   }
 
   .dark [data-radix-select-content] {
     @apply bg-popover text-popover-foreground;
+    background-color: hsl(var(--popover)) !important;
+    color: hsl(var(--popover-foreground)) !important;
+  }
+
+  /* Dialog dark mode fixes */
+  .dark [data-radix-dialog-content] {
+    @apply bg-card text-card-foreground border-border;
+    background-color: hsl(var(--card)) !important;
+    color: hsl(var(--card-foreground)) !important;
+    border-color: hsl(var(--border)) !important;
   }
 
   /* Ensure all text is visible in dark mode */
@@ -180,15 +205,36 @@
 
   .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
     @apply text-foreground;
+    color: hsl(var(--foreground)) !important;
   }
 
   .dark p, .dark span, .dark div {
     color: inherit;
   }
 
+  .dark label {
+    @apply text-foreground;
+    color: hsl(var(--foreground)) !important;
+  }
+
   /* Card content in dark mode */
   .dark .card {
     @apply bg-card text-card-foreground;
+  }
+
+  /* Table dark mode improvements */
+  .dark table {
+    @apply bg-card text-card-foreground;
+  }
+
+  .dark th {
+    @apply text-foreground;
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .dark td {
+    @apply text-foreground;
+    color: hsl(var(--foreground)) !important;
   }
 }
 
@@ -212,7 +258,7 @@
   transition: width 0.3s ease-in-out;
 }
 
-/* Mobile-first responsive utilities */
+/* Mobile-first responsive utilities - Enhanced */
 @media (max-width: 640px) {
   .container {
     @apply px-2 sm:px-4;
@@ -262,6 +308,31 @@
   .table-mobile td {
     @apply px-2 py-1;
   }
+
+  /* Enhanced dialog responsiveness */
+  [data-radix-dialog-content] {
+    @apply mx-4 w-auto max-w-none;
+    max-width: calc(100vw - 2rem) !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+  }
+
+  /* Better form layouts on mobile */
+  .form-grid-mobile {
+    @apply grid-cols-1 gap-3;
+  }
+
+  .form-grid-mobile .grid-cols-4 {
+    @apply grid-cols-1;
+  }
+
+  .form-grid-mobile .col-span-3 {
+    @apply col-span-1;
+  }
+
+  .form-grid-mobile .text-right {
+    @apply text-left;
+  }
 }
 
 /* Improved table responsiveness */
@@ -286,29 +357,67 @@
   }
 }
 
-/* Improved dialog/modal on mobile */
-@media (max-width: 640px) {
-  [data-radix-dialog-content] {
-    @apply mx-2 w-auto max-w-none;
-    max-width: calc(100vw - 1rem);
-  }
+/* Enhanced horizontal scroll prevention */
+.no-horizontal-scroll {
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
-/* Better form layouts on mobile */
-@media (max-width: 640px) {
-  .form-grid-mobile {
-    @apply grid-cols-1 gap-3;
-  }
+/* Prevent horizontal overflow on any element */
+* {
+  max-width: 100%;
+  box-sizing: border-box;
+}
 
-  .form-grid-mobile .grid-cols-4 {
-    @apply grid-cols-1;
-  }
+/* Better responsive containers */
+.responsive-container {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground)) transparent;
+}
 
-  .form-grid-mobile .col-span-3 {
-    @apply col-span-1;
-  }
+.responsive-container::-webkit-scrollbar {
+  height: 6px;
+}
 
-  .form-grid-mobile .text-right {
-    @apply text-left;
+.responsive-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.responsive-container::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground));
+  border-radius: 3px;
+}
+
+/* Enhanced table wrapper for mobile */
+.table-wrapper {
+  @apply w-full overflow-x-auto;
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground)) transparent;
+}
+
+.table-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground));
+  border-radius: 3px;
+}
+
+/* Make sure tables don't break on mobile */
+.table-wrapper table {
+  min-width: 600px;
+}
+
+@media (min-width: 768px) {
+  .table-wrapper table {
+    min-width: 100%;
   }
 }

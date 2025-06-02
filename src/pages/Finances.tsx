@@ -285,7 +285,7 @@ const Finances = () => {
                 Add Payment
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px] mx-4">
+            <DialogContent className="sm:max-w-[425px] mx-4 max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Add New Payment</DialogTitle>
                 <DialogDescription>
@@ -303,7 +303,7 @@ const Finances = () => {
                 Add Expense
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px] mx-4">
+            <DialogContent className="sm:max-w-[425px] mx-4 max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Add New Expense</DialogTitle>
                 <DialogDescription>
@@ -348,9 +348,9 @@ const Finances = () => {
             </button>
           </div>
           
-          {/* Charts */}
+          {/* Charts - Improved mobile responsiveness */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6 mb-8">
-            <div className="bg-white shadow-sm rounded-lg p-4 sm:p-6 border border-gray-100">
+            <div className="bg-white dark:bg-card shadow-sm rounded-lg p-4 sm:p-6 border border-gray-100 dark:border-border">
               <h2 className="text-base sm:text-lg font-semibold mb-4">
                 {tab === 'payments' ? 'Payment Status' : 'Expense Categories'}
               </h2>
@@ -386,7 +386,7 @@ const Finances = () => {
               </div>
             </div>
             
-            <div className="bg-white shadow-sm rounded-lg p-4 sm:p-6 border border-gray-100">
+            <div className="bg-white dark:bg-card shadow-sm rounded-lg p-4 sm:p-6 border border-gray-100 dark:border-border">
               <h2 className="text-base sm:text-lg font-semibold mb-4">By Company</h2>
               <div className="h-64 sm:h-80">
                 <ResponsiveContainer width="100%" height="100%">
@@ -430,72 +430,74 @@ const Finances = () => {
           </div>
           
           {/* Recent transactions table - Mobile responsive */}
-          <div className="bg-white shadow-sm rounded-lg border border-gray-100 overflow-hidden">
-            <div className="p-4 sm:p-6 border-b border-gray-100">
+          <div className="bg-white dark:bg-card shadow-sm rounded-lg border border-gray-100 dark:border-border overflow-hidden">
+            <div className="p-4 sm:p-6 border-b border-gray-100 dark:border-border">
               <h2 className="text-base sm:text-lg font-semibold">
                 {tab === 'payments' ? 'Recent Payments' : 'Recent Expenses'}
               </h2>
             </div>
             
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[600px]">
-                <thead className="bg-gray-50 text-xs uppercase text-gray-700">
-                  <tr>
-                    <th className="px-4 py-3 text-left">Project</th>
-                    <th className="px-4 py-3 text-left">Company</th>
-                    <th className="px-4 py-3 text-left">Description</th>
-                    <th className="px-4 py-3 text-left">Date</th>
-                    <th className="px-4 py-3 text-left">Amount</th>
-                    <th className="px-4 py-3 text-left">{tab === 'payments' ? 'Status' : 'Category'}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {tab === 'payments' ? (
-                    payments.slice(0, 5).map((payment: Transaction) => (
-                      <tr key={payment.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 text-sm">{getProjectName(payment.project)}</td>
-                        <td className="px-4 py-3 text-sm">{getProjectCompany(payment.project)}</td>
-                        <td className="px-4 py-3 text-sm">{payment.description}</td>
-                        <td className="px-4 py-3 text-sm">{formatDate(payment.date)}</td>
-                        <td className="px-4 py-3 text-sm font-medium">{formatCurrency(payment.amount)}</td>
-                        <td className="px-4 py-3">
-                          <StatusBadge 
-                            status={(payment as any).status || 'pending'} 
-                            colorClassName={getPaymentStatusColor((payment as any).status || 'pending')} 
-                          />
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    expenses.slice(0, 5).map((expense: Transaction) => (
-                      <tr key={expense.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 text-sm">{getProjectName(expense.project)}</td>
-                        <td className="px-4 py-3 text-sm">{getProjectCompany(expense.project)}</td>
-                        <td className="px-4 py-3 text-sm">{expense.description}</td>
-                        <td className="px-4 py-3 text-sm">{formatDate(expense.date)}</td>
-                        <td className="px-4 py-3 text-sm font-medium">{formatCurrency(expense.amount)}</td>
-                        <td className="px-4 py-3">
-                          <StatusBadge 
-                            status={(expense as any).category || 'other'} 
-                            colorClassName={getExpenseCategoryColor((expense as any).category || 'other')} 
-                          />
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+              <div className="min-w-[600px]">
+                <table className="w-full">
+                  <thead className="bg-gray-50 dark:bg-muted text-xs uppercase text-gray-700 dark:text-muted-foreground">
+                    <tr>
+                      <th className="px-4 py-3 text-left">Project</th>
+                      <th className="px-4 py-3 text-left">Company</th>
+                      <th className="px-4 py-3 text-left">Description</th>
+                      <th className="px-4 py-3 text-left">Date</th>
+                      <th className="px-4 py-3 text-left">Amount</th>
+                      <th className="px-4 py-3 text-left">{tab === 'payments' ? 'Status' : 'Category'}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-border">
+                    {tab === 'payments' ? (
+                      payments.slice(0, 5).map((payment: Transaction) => (
+                        <tr key={payment.id} className="hover:bg-gray-50 dark:hover:bg-muted/50">
+                          <td className="px-4 py-3 text-sm">{getProjectName(payment.project)}</td>
+                          <td className="px-4 py-3 text-sm">{getProjectCompany(payment.project)}</td>
+                          <td className="px-4 py-3 text-sm">{payment.description}</td>
+                          <td className="px-4 py-3 text-sm">{formatDate(payment.date)}</td>
+                          <td className="px-4 py-3 text-sm font-medium">{formatCurrency(payment.amount)}</td>
+                          <td className="px-4 py-3">
+                            <StatusBadge 
+                              status={(payment as any).status || 'pending'} 
+                              colorClassName={getPaymentStatusColor((payment as any).status || 'pending')} 
+                            />
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      expenses.slice(0, 5).map((expense: Transaction) => (
+                        <tr key={expense.id} className="hover:bg-gray-50 dark:hover:bg-muted/50">
+                          <td className="px-4 py-3 text-sm">{getProjectName(expense.project)}</td>
+                          <td className="px-4 py-3 text-sm">{getProjectCompany(expense.project)}</td>
+                          <td className="px-4 py-3 text-sm">{expense.description}</td>
+                          <td className="px-4 py-3 text-sm">{formatDate(expense.date)}</td>
+                          <td className="px-4 py-3 text-sm font-medium">{formatCurrency(expense.amount)}</td>
+                          <td className="px-4 py-3">
+                            <StatusBadge 
+                              status={(expense as any).category || 'other'} 
+                              colorClassName={getExpenseCategoryColor((expense as any).category || 'other')} 
+                            />
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </TabsContent>
         
         <TabsContent value="transactions">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100">
-            <div className="p-6 border-b border-gray-100">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+          <div className="bg-white dark:bg-card rounded-lg shadow-sm border border-gray-100 dark:border-border">
+            <div className="p-6 border-b border-gray-100 dark:border-border">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <h2 className="text-lg font-semibold">All Transactions</h2>
-                <div className="mt-4 md:mt-0 flex gap-4 flex-wrap">
-                  <div className="relative flex-1 min-w-[200px]">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="relative min-w-[200px]">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                       <Search className="w-4 h-4 text-gray-400" />
                     </div>
@@ -506,89 +508,93 @@ const Finances = () => {
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
                   </div>
-                  <Select defaultValue="payments" onValueChange={(val) => setTab(val as 'payments' | 'expenses')}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Transaction type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="payments">Payments</SelectItem>
-                      <SelectItem value="expenses">Expenses</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  
-                  {/* Export dropdown */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" disabled={isExporting}>
-                        <Download className="h-4 w-4 mr-2" />
-                        {isExporting ? 'Exporting...' : 'Export'}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuLabel>Export Options</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={handleExportToExcel}>
-                        <FileSpreadsheet className="h-4 w-4 mr-2" />
-                        Export to Excel
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={handleExportToPdf}>
-                        <FileText className="h-4 w-4 mr-2" />
-                        Export to PDF
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <div className="flex gap-2">
+                    <Select defaultValue="payments" onValueChange={(val) => setTab(val as 'payments' | 'expenses')}>
+                      <SelectTrigger className="w-[150px]">
+                        <SelectValue placeholder="Transaction type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="payments">Payments</SelectItem>
+                        <SelectItem value="expenses">Expenses</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    
+                    {/* Export dropdown */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" disabled={isExporting}>
+                          <Download className="h-4 w-4 mr-2" />
+                          {isExporting ? 'Exporting...' : 'Export'}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuLabel>Export Options</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={handleExportToExcel}>
+                          <FileSpreadsheet className="h-4 w-4 mr-2" />
+                          Export to Excel
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleExportToPdf}>
+                          <FileText className="h-4 w-4 mr-2" />
+                          Export to PDF
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
               </div>
             </div>
             
             <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Project</TableHead>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>{tab === 'payments' ? 'Status' : 'Category'}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {tab === 'payments' ? (
-                    filteredPayments.map((payment: Transaction) => (
-                      <TableRow key={payment.id}>
-                        <TableCell>{formatDate(payment.date)}</TableCell>
-                        <TableCell>{getProjectName(payment.project)}</TableCell>
-                        <TableCell>{getProjectCompany(payment.project)}</TableCell>
-                        <TableCell>{payment.description}</TableCell>
-                        <TableCell>{formatCurrency(payment.amount)}</TableCell>
-                        <TableCell>
-                          <StatusBadge 
-                            status={(payment as any).status || 'pending'} 
-                            colorClassName={getPaymentStatusColor((payment as any).status || 'pending')} 
-                          />
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    filteredExpenses.map((expense: Transaction) => (
-                      <TableRow key={expense.id}>
-                        <TableCell>{formatDate(expense.date)}</TableCell>
-                        <TableCell>{getProjectName(expense.project)}</TableCell>
-                        <TableCell>{getProjectCompany(expense.project)}</TableCell>
-                        <TableCell>{expense.description}</TableCell>
-                        <TableCell>{formatCurrency(expense.amount)}</TableCell>
-                        <TableCell>
-                          <StatusBadge 
-                            status={(expense as any).category || 'other'} 
-                            colorClassName={getExpenseCategoryColor((expense as any).category || 'other')} 
-                          />
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+              <div className="min-w-[700px]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[100px]">Date</TableHead>
+                      <TableHead>Project</TableHead>
+                      <TableHead>Company</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead className="w-[120px]">Amount</TableHead>
+                      <TableHead className="w-[100px]">{tab === 'payments' ? 'Status' : 'Category'}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {tab === 'payments' ? (
+                      filteredPayments.map((payment: Transaction) => (
+                        <TableRow key={payment.id}>
+                          <TableCell className="text-sm">{formatDate(payment.date)}</TableCell>
+                          <TableCell className="text-sm">{getProjectName(payment.project)}</TableCell>
+                          <TableCell className="text-sm">{getProjectCompany(payment.project)}</TableCell>
+                          <TableCell className="text-sm">{payment.description}</TableCell>
+                          <TableCell className="text-sm font-medium">{formatCurrency(payment.amount)}</TableCell>
+                          <TableCell>
+                            <StatusBadge 
+                              status={(payment as any).status || 'pending'} 
+                              colorClassName={getPaymentStatusColor((payment as any).status || 'pending')} 
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      filteredExpenses.map((expense: Transaction) => (
+                        <TableRow key={expense.id}>
+                          <TableCell className="text-sm">{formatDate(expense.date)}</TableCell>
+                          <TableCell className="text-sm">{getProjectName(expense.project)}</TableCell>
+                          <TableCell className="text-sm">{getProjectCompany(expense.project)}</TableCell>
+                          <TableCell className="text-sm">{expense.description}</TableCell>
+                          <TableCell className="text-sm font-medium">{formatCurrency(expense.amount)}</TableCell>
+                          <TableCell>
+                            <StatusBadge 
+                              status={(expense as any).category || 'other'} 
+                              colorClassName={getExpenseCategoryColor((expense as any).category || 'other')} 
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           </div>
         </TabsContent>
