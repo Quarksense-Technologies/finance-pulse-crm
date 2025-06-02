@@ -240,7 +240,7 @@ const Finances = () => {
   const handleExportToPdf = async () => {
     try {
       setIsExporting(true);
-      const blob = await exportToFormat('json');
+      const blob = await exportToFormat('pdf');
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
