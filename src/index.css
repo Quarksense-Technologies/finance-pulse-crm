@@ -49,7 +49,7 @@
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
 
-    --card: 222.2 84% 4.9%;
+    --card: 217.2 32.6% 17.5%;
     --card-foreground: 210 40% 98%;
 
     --popover: 222.2 84% 4.9%;
@@ -111,6 +111,43 @@
   /* Better mobile scrolling */
   * {
     -webkit-overflow-scrolling: touch;
+  }
+
+  /* Dark mode specific fixes */
+  .dark input {
+    @apply bg-input text-foreground;
+  }
+
+  .dark input::placeholder {
+    @apply text-muted-foreground;
+  }
+
+  .dark .text-gray-600 {
+    @apply text-muted-foreground;
+  }
+
+  .dark .text-gray-700 {
+    @apply text-foreground;
+  }
+
+  .dark .text-gray-800 {
+    @apply text-foreground;
+  }
+
+  .dark .text-gray-900 {
+    @apply text-foreground;
+  }
+
+  .dark .bg-gray-50 {
+    @apply bg-muted;
+  }
+
+  .dark .bg-gray-100 {
+    @apply bg-muted;
+  }
+
+  .dark .bg-white {
+    @apply bg-card;
   }
 }
 
