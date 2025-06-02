@@ -92,6 +92,25 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  /* Ensure proper mobile viewport */
+  html {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+  }
+
+  /* Improve touch targets on mobile */
+  button, [role="button"], input[type="submit"], input[type="button"] {
+    -webkit-appearance: none;
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Better mobile scrolling */
+  * {
+    -webkit-overflow-scrolling: touch;
   }
 }
 
@@ -113,4 +132,62 @@
 /* Animation for sidebar transition */
 .sidebar-transition {
   transition: width 0.3s ease-in-out;
+}
+
+/* Mobile-first responsive utilities */
+@media (max-width: 640px) {
+  .container {
+    @apply px-4;
+  }
+  
+  /* Reduce padding on mobile */
+  .mobile-compact {
+    @apply p-2 sm:p-4;
+  }
+  
+  /* Stack items vertically on mobile */
+  .mobile-stack {
+    @apply flex-col sm:flex-row;
+  }
+  
+  /* Hide on mobile if needed */
+  .mobile-hide {
+    @apply hidden sm:block;
+  }
+  
+  /* Full width on mobile */
+  .mobile-full {
+    @apply w-full sm:w-auto;
+  }
+}
+
+/* Improved table responsiveness */
+.responsive-table {
+  @apply min-w-full;
+  overflow-x: auto;
+}
+
+.responsive-table td, .responsive-table th {
+  @apply text-sm px-2 py-2 sm:px-4 sm:py-3;
+  min-width: 100px;
+}
+
+/* Better chart responsiveness */
+.chart-container {
+  @apply w-full;
+  min-height: 300px;
+}
+
+@media (max-width: 768px) {
+  .chart-container {
+    min-height: 250px;
+  }
+}
+
+/* Improved dialog/modal on mobile */
+@media (max-width: 640px) {
+  [data-radix-dialog-content] {
+    @apply mx-4 w-auto;
+    max-width: calc(100vw - 2rem);
+  }
 }
