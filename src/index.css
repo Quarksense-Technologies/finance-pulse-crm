@@ -52,7 +52,7 @@
     --card: 217.2 32.6% 17.5%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222.2 84% 4.9%;
+    --popover: 217.2 32.6% 17.5%;
     --popover-foreground: 210 40% 98%;
 
     --primary: 217.2 91.2% 59.8%;
@@ -113,15 +113,28 @@
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Dark mode specific fixes */
+  /* Dark mode input fixes */
   .dark input {
-    @apply bg-input text-foreground;
+    @apply bg-input text-foreground border-border;
+    color: hsl(var(--foreground)) !important;
   }
 
   .dark input::placeholder {
     @apply text-muted-foreground;
+    color: hsl(var(--muted-foreground)) !important;
   }
 
+  .dark textarea {
+    @apply bg-input text-foreground border-border;
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .dark textarea::placeholder {
+    @apply text-muted-foreground;
+    color: hsl(var(--muted-foreground)) !important;
+  }
+
+  /* Dark mode text color fixes */
   .dark .text-gray-600 {
     @apply text-muted-foreground;
   }
@@ -138,6 +151,7 @@
     @apply text-foreground;
   }
 
+  /* Dark mode background fixes */
   .dark .bg-gray-50 {
     @apply bg-muted;
   }
@@ -148,6 +162,33 @@
 
   .dark .bg-white {
     @apply bg-card;
+  }
+
+  /* Form element visibility in dark mode */
+  .dark [data-radix-select-trigger] {
+    @apply bg-input text-foreground border-border;
+  }
+
+  .dark [data-radix-select-content] {
+    @apply bg-popover text-popover-foreground;
+  }
+
+  /* Ensure all text is visible in dark mode */
+  .dark * {
+    color: inherit;
+  }
+
+  .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+    @apply text-foreground;
+  }
+
+  .dark p, .dark span, .dark div {
+    color: inherit;
+  }
+
+  /* Card content in dark mode */
+  .dark .card {
+    @apply bg-card text-card-foreground;
   }
 }
 
@@ -174,7 +215,7 @@
 /* Mobile-first responsive utilities */
 @media (max-width: 640px) {
   .container {
-    @apply px-4;
+    @apply px-2 sm:px-4;
   }
   
   /* Reduce padding on mobile */
@@ -196,12 +237,36 @@
   .mobile-full {
     @apply w-full sm:w-auto;
   }
+
+  /* Better form spacing on mobile */
+  .form-mobile {
+    @apply space-y-3;
+  }
+
+  /* Better button sizing on mobile */
+  .btn-mobile {
+    @apply text-sm py-2 px-3;
+  }
+
+  /* Smaller text on mobile where appropriate */
+  .text-mobile-sm {
+    @apply text-sm;
+  }
+
+  /* Better table on mobile */
+  .table-mobile {
+    @apply text-xs;
+  }
+
+  .table-mobile th,
+  .table-mobile td {
+    @apply px-2 py-1;
+  }
 }
 
 /* Improved table responsiveness */
 .responsive-table {
-  @apply min-w-full;
-  overflow-x: auto;
+  @apply min-w-full overflow-x-auto;
 }
 
 .responsive-table td, .responsive-table th {
@@ -224,7 +289,26 @@
 /* Improved dialog/modal on mobile */
 @media (max-width: 640px) {
   [data-radix-dialog-content] {
-    @apply mx-4 w-auto;
-    max-width: calc(100vw - 2rem);
+    @apply mx-2 w-auto max-w-none;
+    max-width: calc(100vw - 1rem);
+  }
+}
+
+/* Better form layouts on mobile */
+@media (max-width: 640px) {
+  .form-grid-mobile {
+    @apply grid-cols-1 gap-3;
+  }
+
+  .form-grid-mobile .grid-cols-4 {
+    @apply grid-cols-1;
+  }
+
+  .form-grid-mobile .col-span-3 {
+    @apply col-span-1;
+  }
+
+  .form-grid-mobile .text-right {
+    @apply text-left;
   }
 }

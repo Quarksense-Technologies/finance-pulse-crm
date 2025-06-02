@@ -1,3 +1,4 @@
+
 // src/pages/UserManagement.tsx
 import React, { useState } from 'react';
 import { toast } from '@/components/ui/use-toast';
@@ -76,7 +77,7 @@ const UserManagement = () => {
 
   if (!hasPermission('manage_users')) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center h-full p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Access Denied</CardTitle>
@@ -97,7 +98,7 @@ const UserManagement = () => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center h-full p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Error</CardTitle>
@@ -112,23 +113,23 @@ const UserManagement = () => {
   }
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">User Management</h1>
+    <div className="container mx-auto py-4 sm:py-6 px-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold">User Management</h1>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button>Add New User</Button>
+            <Button className="w-full sm:w-auto">Add New User</Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="form-grid-mobile max-w-md sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>Add New User</DialogTitle>
               <DialogDescription>
                 Create a new user account with specific permissions.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
+            <div className="grid gap-4 py-4 form-grid-mobile">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">Name</Label>
+                <Label htmlFor="name" className="text-right font-medium">Name</Label>
                 <Input 
                   id="name" 
                   value={newUser.name} 
@@ -137,7 +138,7 @@ const UserManagement = () => {
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="email" className="text-right">Email</Label>
+                <Label htmlFor="email" className="text-right font-medium">Email</Label>
                 <Input 
                   id="email" 
                   type="email" 
@@ -147,7 +148,7 @@ const UserManagement = () => {
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="password" className="text-right">Password</Label>
+                <Label htmlFor="password" className="text-right font-medium">Password</Label>
                 <Input 
                   id="password" 
                   type="password" 
@@ -157,7 +158,7 @@ const UserManagement = () => {
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="confirmPassword" className="text-right">Confirm Password</Label>
+                <Label htmlFor="confirmPassword" className="text-right font-medium">Confirm Password</Label>
                 <Input 
                   id="confirmPassword" 
                   type="password" 
@@ -167,7 +168,7 @@ const UserManagement = () => {
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="role" className="text-right">Role</Label>
+                <Label htmlFor="role" className="text-right font-medium">Role</Label>
                 <Select 
                   value={newUser.role} 
                   onValueChange={(value) => setNewUser({...newUser, role: value})}
@@ -184,7 +185,7 @@ const UserManagement = () => {
               </div>
               {newUser.role !== 'admin' && (
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="manager" className="text-right">Reporting Manager</Label>
+                  <Label htmlFor="manager" className="text-right font-medium">Reporting Manager</Label>
                   <Select 
                     value={newUser.managerId} 
                     onValueChange={(value) => setNewUser({...newUser, managerId: value})}
@@ -205,9 +206,9 @@ const UserManagement = () => {
                 </div>
               )}
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-              <Button onClick={handleAddUser}>Add User</Button>
+            <DialogFooter className="flex flex-col sm:flex-row gap-2">
+              <Button variant="outline" onClick={() => setDialogOpen(false)} className="w-full sm:w-auto">Cancel</Button>
+              <Button onClick={handleAddUser} className="w-full sm:w-auto">Add User</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -215,39 +216,44 @@ const UserManagement = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>User List</CardTitle>
-          <CardDescription>Manage all users and their permissions</CardDescription>
+          <CardTitle className="text-lg sm:text-xl">User List</CardTitle>
+          <CardDescription className="text-sm">Manage all users and their permissions</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
-            <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm table-mobile">
               <thead>
                 <tr className="border-b bg-muted/50 font-medium">
-                  <th className="py-3 px-4 text-left">Name</th>
-                  <th className="py-3 px-4 text-left">Email</th>
-                  <th className="py-3 px-4 text-left">Role</th>
-                  <th className="py-3 px-4 text-left">Reporting Manager</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
+                  <th className="py-3 px-2 sm:px-4 text-left">Name</th>
+                  <th className="py-3 px-2 sm:px-4 text-left hidden sm:table-cell">Email</th>
+                  <th className="py-3 px-2 sm:px-4 text-left">Role</th>
+                  <th className="py-3 px-2 sm:px-4 text-left hidden md:table-cell">Manager</th>
+                  <th className="py-3 px-2 sm:px-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {users.map((user) => (
                   <tr key={user.id} className="border-b">
-                    <td className="py-3 px-4">{user.name}</td>
-                    <td className="py-3 px-4">{user.email}</td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-2 sm:px-4">
+                      <div>
+                        <div className="font-medium">{user.name}</div>
+                        <div className="text-xs text-muted-foreground sm:hidden">{user.email}</div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-2 sm:px-4 hidden sm:table-cell">{user.email}</td>
+                    <td className="py-3 px-2 sm:px-4">
                       <Badge variant={
                         user.role === 'admin' ? 'default' : 
                         user.role === 'manager' ? 'secondary' : 'outline'
-                      }>
+                      } className="text-xs">
                         {user.role}
                       </Badge>
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-2 sm:px-4 hidden md:table-cell">
                       {user.managerId ? getManagerName(user.managerId) : 'None'}
                     </td>
-                    <td className="py-3 px-4 text-right">
-                      <Button variant="outline" size="sm">Edit</Button>
+                    <td className="py-3 px-2 sm:px-4 text-right">
+                      <Button variant="outline" size="sm" className="text-xs">Edit</Button>
                     </td>
                   </tr>
                 ))}

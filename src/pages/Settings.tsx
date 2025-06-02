@@ -88,44 +88,46 @@ const Settings = () => {
   };
 
   return (
-    <div className="container mx-auto py-6 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-6">Settings</h1>
+    <div className="container mx-auto py-4 sm:py-6 max-w-4xl px-4">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Settings</h1>
 
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="appearance">Appearance</TabsTrigger>
-          <TabsTrigger value="account">Account</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 mb-4 sm:mb-6">
+          <TabsTrigger value="profile" className="text-xs sm:text-sm">Profile</TabsTrigger>
+          <TabsTrigger value="appearance" className="text-xs sm:text-sm">Appearance</TabsTrigger>
+          <TabsTrigger value="account" className="text-xs sm:text-sm">Account</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile">
           <Card>
             <CardHeader>
-              <CardTitle>Profile Settings</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-lg sm:text-xl">Profile Settings</CardTitle>
+              <CardDescription className="text-sm">
                 Update your personal information and how it appears on the platform.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleProfileUpdate} className="space-y-4">
-                <div className="space-y-1">
-                  <Label htmlFor="name">Full Name</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-sm font-medium">Full Name</Label>
                   <Input
                     id="name"
                     value={profile.name}
                     onChange={(e) => setProfile({...profile, name: e.target.value})}
+                    className="w-full"
                   />
                 </div>
-                <div className="space-y-1">
-                  <Label htmlFor="email">Email Address</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
                   <Input
                     id="email"
                     type="email"
                     value={profile.email}
                     onChange={(e) => setProfile({...profile, email: e.target.value})}
+                    className="w-full"
                   />
                 </div>
-                <Button type="submit">Update Profile</Button>
+                <Button type="submit" className="w-full sm:w-auto">Update Profile</Button>
               </form>
             </CardContent>
           </Card>
@@ -134,17 +136,17 @@ const Settings = () => {
         <TabsContent value="appearance">
           <Card>
             <CardHeader>
-              <CardTitle>Appearance</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-lg sm:text-xl">Appearance</CardTitle>
+              <CardDescription className="text-sm">
                 Customize how the portal looks and feels.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="dark-mode">Dark Mode</Label>
-                    <p className="text-sm text-muted-foreground">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="space-y-1">
+                    <Label htmlFor="dark-mode" className="text-sm font-medium">Dark Mode</Label>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       Toggle between light and dark themes
                     </p>
                   </div>
@@ -166,46 +168,49 @@ const Settings = () => {
         <TabsContent value="account">
           <Card>
             <CardHeader>
-              <CardTitle>Account Settings</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-lg sm:text-xl">Account Settings</CardTitle>
+              <CardDescription className="text-sm">
                 Update your password and manage your account.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <form onSubmit={handlePasswordChange} className="space-y-4">
-                <div className="space-y-1">
-                  <Label htmlFor="current-password">Current Password</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="current-password" className="text-sm font-medium">Current Password</Label>
                   <Input
                     id="current-password"
                     type="password"
                     value={profile.currentPassword}
                     onChange={(e) => setProfile({...profile, currentPassword: e.target.value})}
+                    className="w-full"
                   />
                 </div>
-                <div className="space-y-1">
-                  <Label htmlFor="new-password">New Password</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="new-password" className="text-sm font-medium">New Password</Label>
                   <Input
                     id="new-password"
                     type="password"
                     value={profile.newPassword}
                     onChange={(e) => setProfile({...profile, newPassword: e.target.value})}
+                    className="w-full"
                   />
                 </div>
-                <div className="space-y-1">
-                  <Label htmlFor="confirm-password">Confirm New Password</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-password" className="text-sm font-medium">Confirm New Password</Label>
                   <Input
                     id="confirm-password"
                     type="password"
                     value={profile.confirmPassword}
                     onChange={(e) => setProfile({...profile, confirmPassword: e.target.value})}
+                    className="w-full"
                   />
                 </div>
-                <Button type="submit">Change Password</Button>
+                <Button type="submit" className="w-full sm:w-auto">Change Password</Button>
               </form>
               
               <div className="pt-6 border-t">
-                <h3 className="text-lg font-medium mb-4">Danger Zone</h3>
-                <Button variant="destructive" onClick={handleLogout}>
+                <h3 className="text-base sm:text-lg font-medium mb-4">Danger Zone</h3>
+                <Button variant="destructive" onClick={handleLogout} className="w-full sm:w-auto">
                   Logout
                 </Button>
               </div>
