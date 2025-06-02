@@ -1,12 +1,25 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, Briefcase, DollarSign, Menu, X, LogOut, UserPlus, Check, Shield, Settings } from 'lucide-react';
+import { LayoutDashboard, Users, Briefcase, DollarSign, LogOut, UserPlus, Check, Shield, Settings } from 'lucide-react';
 import { useAuth, Permission } from '@/hooks/useAuth';
 import { toast } from "@/components/ui/use-toast";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 
 const Layout = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout, hasPermission } = useAuth();
@@ -16,49 +29,49 @@ const Layout = () => {
       path: '/', 
       name: 'Dashboard', 
       icon: <LayoutDashboard className="w-5 h-5" />,
-      permission: null // Everyone can see dashboard
+      permission: null
     },
     { 
       path: '/companies', 
       name: 'Companies', 
       icon: <Users className="w-5 h-5" />,
-      permission: null // Everyone can see companies
+      permission: null
     },
     { 
       path: '/projects', 
       name: 'Projects', 
       icon: <Briefcase className="w-5 h-5" />,
-      permission: null // Everyone can see projects
+      permission: null
     },
     { 
       path: '/finances', 
       name: 'Finances', 
       icon: <DollarSign className="w-5 h-5" />,
-      permission: null // Everyone can see finances
+      permission: null
     },
     { 
       path: '/resources', 
       name: 'Manpower', 
       icon: <Users className="w-5 h-5" />,
-      permission: null // Everyone can see manpower
+      permission: null
     },
     { 
       path: '/approvals', 
       name: 'Approvals', 
       icon: <Check className="w-5 h-5" />,
-      permission: 'approve_transactions' as Permission // Only managers and admins
+      permission: 'approve_transactions' as Permission
     },
     { 
       path: '/users', 
       name: 'User Management', 
       icon: <UserPlus className="w-5 h-5" />,
-      permission: 'manage_users' as Permission // Only admins
+      permission: 'manage_users' as Permission
     },
     { 
       path: '/settings', 
       name: 'Settings', 
       icon: <Settings className="w-5 h-5" />,
-      permission: null // Everyone can access settings
+      permission: null
     }
   ];
 
@@ -71,114 +84,88 @@ const Layout = () => {
     navigate('/login');
   };
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Mobile sidebar toggle */}
-      <button
-        className="md:hidden fixed bottom-4 right-4 z-50 p-3 rounded-full bg-primary text-white shadow-lg"
-        onClick={toggleSidebar}
-      >
-        {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-      </button>
-
-      {/* Sidebar */}
-      <aside 
-        className={`${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } fixed md:relative z-40 md:translate-x-0 ${sidebarOpen ? 'w-64' : 'w-20'} h-screen transition-all duration-300 ease-in-out bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 md:shadow-sm flex flex-col`}
-      >
-        <div className={`p-6 flex ${!sidebarOpen && 'justify-center'}`}>
-          <h1 className={`text-2xl font-bold text-primary ${!sidebarOpen && 'md:hidden'}`}>Business CRM</h1>
-          {!sidebarOpen && <span className="hidden md:block text-2xl font-bold text-primary">CRM</span>}
-          
-          {/* Collapse toggle for desktop */}
-          <button 
-            className="hidden md:flex absolute right-0 top-6 mr-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-            onClick={toggleSidebar}
-          >
-            {sidebarOpen ? (
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 18l6-6-6-6" />
-              </svg>
-            )}
-          </button>
-        </div>
-        
-        {/* User info */}
-        {user && (
-          <div className={`px-6 py-4 border-b border-gray-200 dark:border-gray-700 ${!sidebarOpen && 'md:flex md:justify-center'}`}>
-            <div className={`flex items-center ${!sidebarOpen && 'md:justify-center'}`}>
-              <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-semibold">
-                {user.name.slice(0, 1)}
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full">
+        <Sidebar>
+          <SidebarHeader className="p-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded bg-primary text-white flex items-center justify-center font-bold text-sm">
+                BMS
               </div>
-              {sidebarOpen && (
-                <div className="ml-3">
-                  <p className="text-sm font-medium dark:text-white">{user.name}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                    <Shield className="w-3 h-3" />
-                    {user.role}
-                  </p>
-                </div>
-              )}
+              <h1 className="text-lg font-bold text-primary group-data-[collapsible=icon]:hidden">
+                Business CRM
+              </h1>
             </div>
-          </div>
-        )}
-        
-        <nav className={`px-4 pb-4 flex-1 overflow-y-auto`}>
-          <ul className="space-y-1 mt-4">
-            {menuItems.map((item) => {
-              // Check permission if required
-              if (item.permission && !hasPermission(item.permission)) {
-                return null;
-              }
-              
-              return (
-                <li key={item.path}>
-                  <Link
-                    to={item.path}
-                    className={`flex items-center ${sidebarOpen ? 'px-4' : 'justify-center'} py-3 rounded-md ${
-                      location.pathname === item.path
-                        ? 'bg-primary text-white'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }`}
-                    title={!sidebarOpen ? item.name : undefined}
-                  >
-                    {item.icon}
-                    {sidebarOpen && <span className="ml-3">{item.name}</span>}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-        
-        {/* Logout button - only shown in sidebar when expanded */}
-        {sidebarOpen && (
-          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-            <button
-              onClick={handleLogout}
-              className="flex items-center w-full px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
-            >
-              <LogOut className="w-5 h-5" />
-              <span className="ml-3">Logout</span>
-            </button>
-          </div>
-        )}
-      </aside>
+          </SidebarHeader>
 
-      {/* Main content */}
-      <main className={`flex-1 p-4 md:p-6 overflow-auto transition-all duration-300 ease-in-out main-content dark:bg-gray-900 dark:text-white`}>
-        <Outlet />
-      </main>
-    </div>
+          <SidebarContent>
+            {/* User info */}
+            {user && (
+              <SidebarGroup>
+                <div className="flex items-center gap-3 px-2 py-2 border-b border-sidebar-border">
+                  <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-semibold text-sm">
+                    {user.name.slice(0, 1)}
+                  </div>
+                  <div className="group-data-[collapsible=icon]:hidden">
+                    <p className="text-sm font-medium">{user.name}</p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Shield className="w-3 h-3" />
+                      {user.role}
+                    </p>
+                  </div>
+                </div>
+              </SidebarGroup>
+            )}
+
+            {/* Navigation Menu */}
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {menuItems.map((item) => {
+                    // Check permission if required
+                    if (item.permission && !hasPermission(item.permission)) {
+                      return null;
+                    }
+                    
+                    return (
+                      <SidebarMenuItem key={item.path}>
+                        <SidebarMenuButton asChild isActive={location.pathname === item.path}>
+                          <Link to={item.path}>
+                            {item.icon}
+                            <span>{item.name}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+
+          <SidebarFooter>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={handleLogout}>
+                  <LogOut className="w-5 h-5" />
+                  <span>Logout</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarFooter>
+        </Sidebar>
+
+        <SidebarInset>
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+            <SidebarTrigger className="-ml-1" />
+          </header>
+          <main className="flex-1 p-4 md:p-6 overflow-auto">
+            <Outlet />
+          </main>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   );
 };
 
