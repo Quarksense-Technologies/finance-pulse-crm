@@ -271,11 +271,12 @@
 /* Mobile-first responsive utilities with optimized spacing */
 @media (max-width: 640px) {
   .container {
-    @apply px-6; /* Changed from px-2 to px-6 for 24px padding */
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
   }
   
   .mobile-compact {
-    @apply p-6; /* Changed from p-2 to p-6 for 24px padding */
+    padding: 1.5rem;
   }
   
   .mobile-stack {
@@ -291,134 +292,73 @@
   }
 
   .form-mobile {
-    @apply space-y-4; /* Increased from space-y-2 for better spacing */
+    gap: 1rem;
   }
 
   .btn-mobile {
-    @apply text-sm py-2 px-4; /* Increased padding */
+    @apply text-sm py-2 px-4;
   }
 
   .text-mobile-sm {
-    @apply text-sm; /* Increased from text-xs */
+    @apply text-sm;
   }
 
   .table-mobile {
-    @apply text-sm; /* Increased from text-xs */
+    @apply text-sm;
   }
 
   .table-mobile th,
   .table-mobile td {
-    @apply px-2 py-2; /* Increased from px-1 py-1 */
+    @apply px-2 py-2;
   }
 
   /* Enhanced dialog sizing for mobile with 32px padding */
   [data-radix-dialog-content] {
-    @apply mx-8 w-auto max-w-none; /* Changed from mx-2 to mx-8 for 32px padding */
-    max-width: calc(100vw - 4rem) !important; /* Changed from 1rem to 4rem */
+    margin: 2rem !important;
+    padding: 2rem !important;
+    max-width: calc(100vw - 4rem) !important;
     max-height: 90vh !important;
     overflow-y: auto !important;
-    margin: 2rem !important; /* Changed from 0.5rem to 2rem for 32px padding */
-    padding: 2rem !important; /* Added 32px internal padding */
+    width: auto !important;
   }
 
   .form-grid-mobile {
-    @apply grid-cols-1 gap-4; /* Increased from gap-2 */
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
   .form-grid-mobile .grid-cols-4 {
-    @apply grid-cols-1;
+    grid-template-columns: 1fr;
   }
 
   .form-grid-mobile .col-span-3 {
-    @apply col-span-1;
+    grid-column: span 1 / span 1;
   }
 
   .form-grid-mobile .text-right {
-    @apply text-left;
+    text-align: left;
   }
 
   /* Enhanced card padding for mobile - 24px */
   .card {
-    @apply p-6; /* Changed from p-2 to p-6 for 24px padding */
+    padding: 1.5rem;
   }
 
   .card-content {
-    @apply p-6; /* Changed from p-2 to p-6 */
+    padding: 1.5rem;
   }
 
   .card-header {
-    @apply p-6 pb-3; /* Changed from p-2 pb-1 */
-  }
-
-  /* Optimized spacing for mobile - 24px */
-  .space-y-6 {
-    @apply space-y-6; /* Keep 24px spacing */
-  }
-
-  .space-y-4 {
-    @apply space-y-4; /* Keep 16px spacing */
-  }
-
-  .gap-6 {
-    @apply gap-6; /* Keep 24px gap */
-  }
-
-  .gap-4 {
-    @apply gap-4; /* Keep 16px gap */
+    padding: 1.5rem;
+    padding-bottom: 0.75rem;
   }
 
   /* Optimized button sizes for mobile */
   .btn {
-    @apply h-10 px-4 text-sm; /* Increased sizes */
-  }
-
-  /* Enhanced margins and padding globally on mobile - 24px */
-  .p-6 {
-    @apply p-6; /* Keep 24px padding */
-  }
-
-  .p-4 {
-    @apply p-6; /* Increase to 24px padding */
-  }
-
-  .py-6 {
-    @apply py-6; /* Keep 24px vertical padding */
-  }
-
-  .py-4 {
-    @apply py-6; /* Increase to 24px vertical padding */
-  }
-
-  .px-6 {
-    @apply px-6; /* Keep 24px horizontal padding */
-  }
-
-  .px-4 {
-    @apply px-6; /* Increase to 24px horizontal padding */
-  }
-
-  .m-6 {
-    @apply m-6; /* Keep 24px margin */
-  }
-
-  .m-4 {
-    @apply m-6; /* Increase to 24px margin */
-  }
-
-  .mb-6 {
-    @apply mb-6; /* Keep 24px bottom margin */
-  }
-
-  .mb-4 {
-    @apply mb-6; /* Increase to 24px bottom margin */
-  }
-
-  .mt-6 {
-    @apply mt-6; /* Keep 24px top margin */
-  }
-
-  .mt-4 {
-    @apply mt-6; /* Increase to 24px top margin */
+    height: 2.5rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    font-size: 0.875rem;
   }
 }
 
@@ -428,19 +368,19 @@
 }
 
 .responsive-table td, .responsive-table th {
-  @apply text-sm px-3 py-3 sm:px-4 sm:py-4; /* Increased mobile padding */
-  min-width: 100px; /* Increased from 80px */
+  @apply text-sm px-3 py-3 sm:px-4 sm:py-4;
+  min-width: 100px;
 }
 
 /* Better chart responsiveness */
 .chart-container {
   @apply w-full;
-  min-height: 300px; /* Increased from 250px */
+  min-height: 300px;
 }
 
 @media (max-width: 768px) {
   .chart-container {
-    min-height: 250px; /* Increased from 200px */
+    min-height: 250px;
   }
 }
 
@@ -466,7 +406,7 @@
 }
 
 .responsive-container::-webkit-scrollbar {
-  height: 6px; /* Increased from 4px */
+  height: 6px;
 }
 
 .responsive-container::-webkit-scrollbar-track {
@@ -475,7 +415,7 @@
 
 .responsive-container::-webkit-scrollbar-thumb {
   background: hsl(var(--muted-foreground));
-  border-radius: 3px; /* Increased from 2px */
+  border-radius: 3px;
 }
 
 /* Enhanced table wrapper for mobile */
@@ -486,7 +426,7 @@
 }
 
 .table-wrapper::-webkit-scrollbar {
-  height: 6px; /* Increased from 4px */
+  height: 6px;
 }
 
 .table-wrapper::-webkit-scrollbar-track {
@@ -495,12 +435,12 @@
 
 .table-wrapper::-webkit-scrollbar-thumb {
   background: hsl(var(--muted-foreground));
-  border-radius: 3px; /* Increased from 2px */
+  border-radius: 3px;
 }
 
 /* Make sure tables don't break on mobile */
 .table-wrapper table {
-  min-width: 600px; /* Increased from 500px */
+  min-width: 600px;
 }
 
 @media (min-width: 768px) {
