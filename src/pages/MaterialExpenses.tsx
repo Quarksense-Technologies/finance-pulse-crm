@@ -18,9 +18,14 @@ const MaterialExpenses = () => {
 
   // Filter transactions to show only material expenses
   const { data: transactions = [], isLoading } = useTransactions({ 
-    category: 'materials',
     type: 'expense' 
   });
+
+  // Filter to show only material-related expenses based on description
+  const materialExpenses = transactions.filter(transaction => 
+    transaction.description?.toLowerCase().includes('material') ||
+    transaction.category === 'materials'
+  );
 
   const getStatusBadge = (status: string) => {
     const statusColors: Record<string, string> = {
@@ -72,7 +77,7 @@ const MaterialExpenses = () => {
 
       {isLoading ? (
         <div className="flex justify-center items-center h-64">Loading expenses...</div>
-      ) : transactions.length === 0 ? (
+      ) : materialExpenses.length === 0 ? (
         <Card>
           <CardHeader>
             <CardTitle>No Material Expenses</CardTitle>
@@ -82,7 +87,7 @@ const MaterialExpenses = () => {
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>Material Expenses ({transactions.length})</CardTitle>
+            <CardTitle>Material Expenses ({materialExpenses.length})</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
@@ -98,16 +103,16 @@ const MaterialExpenses = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {transactions.map((transaction) => (
+                {materialExpenses.map((transaction) => (
                   <TableRow key={transaction.id}>
                     <TableCell className="font-medium">{transaction.description}</TableCell>
-                    <TableCell>{transaction.projectName || 'Unknown Project'}</TableCell>
+                    <TableCell>{transaction.project || 'Unknown Project'}</TableCell>
                     <TableCell className="font-semibold text-red-600">
                       {formatCurrency(transaction.amount)}
                     </TableCell>
                     <TableCell>{getStatusBadge(transaction.status)}</TableCell>
                     <TableCell>{formatDate(transaction.date)}</TableCell>
-                    <TableCell>{transaction.createdBy?.name}</TableCell>
+                    <TableCell>{transaction.createdBy || 'Unknown'}</TableCell>
                     <TableCell>
                       <Button
                         size="sm"
@@ -136,7 +141,7 @@ const MaterialExpenses = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm font-medium text-gray-500">Project</p>
-                  <p className="text-sm">{selectedItem.projectName || 'Unknown Project'}</p>
+                  <p className="text-sm">{selectedItem.project || 'Unknown Project'}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500">Status</p>

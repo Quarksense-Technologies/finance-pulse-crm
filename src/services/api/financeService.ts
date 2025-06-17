@@ -1,7 +1,19 @@
-import { toast } from "@/components/ui/use-toast";
 import apiClient from './client';
-import { Payment, Expense, FinancialSummary, Transaction } from '@/data/types';
-import { exportPaymentsToExcel, exportExpensesToExcel, exportPaymentsToPDF, exportExpensesToPDF } from '@/utils/exportUtils';
+import { toast } from "@/components/ui/use-toast";
+
+export interface CreateTransactionData {
+  type: 'expense' | 'payment' | 'income';
+  amount: number;
+  description: string;
+  category: string;
+  project: string;
+  date: string;
+  notes?: string;
+  attachments?: Array<{
+    name: string;
+    url: string;
+  }>;
+}
 
 export interface FinancialChartData {
   labels: string[];
@@ -21,25 +33,6 @@ export interface CategoryExpenseData {
     backgroundColor: string[];
     borderWidth: number;
   }[];
-}
-
-export interface CreateTransactionData {
-  type: 'expense' | 'payment' | 'income';
-  amount: number;
-  description: string;
-  category?: string;
-  project: string; // Project ID
-  date: string;
-  status?: 'paid' | 'pending' | 'overdue';
-}
-
-export interface CreateExpenseData {
-  type: 'expense';
-  amount: number;
-  description: string;
-  category: string;
-  project: string; // Project ID
-  date: string;
 }
 
 export interface PaymentFilter {
