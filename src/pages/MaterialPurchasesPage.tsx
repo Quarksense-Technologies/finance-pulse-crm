@@ -3,8 +3,9 @@ import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
-import { Plus, Eye, Trash2, ArrowLeft } from 'lucide-react';
+import { Plus, Eye, Trash2, ArrowLeft, FileText } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/utils/financialUtils';
 import { useMaterialPurchases, useDeleteMaterialPurchase } from '@/hooks/api/useMaterials';
 import { useNavigate } from 'react-router-dom';
@@ -155,6 +156,77 @@ const MaterialPurchasesPage = () => {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Detail View Dialog */}
+      {selectedItem && (
+        <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>{selectedItem.description}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Project</p>
+                  <p className="text-sm">{selectedItem.projectName || 'Unknown Project'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Vendor</p>
+                  <p className="text-sm">{selectedItem.vendor || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Invoice Number</p>
+                  <p className="text-sm">{selectedItem.invoiceNumber || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">GST</p>
+                  <p className="text-sm">{selectedItem.gst}%</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Part Number</p>
+                  <p className="text-sm">{selectedItem.partNo || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">HSN Code</p>
+                  <p className="text-sm">{selectedItem.hsn || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Quantity</p>
+                  <p className="text-sm">{selectedItem.quantity}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Unit Price</p>
+                  <p className="text-sm">{formatCurrency(selectedItem.price)}</p>
+                </div>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold mb-2">Total Amount</h3>
+                <p className="text-3xl font-bold text-green-600">
+                  {formatCurrency(selectedItem.totalAmount)}
+                </p>
+              </div>
+              {selectedItem.attachments && selectedItem.attachments.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium text-gray-500 mb-2">Attachments</p>
+                  <div className="flex gap-2">
+                    {selectedItem.attachments.map((attachment: any, index: number) => (
+                      <Button
+                        key={index}
+                        size="sm"
+                        variant="outline"
+                        onClick={() => window.open(attachment.url, '_blank')}
+                      >
+                        <FileText className="w-4 h-4 mr-1" />
+                        {attachment.name}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );
