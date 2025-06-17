@@ -6,26 +6,21 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
-import { Plus, Eye, FileText } from 'lucide-react';
+import { Plus, Eye } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/utils/financialUtils';
 import { useTransactions } from '@/hooks/api/useFinances';
+import { useNavigate } from 'react-router-dom';
 import MultiItemMaterialExpenseForm from '@/components/forms/MultiItemMaterialExpenseForm';
-import { toast } from "@/hooks/use-toast";
 
 const MaterialExpenses = () => {
   const { hasPermission } = useAuth();
+  const navigate = useNavigate();
   const [showExpenseForm, setShowExpenseForm] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<any>(null);
-  const [showDetailDialog, setShowDetailDialog] = useState(false);
 
   // Filter transactions to show only material expenses
   const { data: transactions = [], isLoading, error } = useTransactions({ 
     type: 'expense' 
   });
-
-  console.log('MaterialExpenses - Raw transactions data:', transactions);
-  console.log('MaterialExpenses - Loading state:', isLoading);
-  console.log('MaterialExpenses - Error state:', error);
 
   // Filter to show only material-related expenses based on description or category
   const materialExpenses = transactions.filter(transaction => 
@@ -33,10 +28,7 @@ const MaterialExpenses = () => {
     transaction.category === 'materials'
   );
 
-  console.log('MaterialExpenses - Filtered material expenses:', materialExpenses);
-
   const getStatusBadge = (status: string) => {
-    console.log('MaterialExpenses - Getting status badge for:', status);
     const statusColors: Record<string, string> = {
       pending: 'bg-yellow-100 text-yellow-800',
       approved: 'bg-green-100 text-green-800',
@@ -52,88 +44,14 @@ const MaterialExpenses = () => {
   };
 
   const getProjectName = (project: any) => {
-    console.log('MaterialExpenses - Getting project name for:', project);
     if (!project) return 'Unknown Project';
     if (typeof project === 'string') return project;
     if (typeof project === 'object' && project.name) return project.name;
     return 'Unknown Project';
   };
 
-  const handleViewAttachment = (attachment: any) => {
-    console.log('MaterialExpenses - Viewing attachment:', attachment);
-    try {
-      if (!attachment || !attachment.url) {
-        toast({
-          title: "Error",
-          description: "Attachment URL not found",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      console.log('MaterialExpenses - Opening attachment URL:', attachment.url);
-      
-      if (attachment.url.startsWith('data:')) {
-        const newWindow = window.open();
-        if (newWindow) {
-          if (attachment.type && attachment.type.startsWith('image/')) {
-            newWindow.document.write(`
-              <html>
-                <head><title>${attachment.name}</title></head>
-                <body style="margin:0; display:flex; justify-content:center; align-items:center; min-height:100vh; background:#f0f0f0;">
-                  <img src="${attachment.url}" alt="${attachment.name}" style="max-width: 100%; height: auto;" />
-                </body>
-              </html>
-            `);
-            newWindow.document.close();
-          } else {
-            newWindow.location.href = attachment.url;
-          }
-        }
-      } else {
-        window.open(attachment.url, '_blank');
-      }
-    } catch (error) {
-      console.error('MaterialExpenses - Error opening attachment:', error);
-      toast({
-        title: "Error",
-        description: `Failed to open attachment: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        variant: "destructive"
-      });
-    }
-  };
-
   const handleViewItem = (transaction: any) => {
-    console.log('MaterialExpenses - handleViewItem called with:', transaction);
-    console.log('MaterialExpenses - Current selectedItem state:', selectedItem);
-    console.log('MaterialExpenses - Current showDetailDialog state:', showDetailDialog);
-    
-    if (!transaction) {
-      console.error('MaterialExpenses - No transaction provided to view');
-      toast({
-        title: "Error",
-        description: "No transaction data found",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      console.log('MaterialExpenses - Setting selectedItem to:', transaction);
-      setSelectedItem(transaction);
-      
-      console.log('MaterialExpenses - Setting showDetailDialog to true');
-      setShowDetailDialog(true);
-      
-      console.log('MaterialExpenses - View item setup complete');
-    } catch (error) {
-      console.error('MaterialExpenses - Error in handleViewItem:', error);
-      toast({
-        title: "Error",
-        description: `Failed to view transaction: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        variant: "destructive"
-      });
-    }
+    navigate(`/material-expense/${transaction.id}`);
   };
 
   if (!hasPermission('add_expense')) {
@@ -150,7 +68,6 @@ const MaterialExpenses = () => {
   }
 
   if (error) {
-    console.error('MaterialExpenses - Query error:', error);
     return (
       <div className="flex items-center justify-center h-full">
         <Card className="w-full max-w-md">
@@ -210,120 +127,31 @@ const MaterialExpenses = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {materialExpenses.map((transaction) => {
-                  console.log('MaterialExpenses - Rendering transaction row:', transaction);
-                  return (
-                    <TableRow key={transaction.id}>
-                      <TableCell className="font-medium">{transaction.description}</TableCell>
-                      <TableCell>{getProjectName(transaction.project)}</TableCell>
-                      <TableCell className="font-semibold text-red-600">
-                        {formatCurrency(transaction.amount)}
-                      </TableCell>
-                      <TableCell>{getStatusBadge(transaction.status || 'pending')}</TableCell>
-                      <TableCell>{formatDate(transaction.date)}</TableCell>
-                      <TableCell>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log('MaterialExpenses - View button clicked for transaction ID:', transaction.id);
-                            console.log('MaterialExpenses - Full transaction object:', transaction);
-                            handleViewItem(transaction);
-                          }}
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                {materialExpenses.map((transaction) => (
+                  <TableRow key={transaction.id}>
+                    <TableCell className="font-medium">{transaction.description}</TableCell>
+                    <TableCell>{getProjectName(transaction.project)}</TableCell>
+                    <TableCell className="font-semibold text-red-600">
+                      {formatCurrency(transaction.amount)}
+                    </TableCell>
+                    <TableCell>{getStatusBadge(transaction.status || 'pending')}</TableCell>
+                    <TableCell>{formatDate(transaction.date)}</TableCell>
+                    <TableCell>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleViewItem(transaction)}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </CardContent>
         </Card>
       )}
-
-      {/* Detail View Dialog */}
-      <Dialog open={showDetailDialog} onOpenChange={(open) => {
-        console.log('MaterialExpenses - Detail dialog onOpenChange called with:', open);
-        console.log('MaterialExpenses - Current selectedItem when dialog changes:', selectedItem);
-        setShowDetailDialog(open);
-        if (!open) {
-          console.log('MaterialExpenses - Clearing selectedItem because dialog is closing');
-          setSelectedItem(null);
-        }
-      }}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {selectedItem?.description || 'Transaction Details'}
-            </DialogTitle>
-          </DialogHeader>
-          {selectedItem ? (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Project</p>
-                  <p className="text-sm">{getProjectName(selectedItem.project)}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Status</p>
-                  <div className="text-sm">{getStatusBadge(selectedItem.status || 'pending')}</div>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Category</p>
-                  <p className="text-sm">{selectedItem.category}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Date</p>
-                  <p className="text-sm">{formatDate(selectedItem.date)}</p>
-                </div>
-              </div>
-              <div className="bg-red-50 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold mb-2">Amount</h3>
-                <p className="text-3xl font-bold text-red-600">
-                  {formatCurrency(selectedItem.amount)}
-                </p>
-              </div>
-              {selectedItem.attachments && selectedItem.attachments.length > 0 ? (
-                <div>
-                  <p className="text-sm font-medium text-gray-500 mb-2">Attachments</p>
-                  <div className="flex gap-2 flex-wrap">
-                    {selectedItem.attachments.map((attachment: any, index: number) => {
-                      console.log('MaterialExpenses - Rendering attachment:', attachment, 'at index:', index);
-                      return (
-                        <Button
-                          key={index}
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            console.log('MaterialExpenses - Attachment button clicked:', attachment);
-                            handleViewAttachment(attachment);
-                          }}
-                        >
-                          <FileText className="w-4 h-4 mr-1" />
-                          {attachment.name || `Attachment ${index + 1}`}
-                        </Button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ) : (
-                <div>
-                  <p className="text-sm font-medium text-gray-500 mb-2">Attachments</p>
-                  <p className="text-sm text-gray-400">No attachments available</p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-gray-500">No transaction selected</p>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
