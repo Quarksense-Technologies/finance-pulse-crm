@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -14,9 +13,10 @@ import ProjectDetails from '@/pages/ProjectDetails';
 import Companies from '@/pages/Companies';
 import CompanyDetails from '@/pages/CompanyDetails';
 import Finances from '@/pages/Finances';
-import Materials from '@/pages/Materials';
-import Resources from '@/pages/Resources';
-import Attendance from '@/pages/Attendance';
+import Materials from './pages/Materials';
+import MaterialRequests from './pages/MaterialRequests';
+import MaterialPurchases from './pages/MaterialPurchases';
+import MaterialExpenses from './pages/MaterialExpenses';
 import UserManagement from '@/pages/UserManagement';
 import Settings from '@/pages/Settings';
 import Approvals from '@/pages/Approvals';
@@ -54,6 +54,9 @@ function App() {
                   <Route path="companies/:id" element={<CompanyDetails />} />
                   <Route path="finances" element={<Finances />} />
                   <Route path="materials" element={<Materials />} />
+                  <Route path="material-requests" element={<MaterialRequests />} />
+                  <Route path="material-purchases" element={<MaterialPurchases />} />
+                  <Route path="material-expenses" element={<MaterialExpenses />} />
                   <Route path="resources" element={<Resources />} />
                   <Route path="attendance" element={<Attendance />} />
                   <Route path="users" element={<UserManagement />} />
