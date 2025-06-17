@@ -14,6 +14,7 @@ import ProjectDetails from '@/pages/ProjectDetails';
 import Companies from '@/pages/Companies';
 import CompanyDetails from '@/pages/CompanyDetails';
 import Finances from '@/pages/Finances';
+import Materials from '@/pages/Materials';
 import Resources from '@/pages/Resources';
 import Attendance from '@/pages/Attendance';
 import UserManagement from '@/pages/UserManagement';
@@ -52,6 +53,7 @@ function App() {
                   <Route path="companies" element={<Companies />} />
                   <Route path="companies/:id" element={<CompanyDetails />} />
                   <Route path="finances" element={<Finances />} />
+                  <Route path="materials" element={<Materials />} />
                   <Route path="resources" element={<Resources />} />
                   <Route path="attendance" element={<Attendance />} />
                   <Route path="users" element={<UserManagement />} />

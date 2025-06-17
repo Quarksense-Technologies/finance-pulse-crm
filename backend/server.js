@@ -11,6 +11,7 @@ const financeRoutes = require('./routes/finances');
 const resourceRoutes = require('./routes/resources');
 const approvalRoutes = require('./routes/approvals');
 const attendanceRoutes = require('./routes/attendance');
+const materialRoutes = require('./routes/materials');
 
 // Load environment variables
 dotenv.config();
@@ -39,6 +40,7 @@ app.use('/api/finances', financeRoutes);
 app.use('/api/resources', resourceRoutes);
 app.use('/api/approvals', approvalRoutes);
 app.use('/api/attendance', attendanceRoutes);
+app.use('/api/materials', materialRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

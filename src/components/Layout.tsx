@@ -1,146 +1,123 @@
 
 import React from 'react';
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, Link, useLocation } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { 
   LayoutDashboard, 
   Building2, 
   FolderOpen, 
-  IndianRupee, 
+  DollarSign, 
   Users, 
-  Settings, 
-  LogOut,
+  Calendar,
+  Settings,
   CheckSquare,
-  Clock
+  LogOut,
+  Package
 } from 'lucide-react';
-import { Button } from "@/components/ui/button";
-import { useAuth } from '@/hooks/useAuth';
-import { toast } from "@/hooks/use-toast";
 
 const Layout = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
   const { user, logout } = useAuth();
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate('/login');
-      toast({
-        title: "Logged out",
-        description: "You have been successfully logged out"
-      });
-    } catch (error) {
-      toast({
-        title: "Logout failed",
-        description: "There was an error logging out",
-        variant: "destructive"
-      });
-    }
-  };
+  const location = useLocation();
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Projects', href: '/projects', icon: FolderOpen },
     { name: 'Companies', href: '/companies', icon: Building2 },
-    { name: 'Finances', href: '/finances', icon: IndianRupee },
+    { name: 'Projects', href: '/projects', icon: FolderOpen },
+    { name: 'Finances', href: '/finances', icon: DollarSign },
+    { name: 'Materials', href: '/materials', icon: Package },
     { name: 'Resources', href: '/resources', icon: Users },
-    { name: 'Attendance', href: '/attendance', icon: Clock },
+    { name: 'Attendance', href: '/attendance', icon: Calendar },
     { name: 'Approvals', href: '/approvals', icon: CheckSquare },
   ];
 
-  // Add User Management for admin/manager only
-  if (user?.role === 'admin' || user?.role === 'manager') {
-    navigation.push({ 
-      name: 'User Management', 
-      href: '/users', 
-      icon: Users 
-    });
-  }
+  const isActiveRoute = (href: string) => {
+    return location.pathname === href;
+  };
+
+  const handleLogout = () => {
+    logout();
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-background">
+    <div className="min-h-screen bg-gray-50">
       {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-card shadow-lg">
-        <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="flex items-center px-6 py-4 border-b border-gray-200 dark:border-border">
-            <IndianRupee className="h-8 w-8 text-blue-600" />
-            <span className="ml-2 text-xl font-bold text-gray-900 dark:text-foreground">Finance Pulse</span>
-          </div>
-          
-          {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-2">
+      <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-sm">
+        <div className="flex h-16 items-center justify-center border-b border-gray-200">
+          <h1 className="text-xl font-bold text-gray-900">Business Management</h1>
+        </div>
+        <nav className="mt-8 px-4">
+          <ul className="space-y-2">
             {navigation.map((item) => {
               const Icon = item.icon;
-              const isActive = location.pathname === item.href || 
-                             (item.href !== '/dashboard' && location.pathname.startsWith(item.href));
-              
               return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                    isActive
-                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white'
-                  }`}
-                >
-                  <Icon className="mr-3 h-5 w-5" />
-                  {item.name}
-                </Link>
+                <li key={item.name}>
+                  <Link
+                    to={item.href}
+                    className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                      isActiveRoute(item.href)
+                        ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    }`}
+                  >
+                    <Icon className="mr-3 h-5 w-5" />
+                    {item.name}
+                  </Link>
+                </li>
               );
             })}
-          </nav>
-          
-          {/* User section */}
-          <div className="px-4 py-4 border-t border-gray-200 dark:border-border">
-            <div className="flex items-center mb-4">
-              <div className="flex-shrink-0">
-                <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-                  <span className="text-sm font-medium text-blue-700 dark:text-blue-400">
-                    {user?.name?.[0]?.toUpperCase() || 'U'}
-                  </span>
-                </div>
-              </div>
-              <div className="ml-3 flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 dark:text-foreground truncate">
-                  {user?.name || 'User'}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                  {user?.role || 'user'}
-                </p>
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Link
-                to="/settings"
-                className={`flex items-center w-full px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                  location.pathname === '/settings'
-                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white'
-                }`}
-              >
-                <Settings className="mr-3 h-4 w-4" />
-                Settings
-              </Link>
-              
-              <Button
-                variant="ghost"
-                className="flex items-center w-full px-3 py-2 text-sm font-medium justify-start text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
-                onClick={handleLogout}
-              >
-                <LogOut className="mr-3 h-4 w-4" />
-                Logout
-              </Button>
-            </div>
-          </div>
-        </div>
+          </ul>
+        </nav>
       </div>
-      
+
       {/* Main content */}
       <div className="pl-64">
-        <main className="min-h-screen">
+        {/* Header */}
+        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-6">
+          <div className="flex items-center">
+            <h2 className="text-lg font-semibold text-gray-900">
+              {navigation.find(item => isActiveRoute(item.href))?.name || 'Dashboard'}
+            </h2>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="bg-blue-500 text-white">
+                      {user?.name?.charAt(0).toUpperCase() || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <div className="flex items-center justify-start gap-2 p-2">
+                  <div className="flex flex-col space-y-1 leading-none">
+                    <p className="font-medium text-sm">{user?.name}</p>
+                    <p className="text-xs text-muted-foreground">{user?.email}</p>
+                    <p className="text-xs text-muted-foreground capitalize">{user?.role}</p>
+                  </div>
+                </div>
+                <DropdownMenuItem asChild>
+                  <Link to="/settings" className="flex items-center">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout} className="flex items-center">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </header>
+
+        {/* Page content */}
+        <main className="p-6">
           <Outlet />
         </main>
       </div>

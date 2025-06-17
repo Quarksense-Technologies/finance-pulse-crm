@@ -4,8 +4,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/components/ui/use-toast';
-import { Check, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Check, X, Eye, FileText } from 'lucide-react';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { usePendingApprovals, useApproveItem, useRejectItem } from '@/hooks/api/useApprovals';
 import { formatCurrency, formatDate } from '@/utils/financialUtils';
@@ -15,6 +19,11 @@ const Approvals = () => {
   const { data: pendingApprovals = [], isLoading } = usePendingApprovals();
   const approveItemMutation = useApproveItem();
   const rejectItemMutation = useRejectItem();
+  
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [itemToReject, setItemToReject] = useState<any>(null);
 
   console.log('Pending approvals data:', pendingApprovals);
 
@@ -27,12 +36,27 @@ const Approvals = () => {
   };
 
   const handleReject = async (id: string, type: string) => {
+    if (!rejectReason.trim()) {
+      return;
+    }
+    
     try {
-      await rejectItemMutation.mutateAsync({ id, type, reason: 'Rejected by manager' });
+      await rejectItemMutation.mutateAsync({ id, type, reason: rejectReason });
+      setShowRejectDialog(false);
+      setRejectReason('');
+      setItemToReject(null);
     } catch (error) {
       console.error('Error rejecting item:', error);
     }
   };
+
+  const openRejectDialog = (item: any) => {
+    setItemToReject(item);
+    setShowRejectDialog(true);
+  };
+
+  const expenseApprovals = pendingApprovals.filter(item => item.type === 'expense');
+  const materialRequestApprovals = pendingApprovals.filter(item => item.type === 'material_request');
 
   if (!hasPermission('approve_transactions')) {
     return (
@@ -53,15 +77,16 @@ const Approvals = () => {
 
   return (
     <div className="container mx-auto py-6">
-      <h1 className="text-3xl font-bold mb-6">Expense Approval Requests</h1>
+      <h1 className="text-3xl font-bold mb-6">Approval Requests</h1>
 
-      <Tabs defaultValue="pending" className="w-full">
-        <TabsList className="grid w-full grid-cols-1 mb-6">
-          <TabsTrigger value="pending">Pending Expenses ({pendingApprovals.length})</TabsTrigger>
+      <Tabs defaultValue="expenses" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="expenses">Expenses ({expenseApprovals.length})</TabsTrigger>
+          <TabsTrigger value="materials">Material Requests ({materialRequestApprovals.length})</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="pending">
-          {pendingApprovals.length === 0 ? (
+        <TabsContent value="expenses">
+          {expenseApprovals.length === 0 ? (
             <Card>
               <CardHeader>
                 <CardTitle>No Pending Expense Approvals</CardTitle>
@@ -69,18 +94,161 @@ const Approvals = () => {
               </CardHeader>
             </Card>
           ) : (
-            pendingApprovals.map((item) => (
+            expenseApprovals.map((item) => (
               <ApprovalCard 
                 key={item.id} 
                 item={item} 
                 onApprove={handleApprove} 
-                onReject={handleReject}
+                onReject={openRejectDialog}
+                onViewDetails={() => setSelectedItem(item)}
+                isLoading={approveItemMutation.isPending || rejectItemMutation.isPending}
+              />
+            ))
+          )}
+        </TabsContent>
+
+        <TabsContent value="materials">
+          {materialRequestApprovals.length === 0 ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>No Pending Material Requests</CardTitle>
+                <CardDescription>All material requests have been processed.</CardDescription>
+              </CardHeader>
+            </Card>
+          ) : (
+            materialRequestApprovals.map((item) => (
+              <MaterialRequestCard 
+                key={item.id} 
+                item={item} 
+                onApprove={handleApprove} 
+                onReject={openRejectDialog}
+                onViewDetails={() => setSelectedItem(item)}
                 isLoading={approveItemMutation.isPending || rejectItemMutation.isPending}
               />
             ))
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Reject Dialog */}
+      <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reject Request</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="reason">Rejection Reason</Label>
+              <Textarea
+                id="reason"
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="Please provide a reason for rejection..."
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRejectDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={() => itemToReject && handleReject(itemToReject.id, itemToReject.type)}
+              disabled={!rejectReason.trim() || rejectItemMutation.isPending}
+            >
+              Reject
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Detail View Dialog */}
+      {selectedItem && (
+        <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>
+                {selectedItem.type === 'material_request' ? 'Material Request Details' : 'Expense Details'}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Project</Label>
+                  <p className="text-sm">{selectedItem.projectName}</p>
+                </div>
+                <div>
+                  <Label>Requested By</Label>
+                  <p className="text-sm">{selectedItem.createdBy.name}</p>
+                </div>
+                <div>
+                  <Label>Date</Label>
+                  <p className="text-sm">{formatDate(selectedItem.date)}</p>
+                </div>
+                <div>
+                  <Label>Amount</Label>
+                  <p className="text-sm">{formatCurrency(selectedItem.amount)}</p>
+                </div>
+              </div>
+              
+              {selectedItem.type === 'material_request' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Part Number</Label>
+                    <p className="text-sm">{selectedItem.partNo || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <Label>Quantity</Label>
+                    <p className="text-sm">{selectedItem.quantity}</p>
+                  </div>
+                  <div>
+                    <Label>Urgency</Label>
+                    <Badge className={
+                      selectedItem.urgency === 'high' ? 'bg-red-100 text-red-800' :
+                      selectedItem.urgency === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-green-100 text-green-800'
+                    }>
+                      {selectedItem.urgency?.charAt(0).toUpperCase() + selectedItem.urgency?.slice(1)}
+                    </Badge>
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <Label>Description</Label>
+                <p className="text-sm">{selectedItem.description}</p>
+              </div>
+
+              {selectedItem.notes && (
+                <div>
+                  <Label>Notes</Label>
+                  <p className="text-sm">{selectedItem.notes}</p>
+                </div>
+              )}
+
+              {selectedItem.attachments && selectedItem.attachments.length > 0 && (
+                <div>
+                  <Label>Attachments</Label>
+                  <div className="flex gap-2 mt-2">
+                    {selectedItem.attachments.map((attachment: any, index: number) => (
+                      <Button
+                        key={index}
+                        size="sm"
+                        variant="outline"
+                        onClick={() => window.open(attachment.url, '_blank')}
+                      >
+                        <FileText className="w-4 h-4 mr-1" />
+                        {attachment.name}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
@@ -88,11 +256,12 @@ const Approvals = () => {
 interface ApprovalCardProps {
   item: any;
   onApprove: (id: string, type: string) => void;
-  onReject: (id: string, type: string) => void;
+  onReject: (item: any) => void;
+  onViewDetails: () => void;
   isLoading: boolean;
 }
 
-const ApprovalCard = ({ item, onApprove, onReject, isLoading }: ApprovalCardProps) => {
+const ApprovalCard = ({ item, onApprove, onReject, onViewDetails, isLoading }: ApprovalCardProps) => {
   return (
     <Card className="mb-4">
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
@@ -123,6 +292,13 @@ const ApprovalCard = ({ item, onApprove, onReject, isLoading }: ApprovalCardProp
               <Button 
                 size="sm"
                 variant="outline"
+                onClick={onViewDetails}
+              >
+                <Eye className="w-4 h-4 mr-1" /> View
+              </Button>
+              <Button 
+                size="sm"
+                variant="outline"
                 className="flex items-center gap-1"
                 onClick={() => onApprove(item.id, item.type)}
                 disabled={isLoading}
@@ -133,7 +309,85 @@ const ApprovalCard = ({ item, onApprove, onReject, isLoading }: ApprovalCardProp
                 size="sm"
                 variant="destructive"
                 className="flex items-center gap-1"
-                onClick={() => onReject(item.id, item.type)}
+                onClick={() => onReject(item)}
+                disabled={isLoading}
+              >
+                <X className="w-4 h-4" /> Reject
+              </Button>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+const MaterialRequestCard = ({ item, onApprove, onReject, onViewDetails, isLoading }: ApprovalCardProps) => {
+  return (
+    <Card className="mb-4">
+      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+        <div>
+          <CardTitle>
+            Material Request - {item.description}
+          </CardTitle>
+          <CardDescription>
+            Requested on {formatDate(item.createdAt)} by {item.createdBy?.name || 'Unknown User'}
+          </CardDescription>
+        </div>
+        <div className="flex items-center gap-2">
+          <StatusBadge status={item.status || 'pending'} />
+          {item.urgency && (
+            <Badge className={
+              item.urgency === 'high' ? 'bg-red-100 text-red-800' :
+              item.urgency === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+              'bg-green-100 text-green-800'
+            }>
+              {item.urgency.charAt(0).toUpperCase() + item.urgency.slice(1)}
+            </Badge>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <h4 className="text-sm font-semibold mb-2">Details</h4>
+            <p className="text-sm">{item.description}</p>
+            {item.partNo && (
+              <p className="text-sm text-gray-500 mt-1">Part No: {item.partNo}</p>
+            )}
+            <p className="text-sm text-gray-500 mt-1">Quantity: {item.quantity}</p>
+            <p className="text-sm text-gray-500 mt-1">
+              Project: {item.projectName || 'Unknown Project'}
+            </p>
+            {item.amount > 0 && (
+              <p className="text-sm text-gray-500 mt-1">
+                Estimated Cost: {formatCurrency(item.amount)}
+              </p>
+            )}
+          </div>
+          <div className="flex justify-end items-center">
+            <div className="flex gap-2">
+              <Button 
+                size="sm"
+                variant="outline"
+                onClick={onViewDetails}
+              >
+                <Eye className="w-4 h-4 mr-1" /> View
+              </Button>
+              <Button 
+                size="sm"
+                variant="outline"
+                className="flex items-center gap-1"
+                onClick={() => onApprove(item.id, item.type)}
+                disabled={isLoading}
+              >
+                <Check className="w-4 h-4" /> Approve
+              </Button>
+              <Button 
+                size="sm"
+                variant="destructive"
+                className="flex items-center gap-1"
+                onClick={() => onReject(item)}
                 disabled={isLoading}
               >
                 <X className="w-4 h-4" /> Reject
