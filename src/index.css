@@ -268,14 +268,14 @@
   transition: width 0.3s ease-in-out;
 }
 
-/* Mobile-first responsive utilities */
+/* Mobile-first responsive utilities with reduced spacing */
 @media (max-width: 640px) {
   .container {
-    @apply px-2 sm:px-4;
+    @apply px-2;
   }
   
   .mobile-compact {
-    @apply p-2 sm:p-4;
+    @apply p-2;
   }
   
   .mobile-stack {
@@ -291,15 +291,15 @@
   }
 
   .form-mobile {
-    @apply space-y-3;
+    @apply space-y-2;
   }
 
   .btn-mobile {
-    @apply text-sm py-2 px-3;
+    @apply text-sm py-1.5 px-2;
   }
 
   .text-mobile-sm {
-    @apply text-sm;
+    @apply text-xs;
   }
 
   .table-mobile {
@@ -308,18 +308,19 @@
 
   .table-mobile th,
   .table-mobile td {
-    @apply px-2 py-1;
+    @apply px-1 py-1;
   }
 
   [data-radix-dialog-content] {
-    @apply mx-4 w-auto max-w-none;
-    max-width: calc(100vw - 2rem) !important;
+    @apply mx-2 w-auto max-w-none;
+    max-width: calc(100vw - 1rem) !important;
     max-height: 90vh !important;
     overflow-y: auto !important;
+    margin: 0.5rem !important;
   }
 
   .form-grid-mobile {
-    @apply grid-cols-1 gap-3;
+    @apply grid-cols-1 gap-2;
   }
 
   .form-grid-mobile .grid-cols-4 {
@@ -333,6 +334,90 @@
   .form-grid-mobile .text-right {
     @apply text-left;
   }
+
+  /* Reduce padding in cards for mobile */
+  .card {
+    @apply p-2;
+  }
+
+  .card-content {
+    @apply p-2;
+  }
+
+  .card-header {
+    @apply p-2 pb-1;
+  }
+
+  /* Compact spacing for mobile */
+  .space-y-6 {
+    @apply space-y-3;
+  }
+
+  .space-y-4 {
+    @apply space-y-2;
+  }
+
+  .gap-6 {
+    @apply gap-3;
+  }
+
+  .gap-4 {
+    @apply gap-2;
+  }
+
+  /* Mobile-optimized button sizes */
+  .btn {
+    @apply h-8 px-2 text-xs;
+  }
+
+  /* Reduce margins and padding globally on mobile */
+  .p-6 {
+    @apply p-2;
+  }
+
+  .p-4 {
+    @apply p-2;
+  }
+
+  .py-6 {
+    @apply py-3;
+  }
+
+  .py-4 {
+    @apply py-2;
+  }
+
+  .px-6 {
+    @apply px-2;
+  }
+
+  .px-4 {
+    @apply px-2;
+  }
+
+  .m-6 {
+    @apply m-2;
+  }
+
+  .m-4 {
+    @apply m-2;
+  }
+
+  .mb-6 {
+    @apply mb-3;
+  }
+
+  .mb-4 {
+    @apply mb-2;
+  }
+
+  .mt-6 {
+    @apply mt-3;
+  }
+
+  .mt-4 {
+    @apply mt-2;
+  }
 }
 
 /* Improved table responsiveness */
@@ -341,19 +426,19 @@
 }
 
 .responsive-table td, .responsive-table th {
-  @apply text-sm px-2 py-2 sm:px-4 sm:py-3;
-  min-width: 100px;
+  @apply text-xs px-1 py-1 sm:px-2 sm:py-2;
+  min-width: 80px;
 }
 
 /* Better chart responsiveness */
 .chart-container {
   @apply w-full;
-  min-height: 300px;
+  min-height: 250px;
 }
 
 @media (max-width: 768px) {
   .chart-container {
-    min-height: 250px;
+    min-height: 200px;
   }
 }
 
@@ -379,7 +464,7 @@
 }
 
 .responsive-container::-webkit-scrollbar {
-  height: 6px;
+  height: 4px;
 }
 
 .responsive-container::-webkit-scrollbar-track {
@@ -388,7 +473,7 @@
 
 .responsive-container::-webkit-scrollbar-thumb {
   background: hsl(var(--muted-foreground));
-  border-radius: 3px;
+  border-radius: 2px;
 }
 
 /* Enhanced table wrapper for mobile */
@@ -399,7 +484,7 @@
 }
 
 .table-wrapper::-webkit-scrollbar {
-  height: 6px;
+  height: 4px;
 }
 
 .table-wrapper::-webkit-scrollbar-track {
@@ -408,12 +493,12 @@
 
 .table-wrapper::-webkit-scrollbar-thumb {
   background: hsl(var(--muted-foreground));
-  border-radius: 3px;
+  border-radius: 2px;
 }
 
 /* Make sure tables don't break on mobile */
 .table-wrapper table {
-  min-width: 600px;
+  min-width: 500px;
 }
 
 @media (min-width: 768px) {
@@ -421,4 +506,3 @@
     min-width: 100%;
   }
 }
-

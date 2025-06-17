@@ -43,30 +43,30 @@ const Attendance = () => {
   }
 
   return (
-    <div className="animate-fade-in p-4 sm:p-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+    <div className="animate-fade-in p-2 sm:p-4 space-y-4">
+      <div className="flex flex-col gap-2">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold">Attendance Report</h1>
-          <p className="text-gray-500 dark:text-muted-foreground mt-1">
+          <h1 className="text-lg sm:text-xl font-bold">Attendance Report</h1>
+          <p className="text-sm text-gray-500 dark:text-muted-foreground">
             Monthly work hours and cost analysis
           </p>
         </div>
       </div>
 
       {/* Filters */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center">
-            <Filter className="h-5 w-5 mr-2" />
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center">
+            <Filter className="h-4 w-4 mr-2" />
             Filters
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="month">Month</Label>
+        <CardContent className="pt-0">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="space-y-1">
+              <Label htmlFor="month" className="text-sm">Month</Label>
               <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                <SelectTrigger>
+                <SelectTrigger className="h-9">
                   <SelectValue placeholder="Select month" />
                 </SelectTrigger>
                 <SelectContent>
@@ -79,10 +79,10 @@ const Attendance = () => {
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="year">Year</Label>
+            <div className="space-y-1">
+              <Label htmlFor="year" className="text-sm">Year</Label>
               <Select value={selectedYear} onValueChange={setSelectedYear}>
-                <SelectTrigger>
+                <SelectTrigger className="h-9">
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
                 <SelectContent>
@@ -95,10 +95,10 @@ const Attendance = () => {
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="project">Project</Label>
+            <div className="space-y-1">
+              <Label htmlFor="project" className="text-sm">Project</Label>
               <Select value={selectedProject} onValueChange={setSelectedProject}>
-                <SelectTrigger>
+                <SelectTrigger className="h-9">
                   <SelectValue placeholder="Select project" />
                 </SelectTrigger>
                 <SelectContent>
@@ -113,7 +113,7 @@ const Attendance = () => {
             </div>
 
             <div className="flex items-end">
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" size="sm" className="w-full h-9">
                 Export Report
               </Button>
             </div>
@@ -122,58 +122,58 @@ const Attendance = () => {
       </Card>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Card>
-          <CardContent className="p-4 sm:p-6">
+          <CardContent className="p-3">
             <div className="flex items-center">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-full">
-                <Clock className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <div className="p-1.5 bg-blue-100 dark:bg-blue-900/20 rounded-full">
+                <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               </div>
-              <div className="ml-4">
-                <h3 className="text-sm font-medium text-gray-500 dark:text-muted-foreground">Total Hours</h3>
-                <p className="text-2xl font-semibold">{totalHours.toFixed(1)}</p>
+              <div className="ml-2">
+                <h3 className="text-xs font-medium text-gray-500 dark:text-muted-foreground">Total Hours</h3>
+                <p className="text-lg font-semibold">{totalHours.toFixed(1)}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4 sm:p-6">
+          <CardContent className="p-3">
             <div className="flex items-center">
-              <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-full">
-                <IndianRupee className="h-6 w-6 text-green-600 dark:text-green-400" />
+              <div className="p-1.5 bg-green-100 dark:bg-green-900/20 rounded-full">
+                <IndianRupee className="h-4 w-4 text-green-600 dark:text-green-400" />
               </div>
-              <div className="ml-4">
-                <h3 className="text-sm font-medium text-gray-500 dark:text-muted-foreground">Total Cost</h3>
-                <p className="text-2xl font-semibold">{formatCurrency(totalCost)}</p>
+              <div className="ml-2">
+                <h3 className="text-xs font-medium text-gray-500 dark:text-muted-foreground">Total Cost</h3>
+                <p className="text-lg font-semibold">{formatCurrency(totalCost)}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4 sm:p-6">
+          <CardContent className="p-3">
             <div className="flex items-center">
-              <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-full">
-                <Users className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              <div className="p-1.5 bg-purple-100 dark:bg-purple-900/20 rounded-full">
+                <Users className="h-4 w-4 text-purple-600 dark:text-purple-400" />
               </div>
-              <div className="ml-4">
-                <h3 className="text-sm font-medium text-gray-500 dark:text-muted-foreground">Resources</h3>
-                <p className="text-2xl font-semibold">{totalResources}</p>
+              <div className="ml-2">
+                <h3 className="text-xs font-medium text-gray-500 dark:text-muted-foreground">Resources</h3>
+                <p className="text-lg font-semibold">{totalResources}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4 sm:p-6">
+          <CardContent className="p-3">
             <div className="flex items-center">
-              <div className="p-2 bg-orange-100 dark:bg-orange-900/20 rounded-full">
-                <Calendar className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+              <div className="p-1.5 bg-orange-100 dark:bg-orange-900/20 rounded-full">
+                <Calendar className="h-4 w-4 text-orange-600 dark:text-orange-400" />
               </div>
-              <div className="ml-4">
-                <h3 className="text-sm font-medium text-gray-500 dark:text-muted-foreground">Avg Hours</h3>
-                <p className="text-2xl font-semibold">{averageHoursPerResource.toFixed(1)}</p>
+              <div className="ml-2">
+                <h3 className="text-xs font-medium text-gray-500 dark:text-muted-foreground">Avg Hours</h3>
+                <p className="text-lg font-semibold">{averageHoursPerResource.toFixed(1)}</p>
               </div>
             </div>
           </CardContent>
@@ -182,14 +182,14 @@ const Attendance = () => {
 
       {/* Detailed Report Table */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">
             Detailed Report - {months[parseInt(selectedMonth)]} {selectedYear}
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0">
           {attendanceReports.length === 0 ? (
-            <div className="text-center py-8 text-gray-500 dark:text-muted-foreground">
+            <div className="text-center py-6 text-gray-500 dark:text-muted-foreground text-sm">
               No attendance records found for the selected filters
             </div>
           ) : (
@@ -197,48 +197,48 @@ const Attendance = () => {
               <table className="min-w-full">
                 <thead className="bg-gray-50 dark:bg-muted">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-muted-foreground uppercase tracking-wider">
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 dark:text-muted-foreground uppercase tracking-wider">
                       Resource
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-muted-foreground uppercase tracking-wider">
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 dark:text-muted-foreground uppercase tracking-wider">
                       Project
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-muted-foreground uppercase tracking-wider">
-                      Days Worked
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 dark:text-muted-foreground uppercase tracking-wider">
+                      Days
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-muted-foreground uppercase tracking-wider">
-                      Total Hours
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 dark:text-muted-foreground uppercase tracking-wider">
+                      Hours
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-muted-foreground uppercase tracking-wider">
-                      Hourly Rate
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 dark:text-muted-foreground uppercase tracking-wider">
+                      Rate
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-muted-foreground uppercase tracking-wider">
-                      Total Cost
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 dark:text-muted-foreground uppercase tracking-wider">
+                      Cost
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-border">
                   {attendanceReports.map((report, index) => (
                     <tr key={index} className="hover:bg-gray-50 dark:hover:bg-muted/50">
-                      <td className="px-4 py-4 whitespace-nowrap">
+                      <td className="px-2 py-2 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium">{report.resourceName}</div>
-                          <div className="text-sm text-gray-500 dark:text-muted-foreground">{report.resourceRole}</div>
+                          <div className="text-xs font-medium">{report.resourceName}</div>
+                          <div className="text-xs text-gray-500 dark:text-muted-foreground">{report.resourceRole}</div>
                         </div>
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm">
+                      <td className="px-2 py-2 whitespace-nowrap text-xs">
                         {report.projectName}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm">
+                      <td className="px-2 py-2 whitespace-nowrap text-xs">
                         {report.totalDays}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                      <td className="px-2 py-2 whitespace-nowrap text-xs font-medium">
                         {report.totalHours}h
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm">
+                      <td className="px-2 py-2 whitespace-nowrap text-xs">
                         {formatCurrency(report.hourlyRate)}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-green-600">
+                      <td className="px-2 py-2 whitespace-nowrap text-xs font-medium text-green-600">
                         {formatCurrency(report.totalCost)}
                       </td>
                     </tr>

@@ -1,5 +1,6 @@
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { attendanceService } from '@/services/api/attendanceService';
 
 interface AttendanceRecord {
   resourceName: string;
@@ -10,40 +11,6 @@ interface AttendanceRecord {
   hourlyRate: number;
   totalCost: number;
 }
-
-// Store for attendance records
-let attendanceRecords: AttendanceRecord[] = [];
-
-// Attendance service
-const attendanceService = {
-  getAttendanceReport: async (month: number, year: number, projectId?: string): Promise<AttendanceRecord[]> => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    console.log('Fetching attendance records:', attendanceRecords);
-    
-    // Filter by project if specified
-    if (projectId && projectId !== 'all') {
-      return attendanceRecords.filter(record => 
-        record.projectName.toLowerCase().includes(projectId.toLowerCase())
-      );
-    }
-
-    return attendanceRecords;
-  },
-
-  addAttendanceRecord: async (record: AttendanceRecord): Promise<void> => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    attendanceRecords.push(record);
-    console.log('Added attendance record:', record);
-  },
-
-  clearAttendanceRecords: () => {
-    attendanceRecords = [];
-  }
-};
 
 export const useAttendanceReport = (month: number, year: number, projectId?: string) => {
   return useQuery({
@@ -56,10 +23,55 @@ export const useAttendanceReport = (month: number, year: number, projectId?: str
   });
 };
 
-export const useAddAttendanceRecord = () => {
-  return {
-    mutateAsync: attendanceService.addAttendanceRecord
-  };
+export const useProjectAttendance = (projectId: string, month?: number, year?: number) => {
+  return useQuery({
+    queryKey: ['projectAttendance', projectId, month, year],
+    queryFn: () => attendanceService.getProjectAttendance(projectId, month, year),
+    enabled: !!projectId,
+    staleTime: 0,
+    gcTime: 0,
+  });
 };
 
-export { attendanceService };
+export const useCreateAttendance = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: attendanceService.createAttendance,
+    onSuccess: (data, variables) => {
+      // Invalidate and refetch attendance queries
+      queryClient.invalidateQueries({ queryKey: ['attendanceReport'] });
+      queryClient.invalidateQueries({ queryKey: ['projectAttendance'] });
+      
+      console.log('Attendance record created successfully:', data);
+    },
+    onError: (error) => {
+      console.error('Error creating attendance record:', error);
+    },
+  });
+};
+
+export const useUpdateAttendance = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => 
+      attendanceService.updateAttendance(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['attendanceReport'] });
+      queryClient.invalidateQueries({ queryKey: ['projectAttendance'] });
+    },
+  });
+};
+
+export const useDeleteAttendance = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: attendanceService.deleteAttendance,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['attendanceReport'] });
+      queryClient.invalidateQueries({ queryKey: ['projectAttendance'] });
+    },
+  });
+};
