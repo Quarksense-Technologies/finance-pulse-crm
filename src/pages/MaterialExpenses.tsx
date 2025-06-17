@@ -21,7 +21,7 @@ const MaterialExpenses = () => {
     type: 'expense' 
   });
 
-  // Filter to show only material-related expenses based on description
+  // Filter to show only material-related expenses based on description or category
   const materialExpenses = transactions.filter(transaction => 
     transaction.description?.toLowerCase().includes('material') ||
     transaction.category === 'materials'
@@ -98,7 +98,6 @@ const MaterialExpenses = () => {
                   <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Date</TableHead>
-                  <TableHead>Created By</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -110,9 +109,8 @@ const MaterialExpenses = () => {
                     <TableCell className="font-semibold text-red-600">
                       {formatCurrency(transaction.amount)}
                     </TableCell>
-                    <TableCell>{getStatusBadge(transaction.status)}</TableCell>
+                    <TableCell>{getStatusBadge(transaction.status || 'pending')}</TableCell>
                     <TableCell>{formatDate(transaction.date)}</TableCell>
-                    <TableCell>{transaction.createdBy || 'Unknown'}</TableCell>
                     <TableCell>
                       <Button
                         size="sm"
@@ -145,7 +143,7 @@ const MaterialExpenses = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500">Status</p>
-                  <p className="text-sm">{getStatusBadge(selectedItem.status)}</p>
+                  <p className="text-sm">{getStatusBadge(selectedItem.status || 'pending')}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500">Category</p>
