@@ -1,56 +1,67 @@
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { attendanceService, CreateAttendanceData, UpdateAttendanceData } from '@/services/api/attendanceService';
+import { useQuery } from '@tanstack/react-query';
 
-export const useProjectAttendance = (projectId: string, month?: number, year?: number) => {
-  return useQuery({
-    queryKey: ['attendance', 'project', projectId, month, year],
-    queryFn: () => attendanceService.getProjectAttendance(projectId, month, year),
-    enabled: !!projectId,
-  });
+interface AttendanceRecord {
+  resourceName: string;
+  resourceRole: string;
+  projectName: string;
+  totalDays: number;
+  totalHours: number;
+  hourlyRate: number;
+  totalCost: number;
+}
+
+// Mock attendance service - replace with actual API calls
+const attendanceService = {
+  getAttendanceReport: async (month: number, year: number, projectId?: string): Promise<AttendanceRecord[]> => {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Mock data - replace with actual API call
+    const mockData: AttendanceRecord[] = [
+      {
+        resourceName: "John Doe",
+        resourceRole: "Developer",
+        projectName: "Website Redesign",
+        totalDays: 22,
+        totalHours: 176,
+        hourlyRate: 50,
+        totalCost: 8800
+      },
+      {
+        resourceName: "Jane Smith",
+        resourceRole: "Designer",
+        projectName: "Mobile App",
+        totalDays: 20,
+        totalHours: 160,
+        hourlyRate: 45,
+        totalCost: 7200
+      },
+      {
+        resourceName: "Mike Johnson",
+        resourceRole: "Project Manager",
+        projectName: "E-commerce Platform",
+        totalDays: 18,
+        totalHours: 144,
+        hourlyRate: 60,
+        totalCost: 8640
+      }
+    ];
+
+    // Filter by project if specified
+    if (projectId && projectId !== 'all') {
+      return mockData.filter(record => record.projectName.toLowerCase().includes('website'));
+    }
+
+    return mockData;
+  }
 };
 
-export const useAttendanceReport = (month?: number, year?: number, projectId?: string) => {
+export const useAttendanceReport = (month: number, year: number, projectId?: string) => {
   return useQuery({
-    queryKey: ['attendance', 'report', month, year, projectId],
+    queryKey: ['attendanceReport', month, year, projectId],
     queryFn: () => attendanceService.getAttendanceReport(month, year, projectId),
-  });
-};
-
-export const useCreateAttendance = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (data: CreateAttendanceData) => attendanceService.createAttendance(data),
-    onSuccess: (data, variables) => {
-      // Invalidate related queries
-      queryClient.invalidateQueries({ queryKey: ['attendance', 'project', variables.projectId] });
-      queryClient.invalidateQueries({ queryKey: ['attendance', 'report'] });
-    },
-  });
-};
-
-export const useUpdateAttendance = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateAttendanceData }) => 
-      attendanceService.updateAttendance(id, data),
-    onSuccess: () => {
-      // Invalidate all attendance queries
-      queryClient.invalidateQueries({ queryKey: ['attendance'] });
-    },
-  });
-};
-
-export const useDeleteAttendance = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: attendanceService.deleteAttendance,
-    onSuccess: () => {
-      // Invalidate all attendance queries
-      queryClient.invalidateQueries({ queryKey: ['attendance'] });
-    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
   });
 };
