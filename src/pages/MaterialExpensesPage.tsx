@@ -43,6 +43,13 @@ const MaterialExpensesPage = () => {
     );
   };
 
+  const getProjectName = (project: any) => {
+    if (!project) return 'Unknown Project';
+    if (typeof project === 'string') return project;
+    if (typeof project === 'object' && project.name) return project.name;
+    return 'Unknown Project';
+  };
+
   if (!hasPermission('add_expense')) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -68,7 +75,7 @@ const MaterialExpensesPage = () => {
           <h1 className="text-xl sm:text-3xl font-bold">Add Material Expense</h1>
         </div>
         <Card>
-          <CardContent className="p-4 sm:p-6">
+          <CardContent className="p-6">
             <MultiItemMaterialExpenseForm onSubmit={() => setShowForm(false)} />
           </CardContent>
         </Card>
@@ -125,7 +132,7 @@ const MaterialExpensesPage = () => {
                   {materialExpenses.map((transaction) => (
                     <TableRow key={transaction.id}>
                       <TableCell className="font-medium">{transaction.description}</TableCell>
-                      <TableCell>{transaction.project || 'Unknown Project'}</TableCell>
+                      <TableCell>{getProjectName(transaction.project)}</TableCell>
                       <TableCell className="font-semibold text-red-600">
                         {formatCurrency(transaction.amount)}
                       </TableCell>
