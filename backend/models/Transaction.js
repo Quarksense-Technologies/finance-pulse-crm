@@ -9,10 +9,17 @@ const TransactionSchema = new mongoose.Schema({
   },
   amount: { 
     type: Number, 
-    required: true 
+    required: true,
+    min: 0
   },
-  description: String,
-  category: String,
+  description: {
+    type: String,
+    required: true
+  },
+  category: {
+    type: String,
+    default: 'other'
+  },
   project: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'Project', 

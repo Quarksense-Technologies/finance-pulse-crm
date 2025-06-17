@@ -11,30 +11,46 @@ const MaterialPurchaseSchema = new mongoose.Schema({
     type: String, 
     required: true 
   },
-  partNo: String,
-  hsn: String,
+  partNo: {
+    type: String,
+    default: ''
+  },
+  hsn: {
+    type: String,
+    default: ''
+  },
   quantity: { 
     type: Number, 
-    required: true 
+    required: true,
+    min: 0
   },
   price: { 
     type: Number, 
-    required: true 
+    required: true,
+    min: 0
   },
   gst: { 
     type: Number, 
-    default: 0 
+    default: 0,
+    min: 0
   },
   totalAmount: { 
     type: Number, 
-    required: true 
+    required: true,
+    min: 0
   },
-  vendor: String,
+  vendor: {
+    type: String,
+    default: ''
+  },
   purchaseDate: { 
     type: Date, 
     required: true 
   },
-  invoiceNumber: String,
+  invoiceNumber: {
+    type: String,
+    default: ''
+  },
   attachments: [{
     name: String,
     url: String,

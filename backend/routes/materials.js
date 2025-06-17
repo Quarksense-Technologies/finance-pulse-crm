@@ -1,4 +1,3 @@
-
 const express = require('express');
 const { check, validationResult } = require('express-validator');
 const MaterialRequest = require('../models/MaterialRequest');
@@ -155,6 +154,7 @@ router.post(
     // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.error('Validation errors:', errors.array());
       return res.status(400).json({ 
         message: errors.array()[0].msg,
         success: false 
@@ -177,6 +177,15 @@ router.post(
         attachments
       } = req.body;
 
+      console.log('Creating material purchase with data:', {
+        projectId,
+        description,
+        quantity,
+        price,
+        totalAmount,
+        purchaseDate
+      });
+
       // Check if project exists
       const projectExists = await Project.findById(projectId);
       if (!projectExists) {
@@ -192,12 +201,12 @@ router.post(
         description,
         partNo,
         hsn,
-        quantity,
-        price,
-        gst: gst || 0,
-        totalAmount,
+        quantity: Number(quantity),
+        price: Number(price),
+        gst: Number(gst) || 0,
+        totalAmount: Number(totalAmount),
         vendor,
-        purchaseDate,
+        purchaseDate: new Date(purchaseDate),
         invoiceNumber,
         attachments: attachments || [],
         createdBy: req.user.id
@@ -208,11 +217,11 @@ router.post(
       // Auto-create expense transaction
       const expenseTransaction = new Transaction({
         type: 'expense',
-        amount: totalAmount,
+        amount: Number(totalAmount),
         description: `Material Purchase: ${description}`,
         category: 'materials',
         project: projectId,
-        date: purchaseDate,
+        date: new Date(purchaseDate),
         attachments: attachments || [],
         createdBy: req.user.id,
         approvalStatus: req.user.role === 'admin' ? 'approved' : 'pending',
@@ -230,6 +239,8 @@ router.post(
       await materialPurchase.populate('projectId', 'name');
       await materialPurchase.populate('createdBy', 'name');
       
+      console.log('Material purchase created successfully:', materialPurchase.id);
+      
       res.status(201).json({
         purchase: materialPurchase,
         expense: expenseTransaction,
@@ -238,7 +249,7 @@ router.post(
     } catch (error) {
       console.error('Error creating material purchase:', error);
       res.status(500).json({
-        message: 'Server error creating material purchase',
+        message: 'Server error creating material purchase: ' + error.message,
         success: false
       });
     }
