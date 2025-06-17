@@ -143,7 +143,7 @@ const MaterialExpenses = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500">Status</p>
-                  <p className="text-sm">{getStatusBadge(selectedItem.status || 'pending')}</p>
+                  <div className="text-sm">{getStatusBadge(selectedItem.status || 'pending')}</div>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500">Category</p>

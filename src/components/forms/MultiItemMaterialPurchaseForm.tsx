@@ -73,10 +73,10 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
         const totalAmount = subtotal + gstAmount;
 
         const itemAttachments = attachments[index] || [];
-        // Fix: Send attachments as actual array, not stringified
+        // Create proper attachment data with base64 or file data
         const attachmentData = itemAttachments.map(file => ({
           name: file.name,
-          url: URL.createObjectURL(file), // In real app, upload to server first
+          url: `data:${file.type};base64,${btoa(String.fromCharCode(...new Uint8Array(file as any)))}`, // Simplified for demo
           type: file.type
         }));
 
@@ -92,12 +92,10 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
           vendor: data.vendor || undefined,
           purchaseDate: data.purchaseDate,
           invoiceNumber: item.invoiceNumber || undefined,
-          attachments: attachmentData, // This should be an array, not a string
+          attachments: attachmentData,
         };
 
         console.log('Sending purchase data:', purchaseData);
-        console.log('Attachments type:', typeof purchaseData.attachments);
-        console.log('Attachments value:', purchaseData.attachments);
 
         await createMaterialPurchaseMutation.mutateAsync(purchaseData);
       }
@@ -353,7 +351,7 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
                               <Button
                                 type="button"
                                 variant="ghost"
-                                size="sm"
+                                size="sm"  
                                 onClick={() => removeAttachment(index, fileIndex)}
                               >
                                 <X className="w-4 h-4" />
