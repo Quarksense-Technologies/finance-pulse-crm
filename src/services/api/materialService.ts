@@ -25,7 +25,7 @@ export interface MaterialRequest {
     name: string;
   };
   approvedAt?: string;
-  rej ectedAt?: string;
+  rejectedAt?: string;
   rejectionReason?: string;
   notes?: string;
   createdAt: string;
