@@ -10,6 +10,7 @@ import { Plus, Eye, FileText } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/utils/financialUtils';
 import { useTransactions } from '@/hooks/api/useFinances';
 import MultiItemMaterialExpenseForm from '@/components/forms/MultiItemMaterialExpenseForm';
+import { toast } from "@/hooks/use-toast";
 
 const MaterialExpenses = () => {
   const { hasPermission } = useAuth();
@@ -17,9 +18,13 @@ const MaterialExpenses = () => {
   const [selectedItem, setSelectedItem] = useState<any>(null);
 
   // Filter transactions to show only material expenses
-  const { data: transactions = [], isLoading } = useTransactions({ 
+  const { data: transactions = [], isLoading, error } = useTransactions({ 
     type: 'expense' 
   });
+
+  console.log('MaterialExpenses - Raw transactions data:', transactions);
+  console.log('MaterialExpenses - Loading state:', isLoading);
+  console.log('MaterialExpenses - Error state:', error);
 
   // Filter to show only material-related expenses based on description or category
   const materialExpenses = transactions.filter(transaction => 
@@ -27,7 +32,10 @@ const MaterialExpenses = () => {
     transaction.category === 'materials'
   );
 
+  console.log('MaterialExpenses - Filtered material expenses:', materialExpenses);
+
   const getStatusBadge = (status: string) => {
+    console.log('MaterialExpenses - Getting status badge for:', status);
     const statusColors: Record<string, string> = {
       pending: 'bg-yellow-100 text-yellow-800',
       approved: 'bg-green-100 text-green-800',
@@ -43,6 +51,7 @@ const MaterialExpenses = () => {
   };
 
   const getProjectName = (project: any) => {
+    console.log('MaterialExpenses - Getting project name for:', project);
     if (!project) return 'Unknown Project';
     if (typeof project === 'string') return project;
     if (typeof project === 'object' && project.name) return project.name;
@@ -50,43 +59,92 @@ const MaterialExpenses = () => {
   };
 
   const handleViewAttachment = (attachment: any) => {
-    console.log('Viewing attachment:', attachment);
+    console.log('MaterialExpenses - Viewing attachment:', attachment);
     try {
-      if (attachment.url) {
-        if (attachment.url.startsWith('data:')) {
-          // For base64 data URLs, create a new window to display
-          const newWindow = window.open();
-          if (newWindow) {
-            if (attachment.type && attachment.type.startsWith('image/')) {
-              newWindow.document.write(`
-                <html>
-                  <head><title>${attachment.name}</title></head>
-                  <body style="margin:0; display:flex; justify-content:center; align-items:center; min-height:100vh; background:#f0f0f0;">
-                    <img src="${attachment.url}" alt="${attachment.name}" style="max-width: 100%; height: auto;" />
-                  </body>
-                </html>
-              `);
-              newWindow.document.close();
-            } else {
-              // For PDFs and other files, try to display directly
-              newWindow.location.href = attachment.url;
-            }
+      if (!attachment) {
+        console.error('MaterialExpenses - No attachment provided');
+        toast({
+          title: "Error",
+          description: "No attachment data found",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (!attachment.url) {
+        console.error('MaterialExpenses - No URL found for attachment:', attachment);
+        toast({
+          title: "Error", 
+          description: "Attachment URL not found",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('MaterialExpenses - Opening attachment URL:', attachment.url);
+      
+      if (attachment.url.startsWith('data:')) {
+        // For base64 data URLs, create a new window to display
+        const newWindow = window.open();
+        if (newWindow) {
+          if (attachment.type && attachment.type.startsWith('image/')) {
+            newWindow.document.write(`
+              <html>
+                <head><title>${attachment.name}</title></head>
+                <body style="margin:0; display:flex; justify-content:center; align-items:center; min-height:100vh; background:#f0f0f0;">
+                  <img src="${attachment.url}" alt="${attachment.name}" style="max-width: 100%; height: auto;" />
+                </body>
+              </html>
+            `);
+            newWindow.document.close();
+          } else {
+            // For PDFs and other files, try to display directly
+            newWindow.location.href = attachment.url;
           }
         } else {
-          // For regular URLs, open in new tab
-          window.open(attachment.url, '_blank');
+          console.error('MaterialExpenses - Failed to open new window');
+          toast({
+            title: "Error",
+            description: "Failed to open attachment viewer",
+            variant: "destructive"
+          });
         }
       } else {
-        console.error('No URL found for attachment:', attachment);
+        // For regular URLs, open in new tab
+        window.open(attachment.url, '_blank');
       }
     } catch (error) {
-      console.error('Error opening attachment:', error);
+      console.error('MaterialExpenses - Error opening attachment:', error);
+      toast({
+        title: "Error",
+        description: `Failed to open attachment: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        variant: "destructive"
+      });
     }
   };
 
   const handleViewItem = (transaction: any) => {
-    console.log('Selected transaction:', transaction);
-    setSelectedItem(transaction);
+    console.log('MaterialExpenses - Selected transaction for viewing:', transaction);
+    try {
+      if (!transaction) {
+        console.error('MaterialExpenses - No transaction provided to view');
+        toast({
+          title: "Error",
+          description: "No transaction data found",
+          variant: "destructive"
+        });
+        return;
+      }
+      setSelectedItem(transaction);
+      console.log('MaterialExpenses - Successfully set selected item:', transaction);
+    } catch (error) {
+      console.error('MaterialExpenses - Error setting selected item:', error);
+      toast({
+        title: "Error",
+        description: `Failed to view transaction: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        variant: "destructive"
+      });
+    }
   };
 
   if (!hasPermission('add_expense')) {
@@ -96,6 +154,20 @@ const MaterialExpenses = () => {
           <CardHeader>
             <CardTitle>Access Denied</CardTitle>
             <CardDescription>You don't have permission to access this page.</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
+  if (error) {
+    console.error('MaterialExpenses - Query error:', error);
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Error Loading Data</CardTitle>
+            <CardDescription>Failed to load material expenses: {error instanceof Error ? error.message : 'Unknown error'}</CardDescription>
           </CardHeader>
         </Card>
       </div>
@@ -149,26 +221,32 @@ const MaterialExpenses = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {materialExpenses.map((transaction) => (
-                  <TableRow key={transaction.id}>
-                    <TableCell className="font-medium">{transaction.description}</TableCell>
-                    <TableCell>{getProjectName(transaction.project)}</TableCell>
-                    <TableCell className="font-semibold text-red-600">
-                      {formatCurrency(transaction.amount)}
-                    </TableCell>
-                    <TableCell>{getStatusBadge(transaction.status || 'pending')}</TableCell>
-                    <TableCell>{formatDate(transaction.date)}</TableCell>
-                    <TableCell>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleViewItem(transaction)}
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {materialExpenses.map((transaction) => {
+                  console.log('MaterialExpenses - Rendering transaction:', transaction);
+                  return (
+                    <TableRow key={transaction.id}>
+                      <TableCell className="font-medium">{transaction.description}</TableCell>
+                      <TableCell>{getProjectName(transaction.project)}</TableCell>
+                      <TableCell className="font-semibold text-red-600">
+                        {formatCurrency(transaction.amount)}
+                      </TableCell>
+                      <TableCell>{getStatusBadge(transaction.status || 'pending')}</TableCell>
+                      <TableCell>{formatDate(transaction.date)}</TableCell>
+                      <TableCell>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            console.log('MaterialExpenses - View button clicked for transaction:', transaction.id);
+                            handleViewItem(transaction);
+                          }}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </CardContent>
@@ -177,9 +255,12 @@ const MaterialExpenses = () => {
 
       {/* Detail View Dialog */}
       {selectedItem && (
-        <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
+        <Dialog open={!!selectedItem} onOpenChange={() => {
+          console.log('MaterialExpenses - Closing detail dialog');
+          setSelectedItem(null);
+        }}>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader className="pr-8">
+            <DialogHeader>
               <DialogTitle>{selectedItem.description}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
@@ -207,22 +288,33 @@ const MaterialExpenses = () => {
                   {formatCurrency(selectedItem.amount)}
                 </p>
               </div>
-              {selectedItem.attachments && selectedItem.attachments.length > 0 && (
+              {selectedItem.attachments && selectedItem.attachments.length > 0 ? (
                 <div>
                   <p className="text-sm font-medium text-gray-500 mb-2">Attachments</p>
                   <div className="flex gap-2 flex-wrap">
-                    {selectedItem.attachments.map((attachment: any, index: number) => (
-                      <Button
-                        key={index}
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleViewAttachment(attachment)}
-                      >
-                        <FileText className="w-4 h-4 mr-1" />
-                        {attachment.name}
-                      </Button>
-                    ))}
+                    {selectedItem.attachments.map((attachment: any, index: number) => {
+                      console.log('MaterialExpenses - Rendering attachment:', attachment, 'at index:', index);
+                      return (
+                        <Button
+                          key={index}
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            console.log('MaterialExpenses - Attachment button clicked:', attachment);
+                            handleViewAttachment(attachment);
+                          }}
+                        >
+                          <FileText className="w-4 h-4 mr-1" />
+                          {attachment.name || `Attachment ${index + 1}`}
+                        </Button>
+                      );
+                    })}
                   </div>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-sm font-medium text-gray-500 mb-2">Attachments</p>
+                  <p className="text-sm text-gray-400">No attachments available</p>
                 </div>
               )}
             </div>
