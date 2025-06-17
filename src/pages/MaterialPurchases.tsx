@@ -29,6 +29,7 @@ const MaterialPurchases = () => {
   };
 
   const handleViewAttachment = (attachment: any) => {
+    console.log('Viewing attachment:', attachment);
     try {
       if (attachment.url) {
         if (attachment.url.startsWith('data:')) {
@@ -54,10 +55,17 @@ const MaterialPurchases = () => {
           // For regular URLs, open in new tab
           window.open(attachment.url, '_blank');
         }
+      } else {
+        console.error('No URL found for attachment:', attachment);
       }
     } catch (error) {
       console.error('Error opening attachment:', error);
     }
+  };
+
+  const handleViewItem = (purchase: any) => {
+    console.log('Selected purchase:', purchase);
+    setSelectedItem(purchase);
   };
 
   if (!hasPermission('create_transactions')) {
@@ -142,7 +150,7 @@ const MaterialPurchases = () => {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => setSelectedItem(purchase)}
+                          onClick={() => handleViewItem(purchase)}
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
@@ -169,8 +177,8 @@ const MaterialPurchases = () => {
       {/* Detail View Dialog */}
       {selectedItem && (
         <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader className="pr-8">
               <DialogTitle>{selectedItem.description}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
