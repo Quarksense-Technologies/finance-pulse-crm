@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
@@ -74,13 +73,14 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
         const totalAmount = subtotal + gstAmount;
 
         const itemAttachments = attachments[index] || [];
+        // Fix: Send attachments as actual array, not stringified
         const attachmentData = itemAttachments.map(file => ({
           name: file.name,
           url: URL.createObjectURL(file), // In real app, upload to server first
           type: file.type
         }));
 
-        await createMaterialPurchaseMutation.mutateAsync({
+        const purchaseData = {
           projectId: data.projectId,
           description: item.description,
           partNo: item.partNo || undefined,
@@ -92,8 +92,14 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
           vendor: data.vendor || undefined,
           purchaseDate: data.purchaseDate,
           invoiceNumber: item.invoiceNumber || undefined,
-          attachments: attachmentData,
-        });
+          attachments: attachmentData, // This should be an array, not a string
+        };
+
+        console.log('Sending purchase data:', purchaseData);
+        console.log('Attachments type:', typeof purchaseData.attachments);
+        console.log('Attachments value:', purchaseData.attachments);
+
+        await createMaterialPurchaseMutation.mutateAsync(purchaseData);
       }
       
       form.reset();
