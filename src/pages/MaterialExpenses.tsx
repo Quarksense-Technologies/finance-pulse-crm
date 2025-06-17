@@ -62,20 +62,9 @@ const MaterialExpenses = () => {
   const handleViewAttachment = (attachment: any) => {
     console.log('MaterialExpenses - Viewing attachment:', attachment);
     try {
-      if (!attachment) {
-        console.error('MaterialExpenses - No attachment provided');
+      if (!attachment || !attachment.url) {
         toast({
           title: "Error",
-          description: "No attachment data found",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      if (!attachment.url) {
-        console.error('MaterialExpenses - No URL found for attachment:', attachment);
-        toast({
-          title: "Error", 
           description: "Attachment URL not found",
           variant: "destructive"
         });
@@ -85,7 +74,6 @@ const MaterialExpenses = () => {
       console.log('MaterialExpenses - Opening attachment URL:', attachment.url);
       
       if (attachment.url.startsWith('data:')) {
-        // For base64 data URLs, create a new window to display
         const newWindow = window.open();
         if (newWindow) {
           if (attachment.type && attachment.type.startsWith('image/')) {
@@ -99,19 +87,10 @@ const MaterialExpenses = () => {
             `);
             newWindow.document.close();
           } else {
-            // For PDFs and other files, try to display directly
             newWindow.location.href = attachment.url;
           }
-        } else {
-          console.error('MaterialExpenses - Failed to open new window');
-          toast({
-            title: "Error",
-            description: "Failed to open attachment viewer",
-            variant: "destructive"
-          });
         }
       } else {
-        // For regular URLs, open in new tab
         window.open(attachment.url, '_blank');
       }
     } catch (error) {
@@ -125,22 +104,30 @@ const MaterialExpenses = () => {
   };
 
   const handleViewItem = (transaction: any) => {
-    console.log('MaterialExpenses - Selected transaction for viewing:', transaction);
+    console.log('MaterialExpenses - handleViewItem called with:', transaction);
+    console.log('MaterialExpenses - Current selectedItem state:', selectedItem);
+    console.log('MaterialExpenses - Current showDetailDialog state:', showDetailDialog);
+    
+    if (!transaction) {
+      console.error('MaterialExpenses - No transaction provided to view');
+      toast({
+        title: "Error",
+        description: "No transaction data found",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
-      if (!transaction) {
-        console.error('MaterialExpenses - No transaction provided to view');
-        toast({
-          title: "Error",
-          description: "No transaction data found",
-          variant: "destructive"
-        });
-        return;
-      }
+      console.log('MaterialExpenses - Setting selectedItem to:', transaction);
       setSelectedItem(transaction);
+      
+      console.log('MaterialExpenses - Setting showDetailDialog to true');
       setShowDetailDialog(true);
-      console.log('MaterialExpenses - Successfully set selected item and opened dialog:', transaction);
+      
+      console.log('MaterialExpenses - View item setup complete');
     } catch (error) {
-      console.error('MaterialExpenses - Error setting selected item:', error);
+      console.error('MaterialExpenses - Error in handleViewItem:', error);
       toast({
         title: "Error",
         description: `Failed to view transaction: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -224,7 +211,7 @@ const MaterialExpenses = () => {
               </TableHeader>
               <TableBody>
                 {materialExpenses.map((transaction) => {
-                  console.log('MaterialExpenses - Rendering transaction:', transaction);
+                  console.log('MaterialExpenses - Rendering transaction row:', transaction);
                   return (
                     <TableRow key={transaction.id}>
                       <TableCell className="font-medium">{transaction.description}</TableCell>
@@ -238,8 +225,11 @@ const MaterialExpenses = () => {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => {
-                            console.log('MaterialExpenses - View button clicked for transaction:', transaction.id);
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('MaterialExpenses - View button clicked for transaction ID:', transaction.id);
+                            console.log('MaterialExpenses - Full transaction object:', transaction);
                             handleViewItem(transaction);
                           }}
                         >
@@ -257,17 +247,21 @@ const MaterialExpenses = () => {
 
       {/* Detail View Dialog */}
       <Dialog open={showDetailDialog} onOpenChange={(open) => {
-        console.log('MaterialExpenses - Detail dialog state changing to:', open);
+        console.log('MaterialExpenses - Detail dialog onOpenChange called with:', open);
+        console.log('MaterialExpenses - Current selectedItem when dialog changes:', selectedItem);
         setShowDetailDialog(open);
         if (!open) {
+          console.log('MaterialExpenses - Clearing selectedItem because dialog is closing');
           setSelectedItem(null);
         }
       }}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{selectedItem?.description || 'Transaction Details'}</DialogTitle>
+            <DialogTitle>
+              {selectedItem?.description || 'Transaction Details'}
+            </DialogTitle>
           </DialogHeader>
-          {selectedItem && (
+          {selectedItem ? (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -322,6 +316,10 @@ const MaterialExpenses = () => {
                   <p className="text-sm text-gray-400">No attachments available</p>
                 </div>
               )}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-500">No transaction selected</p>
             </div>
           )}
         </DialogContent>
