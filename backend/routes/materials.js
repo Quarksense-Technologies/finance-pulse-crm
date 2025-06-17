@@ -151,6 +151,10 @@ router.post(
     check('purchaseDate', 'Purchase date is required').isISO8601().toDate()
   ],
   async (req, res) => {
+    console.log('POST /api/materials/purchases - Request received');
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+    console.log('User:', req.user);
+
     // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -177,45 +181,72 @@ router.post(
         attachments
       } = req.body;
 
-      console.log('Creating material purchase with data:', {
+      console.log('Extracted data:', {
         projectId,
         description,
-        quantity,
-        price,
-        totalAmount,
+        quantity: Number(quantity),
+        price: Number(price),
+        totalAmount: Number(totalAmount),
         purchaseDate
       });
 
+      // Validate required fields
+      if (!projectId) {
+        console.error('Missing projectId');
+        return res.status(400).json({
+          message: 'Project ID is required',
+          success: false
+        });
+      }
+
+      if (!description) {
+        console.error('Missing description');
+        return res.status(400).json({
+          message: 'Description is required',
+          success: false
+        });
+      }
+
       // Check if project exists
+      console.log('Checking if project exists:', projectId);
       const projectExists = await Project.findById(projectId);
       if (!projectExists) {
+        console.error('Project not found:', projectId);
         return res.status(404).json({
           message: 'Project not found',
           success: false
         });
       }
+      console.log('Project found:', projectExists.name);
       
-      // Create material purchase
-      const materialPurchase = new MaterialPurchase({
+      // Prepare material purchase data
+      const purchaseData = {
         projectId,
         description,
-        partNo,
-        hsn,
+        partNo: partNo || '',
+        hsn: hsn || '',
         quantity: Number(quantity),
         price: Number(price),
         gst: Number(gst) || 0,
         totalAmount: Number(totalAmount),
-        vendor,
+        vendor: vendor || '',
         purchaseDate: new Date(purchaseDate),
-        invoiceNumber,
+        invoiceNumber: invoiceNumber || '',
         attachments: attachments || [],
         createdBy: req.user.id
-      });
+      };
+
+      console.log('Creating material purchase with data:', purchaseData);
+
+      // Create material purchase
+      const materialPurchase = new MaterialPurchase(purchaseData);
+      console.log('Material purchase instance created');
       
       await materialPurchase.save();
+      console.log('Material purchase saved successfully:', materialPurchase._id);
       
-      // Auto-create expense transaction
-      const expenseTransaction = new Transaction({
+      // Prepare transaction data
+      const transactionData = {
         type: 'expense',
         amount: Number(totalAmount),
         description: `Material Purchase: ${description}`,
@@ -226,14 +257,22 @@ router.post(
         createdBy: req.user.id,
         approvalStatus: req.user.role === 'admin' ? 'approved' : 'pending',
         approvedBy: req.user.role === 'admin' ? req.user.id : null,
-        status: 'paid' // Material purchases are typically already paid
-      });
+        status: 'paid'
+      };
+
+      console.log('Creating expense transaction with data:', transactionData);
+
+      // Auto-create expense transaction
+      const expenseTransaction = new Transaction(transactionData);
+      console.log('Transaction instance created');
       
       await expenseTransaction.save();
+      console.log('Transaction saved successfully:', expenseTransaction._id);
       
       // Link the expense to the purchase
       materialPurchase.expenseId = expenseTransaction._id;
       await materialPurchase.save();
+      console.log('Purchase updated with expense ID');
       
       // Populate the response
       await materialPurchase.populate('projectId', 'name');
@@ -248,9 +287,22 @@ router.post(
       });
     } catch (error) {
       console.error('Error creating material purchase:', error);
+      console.error('Error stack:', error.stack);
+      
+      // More specific error messages
+      let errorMessage = 'Server error creating material purchase';
+      if (error.name === 'ValidationError') {
+        errorMessage = 'Validation error: ' + Object.values(error.errors).map(e => e.message).join(', ');
+      } else if (error.name === 'CastError') {
+        errorMessage = 'Invalid data format: ' + error.message;
+      } else if (error.code === 11000) {
+        errorMessage = 'Duplicate entry error';
+      }
+      
       res.status(500).json({
-        message: 'Server error creating material purchase: ' + error.message,
-        success: false
+        message: errorMessage + ': ' + error.message,
+        success: false,
+        error: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     }
   }
