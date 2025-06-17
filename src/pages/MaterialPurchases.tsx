@@ -15,6 +15,7 @@ const MaterialPurchases = () => {
   const { hasPermission } = useAuth();
   const [showPurchaseForm, setShowPurchaseForm] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
 
   const { data: materialPurchases = [], isLoading, error } = useMaterialPurchases();
   const deletePurchaseMutation = useDeleteMaterialPurchase();
@@ -122,7 +123,8 @@ const MaterialPurchases = () => {
         return;
       }
       setSelectedItem(purchase);
-      console.log('MaterialPurchases - Successfully set selected item:', purchase);
+      setShowDetailDialog(true);
+      console.log('MaterialPurchases - Successfully set selected item and opened dialog:', purchase);
     } catch (error) {
       console.error('MaterialPurchases - Error setting selected item:', error);
       toast({
@@ -260,15 +262,18 @@ const MaterialPurchases = () => {
       )}
 
       {/* Detail View Dialog */}
-      {selectedItem && (
-        <Dialog open={!!selectedItem} onOpenChange={() => {
-          console.log('MaterialPurchases - Closing detail dialog');
+      <Dialog open={showDetailDialog} onOpenChange={(open) => {
+        console.log('MaterialPurchases - Detail dialog state changing to:', open);
+        setShowDetailDialog(open);
+        if (!open) {
           setSelectedItem(null);
-        }}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{selectedItem.description}</DialogTitle>
-            </DialogHeader>
+        }
+      }}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedItem?.description || 'Purchase Details'}</DialogTitle>
+          </DialogHeader>
+          {selectedItem && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -340,9 +345,9 @@ const MaterialPurchases = () => {
                 </div>
               )}
             </div>
-          </DialogContent>
-        </Dialog>
-      )}
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

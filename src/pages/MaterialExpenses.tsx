@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Plus, Eye, FileText } from 'lucide-react';
@@ -16,6 +16,7 @@ const MaterialExpenses = () => {
   const { hasPermission } = useAuth();
   const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
 
   // Filter transactions to show only material expenses
   const { data: transactions = [], isLoading, error } = useTransactions({ 
@@ -136,7 +137,8 @@ const MaterialExpenses = () => {
         return;
       }
       setSelectedItem(transaction);
-      console.log('MaterialExpenses - Successfully set selected item:', transaction);
+      setShowDetailDialog(true);
+      console.log('MaterialExpenses - Successfully set selected item and opened dialog:', transaction);
     } catch (error) {
       console.error('MaterialExpenses - Error setting selected item:', error);
       toast({
@@ -179,18 +181,18 @@ const MaterialExpenses = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Material Expenses</h1>
         <Dialog open={showExpenseForm} onOpenChange={setShowExpenseForm}>
-          <Button onClick={() => setShowExpenseForm(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Expense
-          </Button>
-          {showExpenseForm && (
-            <DialogContent className="max-w-4xl">
-              <DialogHeader>
-                <DialogTitle>Add Material Expense</DialogTitle>
-              </DialogHeader>
-              <MultiItemMaterialExpenseForm onSubmit={() => setShowExpenseForm(false)} />
-            </DialogContent>
-          )}
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Expense
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle>Add Material Expense</DialogTitle>
+            </DialogHeader>
+            <MultiItemMaterialExpenseForm onSubmit={() => setShowExpenseForm(false)} />
+          </DialogContent>
         </Dialog>
       </div>
 
@@ -254,15 +256,18 @@ const MaterialExpenses = () => {
       )}
 
       {/* Detail View Dialog */}
-      {selectedItem && (
-        <Dialog open={!!selectedItem} onOpenChange={() => {
-          console.log('MaterialExpenses - Closing detail dialog');
+      <Dialog open={showDetailDialog} onOpenChange={(open) => {
+        console.log('MaterialExpenses - Detail dialog state changing to:', open);
+        setShowDetailDialog(open);
+        if (!open) {
           setSelectedItem(null);
-        }}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{selectedItem.description}</DialogTitle>
-            </DialogHeader>
+        }
+      }}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{selectedItem?.description || 'Transaction Details'}</DialogTitle>
+          </DialogHeader>
+          {selectedItem && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -318,9 +323,9 @@ const MaterialExpenses = () => {
                 </div>
               )}
             </div>
-          </DialogContent>
-        </Dialog>
-      )}
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
