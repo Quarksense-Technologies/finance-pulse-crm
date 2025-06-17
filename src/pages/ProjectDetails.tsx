@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, IndianRupee, Building, CheckCircle, Clock, X } from 'lucide-react';
@@ -11,8 +10,8 @@ import { useTransactions } from '@/hooks/api/useFinances';
 import { useResources } from '@/hooks/api/useResources';
 import PaymentForm from '@/components/forms/PaymentForm';
 import ExpenseForm from '@/components/forms/ExpenseForm';
-import ProjectManagement from '@/components/projects/ProjectManagement';
 import ProjectStatusUpdate from '@/components/projects/ProjectStatusUpdate';
+import AttendanceManagement from '@/components/attendance/AttendanceManagement';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const ProjectDetails = () => {
@@ -77,10 +76,6 @@ const ProjectDetails = () => {
 
   const handleStatusUpdate = () => {
     // Status update handled by the hook
-  };
-
-  const handleProjectUpdated = () => {
-    // Handle project update
   };
 
   return (
@@ -152,12 +147,11 @@ const ProjectDetails = () => {
         onValueChange={setActiveTab} 
         className="space-y-4"
       >
-        <TabsList className="grid w-full grid-cols-5 overflow-x-auto">
+        <TabsList className="grid w-full grid-cols-4 overflow-x-auto">
           <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
           <TabsTrigger value="payments" className="text-xs sm:text-sm">Payments</TabsTrigger>
           <TabsTrigger value="expenses" className="text-xs sm:text-sm">Expenses</TabsTrigger>
           <TabsTrigger value="resources" className="text-xs sm:text-sm">Resources</TabsTrigger>
-          <TabsTrigger value="management" className="text-xs sm:text-sm">Management</TabsTrigger>
         </TabsList>
         
         {/* Overview tab */}
@@ -416,82 +410,13 @@ const ProjectDetails = () => {
         {/* Resources tab */}
         <TabsContent value="resources">
           <div className="bg-white dark:bg-card p-4 sm:p-6 rounded-lg shadow-sm border border-gray-100 dark:border-border">
-            <h2 className="text-lg sm:text-xl font-semibold mb-6">Project Resources</h2>
-            
-            {resourcesLoading ? (
-              <div className="text-center py-8 text-gray-500 dark:text-muted-foreground">
-                Loading resources...
-              </div>
-            ) : resourcesError ? (
-              <div className="text-center py-8">
-                <div className="text-red-500 mb-2">Error loading resources</div>
-                <div className="text-sm text-gray-500 dark:text-muted-foreground">{resourcesError.message}</div>
-              </div>
-            ) : resources.length === 0 ? (
-              <div className="text-center py-8 text-gray-500 dark:text-muted-foreground">
-                No resources assigned to this project
-                <div className="text-sm mt-2">
-                  You can add resources from the Manpower page
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {resources.map((resource) => (
-                  <div 
-                    key={resource.id} 
-                    className="border border-gray-100 dark:border-border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-medium">{resource.name}</h3>
-                        <p className="text-sm text-gray-600 dark:text-muted-foreground">{resource.role}</p>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm font-medium">
-                          {formatCurrency(resource.hourlyRate * resource.hoursAllocated)}
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-muted-foreground">Total cost</div>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-gray-600 dark:text-muted-foreground">
-                      <div className="flex items-center">
-                        <Calendar className="h-4 w-4 mr-2" />
-                        <span>
-                          {formatDate(resource.startDate)} - 
-                          {resource.endDate ? formatDate(resource.endDate) : 'Ongoing'}
-                        </span>
-                      </div>
-                      <div className="flex items-center">
-                        <IndianRupee className="h-4 w-4 mr-2" />
-                        <span>{formatCurrency(resource.hourlyRate)} / hour</span>
-                      </div>
-                      <div className="flex items-center">
-                        <Clock className="h-4 w-4 mr-2" />
-                        <span>{resource.hoursAllocated} hours allocated</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                
-                <div className="mt-6 p-4 bg-gray-50 dark:bg-muted rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium">Total Resource Cost:</span>
-                    <span className="text-lg font-semibold">{formatCurrency(resourceCosts)}</span>
-                  </div>
-                  <div className="flex justify-between items-center mt-1 text-sm text-gray-600 dark:text-muted-foreground">
-                    <span>Total Hours Allocated:</span>
-                    <span>{resources.reduce((sum, r) => sum + r.hoursAllocated, 0)} hours</span>
-                  </div>
-                </div>
-              </div>
-            )}
+            <AttendanceManagement 
+              projectId={project.id} 
+              resources={resources}
+              resourcesLoading={resourcesLoading}
+              resourcesError={resourcesError}
+            />
           </div>
-        </TabsContent>
-        
-        {/* Management tab */}
-        <TabsContent value="management">
-          <ProjectManagement project={project} onProjectUpdated={handleProjectUpdated} />
         </TabsContent>
       </Tabs>
     </div>

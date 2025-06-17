@@ -1,171 +1,150 @@
 
 import React from 'react';
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, Briefcase, DollarSign, LogOut, UserPlus, Check, Shield, Settings } from 'lucide-react';
-import { useAuth, Permission } from '@/hooks/useAuth';
-import { toast } from "@/components/ui/use-toast";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarHeader,
-  SidebarInset,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { 
+  LayoutDashboard, 
+  Building2, 
+  FolderOpen, 
+  IndianRupee, 
+  Users, 
+  Settings, 
+  LogOut,
+  CheckSquare,
+  Clock
+} from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from "@/hooks/use-toast";
 
 const Layout = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout, hasPermission } = useAuth();
+  const { user, logout } = useAuth();
 
-  const menuItems = [
-    { 
-      path: '/', 
-      name: 'Dashboard', 
-      icon: <LayoutDashboard className="w-5 h-5" />,
-      permission: null
-    },
-    { 
-      path: '/companies', 
-      name: 'Companies', 
-      icon: <Users className="w-5 h-5" />,
-      permission: null
-    },
-    { 
-      path: '/projects', 
-      name: 'Projects', 
-      icon: <Briefcase className="w-5 h-5" />,
-      permission: null
-    },
-    { 
-      path: '/finances', 
-      name: 'Finances', 
-      icon: <DollarSign className="w-5 h-5" />,
-      permission: null
-    },
-    { 
-      path: '/resources', 
-      name: 'Manpower', 
-      icon: <Users className="w-5 h-5" />,
-      permission: null
-    },
-    { 
-      path: '/approvals', 
-      name: 'Approvals', 
-      icon: <Check className="w-5 h-5" />,
-      permission: 'approve_transactions' as Permission
-    },
-    { 
-      path: '/users', 
-      name: 'User Management', 
-      icon: <UserPlus className="w-5 h-5" />,
-      permission: 'manage_users' as Permission
-    },
-    { 
-      path: '/settings', 
-      name: 'Settings', 
-      icon: <Settings className="w-5 h-5" />,
-      permission: null
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out"
+      });
+    } catch (error) {
+      toast({
+        title: "Logout failed",
+        description: "There was an error logging out",
+        variant: "destructive"
+      });
     }
-  ];
-
-  const handleLogout = () => {
-    logout();
-    toast({
-      title: "Logged out",
-      description: "You have been logged out successfully",
-    });
-    navigate('/login');
   };
 
+  const navigation = [
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Projects', href: '/projects', icon: FolderOpen },
+    { name: 'Companies', href: '/companies', icon: Building2 },
+    { name: 'Finances', href: '/finances', icon: IndianRupee },
+    { name: 'Resources', href: '/resources', icon: Users },
+    { name: 'Attendance', href: '/attendance', icon: Clock },
+    { name: 'Approvals', href: '/approvals', icon: CheckSquare },
+  ];
+
+  // Add User Management for admin/manager only
+  if (user?.role === 'admin' || user?.role === 'manager') {
+    navigation.push({ 
+      name: 'User Management', 
+      href: '/users', 
+      icon: Users 
+    });
+  }
+
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <Sidebar>
-          <SidebarHeader className="p-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded bg-primary text-white flex items-center justify-center font-bold text-sm">
-                BMS
-              </div>
-              <h1 className="text-lg font-bold text-primary group-data-[collapsible=icon]:hidden">
-                Business CRM
-              </h1>
-            </div>
-          </SidebarHeader>
-
-          <SidebarContent>
-            {/* User info */}
-            {user && (
-              <SidebarGroup>
-                <div className="flex items-center gap-3 px-2 py-2 border-b border-sidebar-border">
-                  <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-semibold text-sm">
-                    {user.name.slice(0, 1)}
-                  </div>
-                  <div className="group-data-[collapsible=icon]:hidden">
-                    <p className="text-sm font-medium">{user.name}</p>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Shield className="w-3 h-3" />
-                      {user.role}
-                    </p>
-                  </div>
+    <div className="min-h-screen bg-gray-50 dark:bg-background">
+      {/* Sidebar */}
+      <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-card shadow-lg">
+        <div className="flex flex-col h-full">
+          {/* Logo */}
+          <div className="flex items-center px-6 py-4 border-b border-gray-200 dark:border-border">
+            <IndianRupee className="h-8 w-8 text-blue-600" />
+            <span className="ml-2 text-xl font-bold text-gray-900 dark:text-foreground">Finance Pulse</span>
+          </div>
+          
+          {/* Navigation */}
+          <nav className="flex-1 px-4 py-6 space-y-2">
+            {navigation.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.href || 
+                             (item.href !== '/dashboard' && location.pathname.startsWith(item.href));
+              
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                    isActive
+                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white'
+                  }`}
+                >
+                  <Icon className="mr-3 h-5 w-5" />
+                  {item.name}
+                </Link>
+              );
+            })}
+          </nav>
+          
+          {/* User section */}
+          <div className="px-4 py-4 border-t border-gray-200 dark:border-border">
+            <div className="flex items-center mb-4">
+              <div className="flex-shrink-0">
+                <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
+                  <span className="text-sm font-medium text-blue-700 dark:text-blue-400">
+                    {user?.name?.[0]?.toUpperCase() || 'U'}
+                  </span>
                 </div>
-              </SidebarGroup>
-            )}
-
-            {/* Navigation Menu */}
-            <SidebarGroup>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {menuItems.map((item) => {
-                    // Check permission if required
-                    if (item.permission && !hasPermission(item.permission)) {
-                      return null;
-                    }
-                    
-                    return (
-                      <SidebarMenuItem key={item.path}>
-                        <SidebarMenuButton asChild isActive={location.pathname === item.path}>
-                          <Link to={item.path}>
-                            {item.icon}
-                            <span>{item.name}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </SidebarContent>
-
-          <SidebarFooter>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={handleLogout}>
-                  <LogOut className="w-5 h-5" />
-                  <span>Logout</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarFooter>
-        </Sidebar>
-
-        <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-            <SidebarTrigger className="-ml-1" />
-          </header>
-          <main className="flex-1 p-4 md:p-6 overflow-auto">
-            <Outlet />
-          </main>
-        </SidebarInset>
+              </div>
+              <div className="ml-3 flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 dark:text-foreground truncate">
+                  {user?.name || 'User'}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                  {user?.role || 'user'}
+                </p>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Link
+                to="/settings"
+                className={`flex items-center w-full px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                  location.pathname === '/settings'
+                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white'
+                }`}
+              >
+                <Settings className="mr-3 h-4 w-4" />
+                Settings
+              </Link>
+              
+              <Button
+                variant="ghost"
+                className="flex items-center w-full px-3 py-2 text-sm font-medium justify-start text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
+                onClick={handleLogout}
+              >
+                <LogOut className="mr-3 h-4 w-4" />
+                Logout
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
-    </SidebarProvider>
+      
+      {/* Main content */}
+      <div className="pl-64">
+        <main className="min-h-screen">
+          <Outlet />
+        </main>
+      </div>
+    </div>
   );
 };
 
