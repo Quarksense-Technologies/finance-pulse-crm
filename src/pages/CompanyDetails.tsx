@@ -10,7 +10,7 @@ import StatusBadge from '@/components/ui/StatusBadge';
 import { isHttpError } from '@/services/api/client';
 
 const CompanyDetails = () => {
-  const { companyId } = useParams<{ companyId: string }>();
+  const { id: companyId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   
   // Log for debugging

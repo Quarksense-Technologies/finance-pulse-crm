@@ -62,7 +62,7 @@ const MaterialRequestsPage = () => {
   if (!hasPermission('manage_materials')) {
     return (
       <div className="flex items-center justify-center h-full">
-        <Card className="w-full max-w-md">
+        <Card className="w-full max-w-md mx-4">
           <CardHeader>
             <CardTitle>Access Denied</CardTitle>
             <CardDescription>You don't have permission to access this page.</CardDescription>
@@ -74,16 +74,17 @@ const MaterialRequestsPage = () => {
 
   if (showForm) {
     return (
-      <div className="container mx-auto py-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="outline" onClick={() => setShowForm(false)}>
+      <div className="container mx-auto py-4 px-2 sm:px-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
+          <Button variant="outline" onClick={() => setShowForm(false)} className="w-full sm:w-auto">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Requests
+            <span className="hidden sm:inline">Back to Requests</span>
+            <span className="sm:hidden">Back</span>
           </Button>
-          <h1 className="text-3xl font-bold">Create Material Request</h1>
+          <h1 className="text-xl sm:text-3xl font-bold">Create Material Request</h1>
         </div>
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <MultiItemMaterialRequestForm onSubmit={() => setShowForm(false)} />
           </CardContent>
         </Card>
@@ -92,18 +93,20 @@ const MaterialRequestsPage = () => {
   }
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={() => navigate('/materials')}>
+    <div className="container mx-auto py-4 px-2 sm:px-4">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <Button variant="outline" onClick={() => navigate('/materials')} className="w-full sm:w-auto">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Materials
+            <span className="hidden sm:inline">Back to Materials</span>
+            <span className="sm:hidden">Back</span>
           </Button>
-          <h1 className="text-3xl font-bold">Material Requests</h1>
+          <h1 className="text-xl sm:text-3xl font-bold">Material Requests</h1>
         </div>
-        <Button onClick={() => setShowForm(true)}>
+        <Button onClick={() => setShowForm(true)} className="w-full sm:w-auto">
           <Plus className="w-4 h-4 mr-2" />
-          New Request
+          <span className="hidden sm:inline">New Request</span>
+          <span className="sm:hidden">New</span>
         </Button>
       </div>
 
@@ -119,61 +122,65 @@ const MaterialRequestsPage = () => {
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>Material Requests ({materialRequests.length})</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">Material Requests ({materialRequests.length})</CardTitle>
           </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Part No</TableHead>
-                  <TableHead>Quantity</TableHead>
-                  <TableHead>Est. Cost</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Urgency</TableHead>
-                  <TableHead>Requested By</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {materialRequests.map((request) => (
-                  <TableRow key={request.id}>
-                    <TableCell className="font-medium">{request.description}</TableCell>
-                    <TableCell>{request.projectName || 'Unknown Project'}</TableCell>
-                    <TableCell>{request.partNo || 'N/A'}</TableCell>
-                    <TableCell>{request.quantity}</TableCell>
-                    <TableCell>{request.estimatedCost ? formatCurrency(request.estimatedCost) : 'N/A'}</TableCell>
-                    <TableCell>{getStatusBadge(request.status)}</TableCell>
-                    <TableCell>{getUrgencyBadge(request.urgency)}</TableCell>
-                    <TableCell>{request.requestedBy?.name}</TableCell>
-                    <TableCell>{formatDate(request.createdAt)}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setSelectedItem(request)}
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        {(request.requestedBy.id === user?.id || hasPermission('delete_materials')) && (
+          <CardContent className="p-0">
+            <div className="table-wrapper">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="min-w-[150px]">Description</TableHead>
+                    <TableHead className="min-w-[120px]">Project</TableHead>
+                    <TableHead className="min-w-[80px]">Part No</TableHead>
+                    <TableHead className="min-w-[80px]">Quantity</TableHead>
+                    <TableHead className="min-w-[100px]">Est. Cost</TableHead>
+                    <TableHead className="min-w-[80px]">Status</TableHead>
+                    <TableHead className="min-w-[80px]">Urgency</TableHead>
+                    <TableHead className="min-w-[120px]">Requested By</TableHead>
+                    <TableHead className="min-w-[100px]">Date</TableHead>
+                    <TableHead className="min-w-[80px]">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {materialRequests.map((request) => (
+                    <TableRow key={request.id}>
+                      <TableCell className="font-medium">{request.description}</TableCell>
+                      <TableCell>{request.projectName || 'Unknown Project'}</TableCell>
+                      <TableCell>{request.partNo || 'N/A'}</TableCell>
+                      <TableCell>{request.quantity}</TableCell>
+                      <TableCell>{request.estimatedCost ? formatCurrency(request.estimatedCost) : 'N/A'}</TableCell>
+                      <TableCell>{getStatusBadge(request.status)}</TableCell>
+                      <TableCell>{getUrgencyBadge(request.urgency)}</TableCell>
+                      <TableCell>{request.requestedBy?.name}</TableCell>
+                      <TableCell>{formatDate(request.createdAt)}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
                           <Button
                             size="sm"
-                            variant="destructive"
-                            onClick={() => handleDeleteRequest(request.id)}
-                            disabled={deleteRequestMutation.isPending}
+                            variant="outline"
+                            onClick={() => setSelectedItem(request)}
+                            className="h-8 w-8 p-0"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Eye className="w-4 h-4" />
                           </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                          {(request.requestedBy.id === user?.id || hasPermission('delete_materials')) && (
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDeleteRequest(request.id)}
+                              disabled={deleteRequestMutation.isPending}
+                              className="h-8 w-8 p-0"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       )}

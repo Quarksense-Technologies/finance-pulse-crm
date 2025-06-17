@@ -48,6 +48,12 @@ const Layout = () => {
     if (location.pathname.startsWith('/material-')) {
       return 'Materials';
     }
+    if (location.pathname.startsWith('/companies/')) {
+      return 'Companies';
+    }
+    if (location.pathname.startsWith('/projects/')) {
+      return 'Projects';
+    }
     
     return 'Dashboard';
   };
@@ -126,7 +132,7 @@ const Layout = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
-                  <Avatar className="h-10 w-10">
+                  <Avatar className="h-10 w-10 bg-blue-500">
                     <AvatarFallback className="bg-blue-500 text-white text-sm font-medium">
                       {user?.name?.charAt(0).toUpperCase() || 'U'}
                     </AvatarFallback>

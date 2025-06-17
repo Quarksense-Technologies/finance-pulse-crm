@@ -11,49 +11,37 @@ interface AttendanceRecord {
   totalCost: number;
 }
 
-// Mock attendance service - replace with actual API calls
+// Store for attendance records
+let attendanceRecords: AttendanceRecord[] = [];
+
+// Attendance service
 const attendanceService = {
   getAttendanceReport: async (month: number, year: number, projectId?: string): Promise<AttendanceRecord[]> => {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    // Mock data - replace with actual API call
-    const mockData: AttendanceRecord[] = [
-      {
-        resourceName: "John Doe",
-        resourceRole: "Developer",
-        projectName: "Website Redesign",
-        totalDays: 22,
-        totalHours: 176,
-        hourlyRate: 50,
-        totalCost: 8800
-      },
-      {
-        resourceName: "Jane Smith",
-        resourceRole: "Designer",
-        projectName: "Mobile App",
-        totalDays: 20,
-        totalHours: 160,
-        hourlyRate: 45,
-        totalCost: 7200
-      },
-      {
-        resourceName: "Mike Johnson",
-        resourceRole: "Project Manager",
-        projectName: "E-commerce Platform",
-        totalDays: 18,
-        totalHours: 144,
-        hourlyRate: 60,
-        totalCost: 8640
-      }
-    ];
-
+    console.log('Fetching attendance records:', attendanceRecords);
+    
     // Filter by project if specified
     if (projectId && projectId !== 'all') {
-      return mockData.filter(record => record.projectName.toLowerCase().includes('website'));
+      return attendanceRecords.filter(record => 
+        record.projectName.toLowerCase().includes(projectId.toLowerCase())
+      );
     }
 
-    return mockData;
+    return attendanceRecords;
+  },
+
+  addAttendanceRecord: async (record: AttendanceRecord): Promise<void> => {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    attendanceRecords.push(record);
+    console.log('Added attendance record:', record);
+  },
+
+  clearAttendanceRecords: () => {
+    attendanceRecords = [];
   }
 };
 
@@ -64,6 +52,14 @@ export const useAttendanceReport = (month: number, year: number, projectId?: str
     staleTime: 30 * 60 * 1000, // 30 minutes
     gcTime: 60 * 60 * 1000, // 1 hour
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnMount: true,
   });
 };
+
+export const useAddAttendanceRecord = () => {
+  return {
+    mutateAsync: attendanceService.addAttendanceRecord
+  };
+};
+
+export { attendanceService };

@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
-import { Plus, Eye, FileText, ArrowLeft } from 'lucide-react';
+import { Plus, Eye, ArrowLeft } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/utils/financialUtils';
 import { useTransactions } from '@/hooks/api/useFinances';
 import { useNavigate } from 'react-router-dom';
@@ -46,7 +46,7 @@ const MaterialExpensesPage = () => {
   if (!hasPermission('add_expense')) {
     return (
       <div className="flex items-center justify-center h-full">
-        <Card className="w-full max-w-md">
+        <Card className="w-full max-w-md mx-4">
           <CardHeader>
             <CardTitle>Access Denied</CardTitle>
             <CardDescription>You don't have permission to access this page.</CardDescription>
@@ -58,16 +58,17 @@ const MaterialExpensesPage = () => {
 
   if (showForm) {
     return (
-      <div className="container mx-auto py-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="outline" onClick={() => setShowForm(false)}>
+      <div className="container mx-auto py-4 px-2 sm:px-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
+          <Button variant="outline" onClick={() => setShowForm(false)} className="w-full sm:w-auto">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Expenses
+            <span className="hidden sm:inline">Back to Expenses</span>
+            <span className="sm:hidden">Back</span>
           </Button>
-          <h1 className="text-3xl font-bold">Add Material Expense</h1>
+          <h1 className="text-xl sm:text-3xl font-bold">Add Material Expense</h1>
         </div>
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <MultiItemMaterialExpenseForm onSubmit={() => setShowForm(false)} />
           </CardContent>
         </Card>
@@ -76,18 +77,20 @@ const MaterialExpensesPage = () => {
   }
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={() => navigate('/materials')}>
+    <div className="container mx-auto py-4 px-2 sm:px-4">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <Button variant="outline" onClick={() => navigate('/materials')} className="w-full sm:w-auto">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Materials
+            <span className="hidden sm:inline">Back to Materials</span>
+            <span className="sm:hidden">Back</span>
           </Button>
-          <h1 className="text-3xl font-bold">Material Expenses</h1>
+          <h1 className="text-xl sm:text-3xl font-bold">Material Expenses</h1>
         </div>
-        <Button onClick={() => setShowForm(true)}>
+        <Button onClick={() => setShowForm(true)} className="w-full sm:w-auto">
           <Plus className="w-4 h-4 mr-2" />
-          Add Expense
+          <span className="hidden sm:inline">Add Expense</span>
+          <span className="sm:hidden">Add</span>
         </Button>
       </div>
 
@@ -103,43 +106,46 @@ const MaterialExpensesPage = () => {
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>Material Expenses ({materialExpenses.length})</CardTitle>
+            <CardTitle className="text-lg sm:text-xl">Material Expenses ({materialExpenses.length})</CardTitle>
           </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {materialExpenses.map((transaction) => (
-                  <TableRow key={transaction.id}>
-                    <TableCell className="font-medium">{transaction.description}</TableCell>
-                    <TableCell>{transaction.project || 'Unknown Project'}</TableCell>
-                    <TableCell className="font-semibold text-red-600">
-                      {formatCurrency(transaction.amount)}
-                    </TableCell>
-                    <TableCell>{getStatusBadge(transaction.status || 'pending')}</TableCell>
-                    <TableCell>{formatDate(transaction.date)}</TableCell>
-                    <TableCell>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setSelectedItem(transaction)}
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                    </TableCell>
+          <CardContent className="p-0">
+            <div className="table-wrapper">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="min-w-[150px]">Description</TableHead>
+                    <TableHead className="min-w-[120px]">Project</TableHead>
+                    <TableHead className="min-w-[100px]">Amount</TableHead>
+                    <TableHead className="min-w-[80px]">Status</TableHead>
+                    <TableHead className="min-w-[100px]">Date</TableHead>
+                    <TableHead className="min-w-[80px]">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {materialExpenses.map((transaction) => (
+                    <TableRow key={transaction.id}>
+                      <TableCell className="font-medium">{transaction.description}</TableCell>
+                      <TableCell>{transaction.project || 'Unknown Project'}</TableCell>
+                      <TableCell className="font-semibold text-red-600">
+                        {formatCurrency(transaction.amount)}
+                      </TableCell>
+                      <TableCell>{getStatusBadge(transaction.status || 'pending')}</TableCell>
+                      <TableCell>{formatDate(transaction.date)}</TableCell>
+                      <TableCell>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setSelectedItem(transaction)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       )}
