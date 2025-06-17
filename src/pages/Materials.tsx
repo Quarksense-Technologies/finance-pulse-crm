@@ -31,7 +31,7 @@ const Materials = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/material-requests')}>
+        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/material-requests-page')}>
           <CardHeader>
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-100 rounded-lg">
@@ -54,7 +54,7 @@ const Materials = () => {
         </Card>
 
         {hasPermission('create_transactions') && (
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/material-purchases')}>
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/material-purchases-page')}>
             <CardHeader>
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-green-100 rounded-lg">
@@ -78,7 +78,7 @@ const Materials = () => {
         )}
 
         {hasPermission('add_expense') && (
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/material-expenses')}>
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate('/material-expenses-page')}>
             <CardHeader>
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-red-100 rounded-lg">

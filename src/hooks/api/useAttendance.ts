@@ -61,7 +61,9 @@ export const useAttendanceReport = (month: number, year: number, projectId?: str
   return useQuery({
     queryKey: ['attendanceReport', month, year, projectId],
     queryFn: () => attendanceService.getAttendanceReport(month, year, projectId),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 60 * 60 * 1000, // 1 hour
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 };

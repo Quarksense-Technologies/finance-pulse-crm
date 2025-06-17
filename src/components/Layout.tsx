@@ -31,9 +31,6 @@ const Layout = () => {
     { name: 'Projects', href: '/projects', icon: FolderOpen },
     { name: 'Finances', href: '/finances', icon: DollarSign },
     { name: 'Materials', href: '/materials', icon: Package },
-    { name: 'Material Requests', href: '/material-requests', icon: Package },
-    { name: 'Material Purchases', href: '/material-purchases', icon: Package },
-    { name: 'Material Expenses', href: '/material-expenses', icon: Package },
     { name: 'Resources', href: '/resources', icon: Users },
     { name: 'Attendance', href: '/attendance', icon: Calendar },
     { name: 'Approvals', href: '/approvals', icon: CheckSquare },
@@ -45,7 +42,14 @@ const Layout = () => {
 
   const getCurrentPageName = () => {
     const currentRoute = navigation.find(item => isActiveRoute(item.href));
-    return currentRoute?.name || 'Dashboard';
+    if (currentRoute) return currentRoute.name;
+    
+    // Handle sub-pages
+    if (location.pathname.startsWith('/material-')) {
+      return 'Materials';
+    }
+    
+    return 'Dashboard';
   };
 
   const handleLogout = () => {
@@ -121,15 +125,15 @@ const Layout = () => {
           <div className="flex items-center space-x-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full bg-white border border-gray-200 hover:bg-gray-50">
-                  <Avatar className="h-8 w-8">
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
+                  <Avatar className="h-10 w-10">
                     <AvatarFallback className="bg-blue-500 text-white text-sm font-medium">
                       {user?.name?.charAt(0).toUpperCase() || 'U'}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 bg-white border border-gray-200" align="end" forceMount>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
                 <div className="flex items-center justify-start gap-2 p-3 border-b">
                   <div className="flex flex-col space-y-1 leading-none">
                     <p className="font-medium text-sm truncate">{user?.name}</p>
@@ -153,7 +157,7 @@ const Layout = () => {
         </header>
 
         {/* Page content */}
-        <main className="p-4 sm:p-6">
+        <main className="p-6">
           <Outlet />
         </main>
       </div>
