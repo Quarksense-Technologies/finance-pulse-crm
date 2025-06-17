@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -163,80 +162,83 @@ const Approvals = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Detail View Dialog */}
+      {/* Detail View Dialog - Fixed alignment and positioning */}
       {selectedItem && (
         <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader className="pb-4">
+              <DialogTitle className="text-lg font-semibold">
                 {selectedItem.type === 'material_request' ? 'Material Request Details' : 'Expense Details'}
               </DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Project</Label>
-                  <p className="text-sm">{selectedItem.projectName}</p>
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">Project</Label>
+                  <p className="text-sm text-gray-900">{selectedItem.projectName}</p>
                 </div>
-                <div>
-                  <Label>Requested By</Label>
-                  <p className="text-sm">{selectedItem.createdBy.name}</p>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">Requested By</Label>
+                  <p className="text-sm text-gray-900">{selectedItem.createdBy.name}</p>
                 </div>
-                <div>
-                  <Label>Date</Label>
-                  <p className="text-sm">{formatDate(selectedItem.date)}</p>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">Date</Label>
+                  <p className="text-sm text-gray-900">{formatDate(selectedItem.date)}</p>
                 </div>
-                <div>
-                  <Label>Amount</Label>
-                  <p className="text-sm">{formatCurrency(selectedItem.amount)}</p>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">Amount</Label>
+                  <p className="text-sm font-semibold text-gray-900">{formatCurrency(selectedItem.amount)}</p>
                 </div>
               </div>
               
               {selectedItem.type === 'material_request' && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Part Number</Label>
-                    <p className="text-sm">{selectedItem.partNo || 'N/A'}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-700">Part Number</Label>
+                    <p className="text-sm text-gray-900">{selectedItem.partNo || 'N/A'}</p>
                   </div>
-                  <div>
-                    <Label>Quantity</Label>
-                    <p className="text-sm">{selectedItem.quantity}</p>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-700">Quantity</Label>
+                    <p className="text-sm text-gray-900">{selectedItem.quantity}</p>
                   </div>
-                  <div>
-                    <Label>Urgency</Label>
-                    <Badge className={
-                      selectedItem.urgency === 'high' ? 'bg-red-100 text-red-800' :
-                      selectedItem.urgency === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-green-100 text-green-800'
-                    }>
-                      {selectedItem.urgency?.charAt(0).toUpperCase() + selectedItem.urgency?.slice(1)}
-                    </Badge>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-700">Urgency</Label>
+                    <div>
+                      <Badge className={
+                        selectedItem.urgency === 'high' ? 'bg-red-100 text-red-800' :
+                        selectedItem.urgency === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-green-100 text-green-800'
+                      }>
+                        {selectedItem.urgency?.charAt(0).toUpperCase() + selectedItem.urgency?.slice(1)}
+                      </Badge>
+                    </div>
                   </div>
                 </div>
               )}
 
-              <div>
-                <Label>Description</Label>
-                <p className="text-sm">{selectedItem.description}</p>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700">Description</Label>
+                <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded-md">{selectedItem.description}</p>
               </div>
 
               {selectedItem.notes && (
-                <div>
-                  <Label>Notes</Label>
-                  <p className="text-sm">{selectedItem.notes}</p>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">Notes</Label>
+                  <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded-md">{selectedItem.notes}</p>
                 </div>
               )}
 
               {selectedItem.attachments && selectedItem.attachments.length > 0 && (
-                <div>
-                  <Label>Attachments</Label>
-                  <div className="flex gap-2 mt-2">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">Attachments</Label>
+                  <div className="flex flex-wrap gap-2">
                     {selectedItem.attachments.map((attachment: any, index: number) => (
                       <Button
                         key={index}
                         size="sm"
                         variant="outline"
                         onClick={() => window.open(attachment.url, '_blank')}
+                        className="h-8"
                       >
                         <FileText className="w-4 h-4 mr-1" />
                         {attachment.name}
