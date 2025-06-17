@@ -55,11 +55,125 @@ router.get('/purchases', auth, async (req, res) => {
       .populate('createdBy', 'name')
       .sort({ createdAt: -1 });
     
-    res.status(200).json(purchases);
+    // Transform data to include projectName
+    const transformedPurchases = purchases.map(purchase => ({
+      ...purchase.toJSON(),
+      projectName: purchase.projectId?.name || 'Unknown Project'
+    }));
+    
+    res.status(200).json(transformedPurchases);
   } catch (error) {
     console.error('Error fetching material purchases:', error);
     res.status(500).json({
       message: 'Server error fetching material purchases',
+      success: false
+    });
+  }
+});
+
+// @route   GET /api/materials/purchases/:id
+// @desc    Get single material purchase by ID
+// @access  Private (any authenticated user)
+router.get('/purchases/:id', auth, async (req, res) => {
+  try {
+    const purchase = await MaterialPurchase.findById(req.params.id)
+      .populate('projectId', 'name')
+      .populate('createdBy', 'name');
+    
+    if (!purchase) {
+      return res.status(404).json({
+        message: 'Material purchase not found',
+        success: false
+      });
+    }
+    
+    // Transform data to include projectName
+    const transformedPurchase = {
+      ...purchase.toJSON(),
+      projectName: purchase.projectId?.name || 'Unknown Project'
+    };
+    
+    res.status(200).json(transformedPurchase);
+  } catch (error) {
+    console.error('Error fetching material purchase:', error);
+    res.status(500).json({
+      message: 'Server error fetching material purchase',
+      success: false
+    });
+  }
+});
+
+// @route   GET /api/materials/expenses
+// @desc    Get all material expenses (transactions with category 'materials')
+// @access  Private (any authenticated user)
+router.get('/expenses', auth, async (req, res) => {
+  try {
+    const { project } = req.query;
+    
+    // Build filter object for material expenses
+    const filter = {
+      type: 'expense',
+      category: 'materials'
+    };
+    if (project) filter.project = project;
+    
+    // Get material expenses from transactions
+    const expenses = await Transaction.find(filter)
+      .populate('project', 'name')
+      .populate('createdBy', 'name')
+      .populate('approvedBy', 'name')
+      .populate('rejectedBy', 'name')
+      .sort({ createdAt: -1 });
+    
+    // Transform data to include projectName
+    const transformedExpenses = expenses.map(expense => ({
+      ...expense.toJSON(),
+      projectName: expense.project?.name || 'Unknown Project'
+    }));
+    
+    res.status(200).json(transformedExpenses);
+  } catch (error) {
+    console.error('Error fetching material expenses:', error);
+    res.status(500).json({
+      message: 'Server error fetching material expenses',
+      success: false
+    });
+  }
+});
+
+// @route   GET /api/materials/expenses/:id
+// @desc    Get single material expense by ID
+// @access  Private (any authenticated user)
+router.get('/expenses/:id', auth, async (req, res) => {
+  try {
+    const expense = await Transaction.findOne({
+      _id: req.params.id,
+      type: 'expense',
+      category: 'materials'
+    })
+      .populate('project', 'name')
+      .populate('createdBy', 'name')
+      .populate('approvedBy', 'name')
+      .populate('rejectedBy', 'name');
+    
+    if (!expense) {
+      return res.status(404).json({
+        message: 'Material expense not found',
+        success: false
+      });
+    }
+    
+    // Transform data to include projectName
+    const transformedExpense = {
+      ...expense.toJSON(),
+      projectName: expense.project?.name || 'Unknown Project'
+    };
+    
+    res.status(200).json(transformedExpense);
+  } catch (error) {
+    console.error('Error fetching material expense:', error);
+    res.status(500).json({
+      message: 'Server error fetching material expense',
       success: false
     });
   }

@@ -9,10 +9,41 @@ export const useMaterialRequests = (filters?: { project?: string; status?: strin
   });
 };
 
+export const useMaterialRequestById = (id: string) => {
+  return useQuery({
+    queryKey: ['materialRequest', id],
+    queryFn: () => materialService.getMaterialRequestById(id),
+    enabled: !!id,
+  });
+};
+
 export const useMaterialPurchases = (filters?: { project?: string }) => {
   return useQuery({
     queryKey: ['materialPurchases', filters],
     queryFn: () => materialService.getMaterialPurchases(filters),
+  });
+};
+
+export const useMaterialPurchaseById = (id: string) => {
+  return useQuery({
+    queryKey: ['materialPurchase', id],
+    queryFn: () => materialService.getMaterialPurchaseById(id),
+    enabled: !!id,
+  });
+};
+
+export const useMaterialExpenses = (filters?: { project?: string }) => {
+  return useQuery({
+    queryKey: ['materialExpenses', filters],
+    queryFn: () => materialService.getMaterialExpenses(filters),
+  });
+};
+
+export const useMaterialExpenseById = (id: string) => {
+  return useQuery({
+    queryKey: ['materialExpense', id],
+    queryFn: () => materialService.getMaterialExpenseById(id),
+    enabled: !!id,
   });
 };
 
@@ -42,6 +73,9 @@ export const useCreateMaterialPurchase = () => {
     onSuccess: (data, variables) => {
       // Invalidate material purchases queries
       queryClient.invalidateQueries({ queryKey: ['materialPurchases'] });
+      
+      // Invalidate material expenses queries
+      queryClient.invalidateQueries({ queryKey: ['materialExpenses'] });
       
       // Invalidate transactions (since expense is auto-created)
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
@@ -73,6 +107,7 @@ export const useDeleteMaterialPurchase = () => {
     mutationFn: materialService.deleteMaterialPurchase,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['materialPurchases'] });
+      queryClient.invalidateQueries({ queryKey: ['materialExpenses'] });
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['financialSummary'] });
     },

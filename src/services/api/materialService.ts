@@ -58,6 +58,27 @@ export interface MaterialPurchase {
   createdAt: string;
 }
 
+export interface MaterialExpense {
+  id: string;
+  projectName?: string;
+  description: string;
+  amount: number;
+  category: string;
+  project: string;
+  date: string;
+  status?: string;
+  approvalStatus?: string;
+  attachments?: Array<{
+    name: string;
+    url: string;
+  }>;
+  createdBy?: {
+    id: string;
+    name: string;
+  };
+  createdAt: string;
+}
+
 export interface CreateMaterialRequestData {
   projectId: string;
   description: string;
@@ -95,6 +116,16 @@ export const materialService = {
       return response.data;
     } catch (error: any) {
       console.error('Error fetching material requests:', error);
+      throw error;
+    }
+  },
+
+  async getMaterialRequestById(id: string): Promise<MaterialRequest> {
+    try {
+      const response = await apiClient.get(`/materials/requests/${id}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching material request:', error);
       throw error;
     }
   },
@@ -147,6 +178,16 @@ export const materialService = {
     }
   },
 
+  async getMaterialPurchaseById(id: string): Promise<MaterialPurchase> {
+    try {
+      const response = await apiClient.get(`/materials/purchases/${id}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching material purchase:', error);
+      throw error;
+    }
+  },
+
   async createMaterialPurchase(data: CreateMaterialPurchaseData): Promise<{ purchase: MaterialPurchase; expense: any }> {
     try {
       const response = await apiClient.post('/materials/purchases', data);
@@ -180,6 +221,27 @@ export const materialService = {
         description: error.response?.data?.message || "Failed to delete material purchase",
         variant: "destructive"
       });
+      throw error;
+    }
+  },
+
+  // Material Expenses
+  async getMaterialExpenses(filters?: { project?: string }): Promise<MaterialExpense[]> {
+    try {
+      const response = await apiClient.get('/materials/expenses', { params: filters });
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching material expenses:', error);
+      throw error;
+    }
+  },
+
+  async getMaterialExpenseById(id: string): Promise<MaterialExpense> {
+    try {
+      const response = await apiClient.get(`/materials/expenses/${id}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching material expense:', error);
       throw error;
     }
   }

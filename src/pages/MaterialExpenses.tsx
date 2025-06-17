@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Plus, Eye } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/utils/financialUtils';
-import { useTransactions } from '@/hooks/api/useFinances';
+import { useMaterialExpenses } from '@/hooks/api/useMaterials';
 import { useNavigate } from 'react-router-dom';
 import MultiItemMaterialExpenseForm from '@/components/forms/MultiItemMaterialExpenseForm';
 
@@ -17,16 +17,8 @@ const MaterialExpenses = () => {
   const navigate = useNavigate();
   const [showExpenseForm, setShowExpenseForm] = useState(false);
 
-  // Filter transactions to show only material expenses
-  const { data: transactions = [], isLoading, error } = useTransactions({ 
-    type: 'expense' 
-  });
-
-  // Filter to show only material-related expenses based on description or category
-  const materialExpenses = transactions.filter(transaction => 
-    transaction.description?.toLowerCase().includes('material') ||
-    transaction.category === 'materials'
-  );
+  // Use the new dedicated material expenses endpoint
+  const { data: materialExpenses = [], isLoading, error } = useMaterialExpenses();
 
   const getStatusBadge = (status: string) => {
     const statusColors: Record<string, string> = {
@@ -43,15 +35,8 @@ const MaterialExpenses = () => {
     );
   };
 
-  const getProjectName = (project: any) => {
-    if (!project) return 'Unknown Project';
-    if (typeof project === 'string') return project;
-    if (typeof project === 'object' && project.name) return project.name;
-    return 'Unknown Project';
-  };
-
-  const handleViewItem = (transaction: any) => {
-    navigate(`/material-expense/${transaction.id}`);
+  const handleViewItem = (expense: any) => {
+    navigate(`/material-expense/${expense.id}`);
   };
 
   if (!hasPermission('add_expense')) {
@@ -127,20 +112,20 @@ const MaterialExpenses = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {materialExpenses.map((transaction) => (
-                  <TableRow key={transaction.id}>
-                    <TableCell className="font-medium">{transaction.description}</TableCell>
-                    <TableCell>{getProjectName(transaction.project)}</TableCell>
+                {materialExpenses.map((expense) => (
+                  <TableRow key={expense.id}>
+                    <TableCell className="font-medium">{expense.description}</TableCell>
+                    <TableCell>{expense.projectName || 'Unknown Project'}</TableCell>
                     <TableCell className="font-semibold text-red-600">
-                      {formatCurrency(transaction.amount)}
+                      {formatCurrency(expense.amount)}
                     </TableCell>
-                    <TableCell>{getStatusBadge(transaction.status || 'pending')}</TableCell>
-                    <TableCell>{formatDate(transaction.date)}</TableCell>
+                    <TableCell>{getStatusBadge(expense.approvalStatus || 'pending')}</TableCell>
+                    <TableCell>{formatDate(expense.date)}</TableCell>
                     <TableCell>
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleViewItem(transaction)}
+                        onClick={() => handleViewItem(expense)}
                       >
                         <Eye className="w-4 h-4" />
                       </Button>

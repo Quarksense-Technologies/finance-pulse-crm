@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Download, FileText } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/utils/financialUtils';
-import { useMaterialPurchases } from '@/hooks/api/useMaterials';
+import { useMaterialPurchaseById } from '@/hooks/api/useMaterials';
 import { toast } from "@/hooks/use-toast";
 
 const MaterialPurchaseDetail = () => {
@@ -14,8 +14,7 @@ const MaterialPurchaseDetail = () => {
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
 
-  const { data: materialPurchases = [], isLoading, error } = useMaterialPurchases();
-  const purchase = materialPurchases.find(p => p.id === id);
+  const { data: purchase, isLoading, error } = useMaterialPurchaseById(id || '');
 
   const handleDownloadAttachment = async (attachment: any) => {
     try {

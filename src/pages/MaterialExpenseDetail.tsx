@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Download, FileText } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/utils/financialUtils';
-import { useTransactions } from '@/hooks/api/useFinances';
+import { useMaterialExpenseById } from '@/hooks/api/useMaterials';
 import { toast } from "@/hooks/use-toast";
 
 const MaterialExpenseDetail = () => {
@@ -15,16 +15,7 @@ const MaterialExpenseDetail = () => {
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
 
-  const { data: transactions = [], isLoading, error } = useTransactions({ 
-    type: 'expense' 
-  });
-
-  const materialExpenses = transactions.filter(transaction => 
-    transaction.description?.toLowerCase().includes('material') ||
-    transaction.category === 'materials'
-  );
-
-  const expense = materialExpenses.find(t => t.id === id);
+  const { data: expense, isLoading, error } = useMaterialExpenseById(id || '');
 
   const getStatusBadge = (status: string) => {
     const statusColors: Record<string, string> = {
@@ -39,13 +30,6 @@ const MaterialExpenseDetail = () => {
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </Badge>
     );
-  };
-
-  const getProjectName = (project: any) => {
-    if (!project) return 'Unknown Project';
-    if (typeof project === 'string') return project;
-    if (typeof project === 'object' && project.name) return project.name;
-    return 'Unknown Project';
   };
 
   const handleDownloadAttachment = async (attachment: any) => {
@@ -141,11 +125,11 @@ const MaterialExpenseDetail = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <p className="text-sm font-medium text-gray-500">Project</p>
-              <p className="text-sm">{getProjectName(expense.project)}</p>
+              <p className="text-sm">{expense.projectName || 'Unknown Project'}</p>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">Status</p>
-              <div className="text-sm">{getStatusBadge(expense.status || 'pending')}</div>
+              <div className="text-sm">{getStatusBadge(expense.approvalStatus || 'pending')}</div>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">Category</p>
