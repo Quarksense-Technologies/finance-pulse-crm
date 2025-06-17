@@ -78,8 +78,8 @@ const Layout = () => {
 
       {/* Sidebar */}
       <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-sm transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex h-16 items-center justify-between px-4 border-b border-gray-200">
-          <h1 className="text-lg sm:text-xl font-bold text-gray-900">Business Management</h1>
+        <div className="flex h-16 items-center justify-between px-6 border-b border-gray-200">
+          <h1 className="text-lg sm:text-xl font-bold text-gray-900 text-center flex-1">Business Management</h1>
           <button
             className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
             onClick={toggleSidebar}
@@ -87,7 +87,7 @@ const Layout = () => {
             <X className="h-6 w-6" />
           </button>
         </div>
-        <nav className="mt-8 px-4 overflow-y-auto pb-20">
+        <nav className="mt-8 px-6 overflow-y-auto pb-20">
           <ul className="space-y-2">
             {navigation.map((item) => {
               const Icon = item.icon;
@@ -115,15 +115,15 @@ const Layout = () => {
       {/* Main content */}
       <div className="lg:pl-64">
         {/* Header */}
-        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-4 sm:px-6">
+        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-6">
           <div className="flex items-center gap-4">
             <button
-              className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
+              className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 absolute left-2"
               onClick={toggleSidebar}
             >
               <Menu className="h-6 w-6" />
             </button>
-            <h2 className="text-lg font-semibold text-gray-900 truncate">
+            <h2 className="text-lg font-semibold text-gray-900 truncate text-center flex-1 lg:text-left lg:flex-none lg:ml-0 ml-16">
               {getCurrentPageName()}
             </h2>
           </div>
