@@ -1,4 +1,3 @@
-
 // src/hooks/useAuth.tsx
 import * as React from 'react';
 import { authService } from '@/services/api/authService';
@@ -34,6 +33,7 @@ export type Permission =
   | 'add_expense'
   | 'view_reports'
   | 'manage_materials'
+  | 'manage_resources'
   | 'create_transactions'
   | 'delete_materials';
 
