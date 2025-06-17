@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -36,7 +35,18 @@ const MaterialExpenses = () => {
   };
 
   const handleViewItem = (expense: any) => {
-    navigate(`/material-expense/${expense.id}`);
+    console.log('Attempting to navigate to expense detail:', expense);
+    console.log('Expense ID:', expense.id || expense._id);
+    
+    const expenseId = expense.id || expense._id;
+    if (!expenseId) {
+      console.error('No ID found for expense:', expense);
+      return;
+    }
+    
+    const targetRoute = `/material-expense/${expenseId}`;
+    console.log('Navigating to:', targetRoute);
+    navigate(targetRoute);
   };
 
   if (!hasPermission('add_expense')) {
@@ -113,7 +123,7 @@ const MaterialExpenses = () => {
               </TableHeader>
               <TableBody>
                 {materialExpenses.map((expense) => (
-                  <TableRow key={expense.id}>
+                  <TableRow key={expense.id || expense._id}>
                     <TableCell className="font-medium">{expense.description}</TableCell>
                     <TableCell>{expense.projectName || 'Unknown Project'}</TableCell>
                     <TableCell className="font-semibold text-red-600">
