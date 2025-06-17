@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
@@ -25,7 +24,6 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ preselectedProjectId, onSubmi
       date: new Date().toISOString().slice(0, 10),
       category: '',
       description: '',
-      status: 'pending',
     },
   });
 
@@ -38,7 +36,6 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ preselectedProjectId, onSubmi
         category: data.category,
         project: data.projectId,
         date: data.date,
-        status: data.status,
       });
       
       form.reset();
@@ -131,29 +128,6 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ preselectedProjectId, onSubmi
                   <SelectItem value="utilities">Utilities</SelectItem>
                   <SelectItem value="taxes">Taxes</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="status"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Payment Status</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="paid">Paid</SelectItem>
-                  <SelectItem value="overdue">Overdue</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />

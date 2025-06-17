@@ -1,13 +1,16 @@
+
 import apiClient from './client';
 import { toast } from "@/components/ui/use-toast";
+import { Transaction, FinancialSummary } from '@/data/types';
 
 export interface CreateTransactionData {
   type: 'expense' | 'payment' | 'income';
   amount: number;
   description: string;
-  category: string;
+  category?: string;
   project: string;
   date: string;
+  status?: 'paid' | 'pending' | 'overdue'; // Added status field
   notes?: string;
   attachments?: Array<{
     name: string;
