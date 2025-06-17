@@ -28,6 +28,38 @@ const MaterialPurchases = () => {
     }
   };
 
+  const handleViewAttachment = (attachment: any) => {
+    try {
+      if (attachment.url) {
+        if (attachment.url.startsWith('data:')) {
+          // For base64 data URLs, create a new window to display
+          const newWindow = window.open();
+          if (newWindow) {
+            if (attachment.type && attachment.type.startsWith('image/')) {
+              newWindow.document.write(`
+                <html>
+                  <head><title>${attachment.name}</title></head>
+                  <body style="margin:0; display:flex; justify-content:center; align-items:center; min-height:100vh; background:#f0f0f0;">
+                    <img src="${attachment.url}" alt="${attachment.name}" style="max-width: 100%; height: auto;" />
+                  </body>
+                </html>
+              `);
+              newWindow.document.close();
+            } else {
+              // For PDFs and other files, try to display directly
+              newWindow.location.href = attachment.url;
+            }
+          }
+        } else {
+          // For regular URLs, open in new tab
+          window.open(attachment.url, '_blank');
+        }
+      }
+    } catch (error) {
+      console.error('Error opening attachment:', error);
+    }
+  };
+
   if (!hasPermission('create_transactions')) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -191,23 +223,7 @@ const MaterialPurchases = () => {
                         key={index}
                         size="sm"
                         variant="outline"
-                        onClick={() => {
-                          if (attachment.url.startsWith('data:')) {
-                            // For base64 data URLs, create a new window to display
-                            const newWindow = window.open();
-                            if (newWindow) {
-                              if (attachment.type && attachment.type.startsWith('image/')) {
-                                newWindow.document.write(`<img src="${attachment.url}" alt="${attachment.name}" style="max-width: 100%; height: auto;" />`);
-                              } else {
-                                // For PDFs and other files, try to display or download
-                                newWindow.location.href = attachment.url;
-                              }
-                            }
-                          } else {
-                            // For regular URLs, open in new tab
-                            window.open(attachment.url, '_blank');
-                          }
-                        }}
+                        onClick={() => handleViewAttachment(attachment)}
                       >
                         <FileText className="w-4 h-4 mr-1" />
                         {attachment.name}

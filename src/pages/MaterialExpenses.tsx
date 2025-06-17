@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Plus, Eye, FileText } from 'lucide-react';
@@ -49,6 +49,38 @@ const MaterialExpenses = () => {
     return 'Unknown Project';
   };
 
+  const handleViewAttachment = (attachment: any) => {
+    try {
+      if (attachment.url) {
+        if (attachment.url.startsWith('data:')) {
+          // For base64 data URLs, create a new window to display
+          const newWindow = window.open();
+          if (newWindow) {
+            if (attachment.type && attachment.type.startsWith('image/')) {
+              newWindow.document.write(`
+                <html>
+                  <head><title>${attachment.name}</title></head>
+                  <body style="margin:0; display:flex; justify-content:center; align-items:center; min-height:100vh; background:#f0f0f0;">
+                    <img src="${attachment.url}" alt="${attachment.name}" style="max-width: 100%; height: auto;" />
+                  </body>
+                </html>
+              `);
+              newWindow.document.close();
+            } else {
+              // For PDFs and other files, try to display directly
+              newWindow.location.href = attachment.url;
+            }
+          }
+        } else {
+          // For regular URLs, open in new tab
+          window.open(attachment.url, '_blank');
+        }
+      }
+    } catch (error) {
+      console.error('Error opening attachment:', error);
+    }
+  };
+
   if (!hasPermission('add_expense')) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -67,18 +99,18 @@ const MaterialExpenses = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Material Expenses</h1>
         <Dialog open={showExpenseForm} onOpenChange={setShowExpenseForm}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Expense
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>Add Material Expense</DialogTitle>
-            </DialogHeader>
-            <MultiItemMaterialExpenseForm onSubmit={() => setShowExpenseForm(false)} />
-          </DialogContent>
+          <Button onClick={() => setShowExpenseForm(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Expense
+          </Button>
+          {showExpenseForm && (
+            <DialogContent className="max-w-4xl">
+              <DialogHeader>
+                <DialogTitle>Add Material Expense</DialogTitle>
+              </DialogHeader>
+              <MultiItemMaterialExpenseForm onSubmit={() => setShowExpenseForm(false)} />
+            </DialogContent>
+          )}
         </Dialog>
       </div>
 
@@ -176,18 +208,7 @@ const MaterialExpenses = () => {
                         key={index}
                         size="sm"
                         variant="outline"
-                        onClick={() => {
-                          if (attachment.url.startsWith('data:')) {
-                            // For base64 data URLs, create a new window to display
-                            const newWindow = window.open();
-                            if (newWindow) {
-                              newWindow.document.write(`<img src="${attachment.url}" alt="${attachment.name}" style="max-width: 100%; height: auto;" />`);
-                            }
-                          } else {
-                            // For regular URLs, open in new tab
-                            window.open(attachment.url, '_blank');
-                          }
-                        }}
+                        onClick={() => handleViewAttachment(attachment)}
                       >
                         <FileText className="w-4 h-4 mr-1" />
                         {attachment.name}

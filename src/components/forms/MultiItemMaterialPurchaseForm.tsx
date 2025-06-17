@@ -61,6 +61,15 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
     }));
   };
 
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
+  };
+
   const handleSubmit = async (data: any) => {
     try {
       // Submit each item as a separate purchase
@@ -73,12 +82,14 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
         const totalAmount = subtotal + gstAmount;
 
         const itemAttachments = attachments[index] || [];
-        // Create proper attachment data with base64 or file data
-        const attachmentData = itemAttachments.map(file => ({
-          name: file.name,
-          url: `data:${file.type};base64,${btoa(String.fromCharCode(...new Uint8Array(file as any)))}`, // Simplified for demo
-          type: file.type
-        }));
+        // Convert files to base64 properly
+        const attachmentData = await Promise.all(
+          itemAttachments.map(async (file) => ({
+            name: file.name,
+            url: await fileToBase64(file),
+            type: file.type
+          }))
+        );
 
         const purchaseData = {
           projectId: data.projectId,
