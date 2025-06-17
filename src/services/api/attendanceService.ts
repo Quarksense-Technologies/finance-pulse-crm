@@ -36,6 +36,7 @@ export const attendanceService = {
       if (month) params.month = month;
       if (year) params.year = year;
 
+      console.log(`Fetching attendance for project ${projectId} with params:`, params);
       const response = await apiClient.get(`/attendance/project/${projectId}`, { params });
       console.log('Project attendance response:', response.data);
       
@@ -54,15 +55,8 @@ export const attendanceService = {
       }));
     } catch (error: any) {
       console.error(`Error fetching attendance for project ${projectId}:`, error);
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to load attendance records';
-      
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive"
-      });
-      
-      throw error;
+      console.error('Error response:', error.response?.data);
+      return [];
     }
   },
 
@@ -73,28 +67,29 @@ export const attendanceService = {
       if (year) params.year = year;
       if (projectId) params.projectId = projectId;
 
+      console.log('Fetching attendance report with params:', params);
       const response = await apiClient.get('/attendance/report', { params });
       console.log('Attendance report response:', response.data);
       
       return response.data;
     } catch (error: any) {
       console.error('Error fetching attendance report:', error);
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to load attendance report';
-      
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive"
-      });
-      
-      throw error;
+      console.error('Error response:', error.response?.data);
+      return [];
     }
   },
 
   async createAttendance(attendanceData: CreateAttendanceData): Promise<AttendanceRecord> {
     try {
-      console.log('Creating attendance record:', attendanceData);
+      console.log('Creating attendance record with data:', attendanceData);
+      
+      // Validate the data before sending
+      if (!attendanceData.resourceId || !attendanceData.projectId) {
+        throw new Error('Resource ID and Project ID are required');
+      }
+      
       const response = await apiClient.post('/attendance', attendanceData);
+      console.log('Create attendance response:', response.data);
       
       toast({
         title: "Success",
@@ -116,6 +111,8 @@ export const attendanceService = {
       };
     } catch (error: any) {
       console.error('Error creating attendance record:', error);
+      console.error('Error response:', error.response?.data);
+      
       const errorMessage = error.response?.data?.message || error.message || 'Failed to create attendance record';
       
       toast({
@@ -130,6 +127,7 @@ export const attendanceService = {
 
   async updateAttendance(id: string, attendanceData: UpdateAttendanceData): Promise<AttendanceRecord> {
     try {
+      console.log(`Updating attendance record ${id}:`, attendanceData);
       const response = await apiClient.put(`/attendance/${id}`, attendanceData);
       
       toast({
@@ -166,6 +164,7 @@ export const attendanceService = {
 
   async deleteAttendance(id: string): Promise<void> {
     try {
+      console.log(`Deleting attendance record ${id}`);
       await apiClient.delete(`/attendance/${id}`);
       
       toast({
