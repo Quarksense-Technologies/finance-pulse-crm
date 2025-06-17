@@ -4,77 +4,23 @@ import { Calendar, Clock, IndianRupee, Users, Filter } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatCurrency } from '@/utils/financialUtils';
-
-interface AttendanceReport {
-  resourceId: string;
-  resourceName: string;
-  resourceRole: string;
-  projectId: string;
-  projectName: string;
-  month: string;
-  year: number;
-  totalHours: number;
-  totalDays: number;
-  hourlyRate: number;
-  totalCost: number;
-}
+import { useAttendanceReport } from '@/hooks/api/useAttendance';
+import { useProjects } from '@/hooks/api/useProjects';
 
 const Attendance = () => {
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().getMonth().toString());
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
   const [selectedProject, setSelectedProject] = useState<string>('all');
 
-  // Mock data - in real app, this would come from API
-  const attendanceReports: AttendanceReport[] = [
-    {
-      resourceId: '1',
-      resourceName: 'John Doe',
-      resourceRole: 'Senior Developer',
-      projectId: 'proj1',
-      projectName: 'E-commerce Platform',
-      month: 'January',
-      year: 2025,
-      totalHours: 160,
-      totalDays: 20,
-      hourlyRate: 3000,
-      totalCost: 480000
-    },
-    {
-      resourceId: '2',
-      resourceName: 'Jane Smith',
-      resourceRole: 'UI/UX Designer',
-      projectId: 'proj1',
-      projectName: 'E-commerce Platform',
-      month: 'January',
-      year: 2025,
-      totalHours: 140,
-      totalDays: 18,
-      hourlyRate: 2500,
-      totalCost: 350000
-    },
-    {
-      resourceId: '3',
-      resourceName: 'Mike Johnson',
-      resourceRole: 'Backend Developer',
-      projectId: 'proj2',
-      projectName: 'Mobile App Development',
-      month: 'January',
-      year: 2025,
-      totalHours: 155,
-      totalDays: 19,
-      hourlyRate: 2800,
-      totalCost: 434000
-    }
-  ];
-
-  const projects = [
-    { id: 'all', name: 'All Projects' },
-    { id: 'proj1', name: 'E-commerce Platform' },
-    { id: 'proj2', name: 'Mobile App Development' }
-  ];
+  // Fetch data from backend
+  const { data: projects = [] } = useProjects();
+  const { data: attendanceReports = [], isLoading } = useAttendanceReport(
+    parseInt(selectedMonth) + 1, // API expects 1-based months
+    parseInt(selectedYear),
+    selectedProject === 'all' ? undefined : selectedProject
+  );
 
   const months = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -83,18 +29,18 @@ const Attendance = () => {
 
   const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i);
 
-  const filteredReports = attendanceReports.filter(report => {
-    const monthMatch = report.month === months[parseInt(selectedMonth)];
-    const yearMatch = report.year === parseInt(selectedYear);
-    const projectMatch = selectedProject === 'all' || report.projectId === selectedProject;
-    
-    return monthMatch && yearMatch && projectMatch;
-  });
-
-  const totalHours = filteredReports.reduce((sum, report) => sum + report.totalHours, 0);
-  const totalCost = filteredReports.reduce((sum, report) => sum + report.totalCost, 0);
-  const totalResources = filteredReports.length;
+  const totalHours = attendanceReports.reduce((sum, report) => sum + (report.totalHours || 0), 0);
+  const totalCost = attendanceReports.reduce((sum, report) => sum + (report.totalCost || 0), 0);
+  const totalResources = attendanceReports.length;
   const averageHoursPerResource = totalResources > 0 ? totalHours / totalResources : 0;
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        Loading attendance data...
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fade-in p-4 sm:p-6">
@@ -156,6 +102,7 @@ const Attendance = () => {
                   <SelectValue placeholder="Select project" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">All Projects</SelectItem>
                   {projects.map((project) => (
                     <SelectItem key={project.id} value={project.id}>
                       {project.name}
@@ -241,7 +188,7 @@ const Attendance = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {filteredReports.length === 0 ? (
+          {attendanceReports.length === 0 ? (
             <div className="text-center py-8 text-gray-500 dark:text-muted-foreground">
               No attendance records found for the selected filters
             </div>
@@ -271,7 +218,7 @@ const Attendance = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-border">
-                  {filteredReports.map((report, index) => (
+                  {attendanceReports.map((report, index) => (
                     <tr key={index} className="hover:bg-gray-50 dark:hover:bg-muted/50">
                       <td className="px-4 py-4 whitespace-nowrap">
                         <div>

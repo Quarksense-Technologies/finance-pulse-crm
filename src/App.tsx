@@ -18,6 +18,8 @@ import Materials from './pages/Materials';
 import MaterialRequests from './pages/MaterialRequests';
 import MaterialPurchases from './pages/MaterialPurchases';
 import MaterialExpenses from './pages/MaterialExpenses';
+import Resources from './pages/Resources';
+import Attendance from './pages/Attendance';
 import UserManagement from '@/pages/UserManagement';
 import Settings from '@/pages/Settings';
 import Approvals from '@/pages/Approvals';
@@ -58,6 +60,8 @@ function App() {
                   <Route path="material-requests" element={<MaterialRequests />} />
                   <Route path="material-purchases" element={<MaterialPurchases />} />
                   <Route path="material-expenses" element={<MaterialExpenses />} />
+                  <Route path="resources" element={<Resources />} />
+                  <Route path="attendance" element={<Attendance />} />
                   <Route path="users" element={<UserManagement />} />
                   <Route path="settings" element={<Settings />} />
                   <Route path="approvals" element={<Approvals />} />
