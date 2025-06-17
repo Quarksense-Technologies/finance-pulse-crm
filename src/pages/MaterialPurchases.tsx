@@ -159,6 +159,22 @@ const MaterialPurchases = () => {
                   <p className="text-sm font-medium text-gray-500">GST</p>
                   <p className="text-sm">{selectedItem.gst}%</p>
                 </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Part Number</p>
+                  <p className="text-sm">{selectedItem.partNo || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">HSN Code</p>
+                  <p className="text-sm">{selectedItem.hsn || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Quantity</p>
+                  <p className="text-sm">{selectedItem.quantity}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Unit Price</p>
+                  <p className="text-sm">{formatCurrency(selectedItem.price)}</p>
+                </div>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h3 className="text-lg font-semibold mb-2">Total Amount</h3>
@@ -169,13 +185,29 @@ const MaterialPurchases = () => {
               {selectedItem.attachments && selectedItem.attachments.length > 0 && (
                 <div>
                   <p className="text-sm font-medium text-gray-500 mb-2">Attachments</p>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     {selectedItem.attachments.map((attachment: any, index: number) => (
                       <Button
                         key={index}
                         size="sm"
                         variant="outline"
-                        onClick={() => window.open(attachment.url, '_blank')}
+                        onClick={() => {
+                          if (attachment.url.startsWith('data:')) {
+                            // For base64 data URLs, create a new window to display
+                            const newWindow = window.open();
+                            if (newWindow) {
+                              if (attachment.type && attachment.type.startsWith('image/')) {
+                                newWindow.document.write(`<img src="${attachment.url}" alt="${attachment.name}" style="max-width: 100%; height: auto;" />`);
+                              } else {
+                                // For PDFs and other files, try to display or download
+                                newWindow.location.href = attachment.url;
+                              }
+                            }
+                          } else {
+                            // For regular URLs, open in new tab
+                            window.open(attachment.url, '_blank');
+                          }
+                        }}
                       >
                         <FileText className="w-4 h-4 mr-1" />
                         {attachment.name}

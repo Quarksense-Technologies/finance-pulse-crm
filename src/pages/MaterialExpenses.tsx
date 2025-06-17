@@ -42,6 +42,13 @@ const MaterialExpenses = () => {
     );
   };
 
+  const getProjectName = (project: any) => {
+    if (!project) return 'Unknown Project';
+    if (typeof project === 'string') return project;
+    if (typeof project === 'object' && project.name) return project.name;
+    return 'Unknown Project';
+  };
+
   if (!hasPermission('add_expense')) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -105,7 +112,7 @@ const MaterialExpenses = () => {
                 {materialExpenses.map((transaction) => (
                   <TableRow key={transaction.id}>
                     <TableCell className="font-medium">{transaction.description}</TableCell>
-                    <TableCell>{transaction.project || 'Unknown Project'}</TableCell>
+                    <TableCell>{getProjectName(transaction.project)}</TableCell>
                     <TableCell className="font-semibold text-red-600">
                       {formatCurrency(transaction.amount)}
                     </TableCell>
@@ -139,7 +146,7 @@ const MaterialExpenses = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm font-medium text-gray-500">Project</p>
-                  <p className="text-sm">{selectedItem.project || 'Unknown Project'}</p>
+                  <p className="text-sm">{getProjectName(selectedItem.project)}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500">Status</p>
@@ -163,13 +170,24 @@ const MaterialExpenses = () => {
               {selectedItem.attachments && selectedItem.attachments.length > 0 && (
                 <div>
                   <p className="text-sm font-medium text-gray-500 mb-2">Attachments</p>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     {selectedItem.attachments.map((attachment: any, index: number) => (
                       <Button
                         key={index}
                         size="sm"
                         variant="outline"
-                        onClick={() => window.open(attachment.url, '_blank')}
+                        onClick={() => {
+                          if (attachment.url.startsWith('data:')) {
+                            // For base64 data URLs, create a new window to display
+                            const newWindow = window.open();
+                            if (newWindow) {
+                              newWindow.document.write(`<img src="${attachment.url}" alt="${attachment.name}" style="max-width: 100%; height: auto;" />`);
+                            }
+                          } else {
+                            // For regular URLs, open in new tab
+                            window.open(attachment.url, '_blank');
+                          }
+                        }}
                       >
                         <FileText className="w-4 h-4 mr-1" />
                         {attachment.name}
