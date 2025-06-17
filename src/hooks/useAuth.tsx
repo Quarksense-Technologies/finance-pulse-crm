@@ -1,3 +1,4 @@
+
 // src/hooks/useAuth.tsx
 import * as React from 'react';
 import { authService } from '@/services/api/authService';
@@ -31,7 +32,10 @@ export type Permission =
   | 'delete_project'
   | 'add_payment'
   | 'add_expense'
-  | 'view_reports';
+  | 'view_reports'
+  | 'manage_materials'
+  | 'create_transactions'
+  | 'delete_materials';
 
 const AuthContext = React.createContext<AuthContextType | undefined>(undefined);
 
@@ -112,6 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           'add_payment',
           'add_expense',
           'view_reports',
+          'manage_materials', // Users can request materials
         ].includes(permission);
       default:
         return false;
