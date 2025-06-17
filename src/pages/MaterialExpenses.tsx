@@ -35,17 +35,18 @@ const MaterialExpenses = () => {
   };
 
   const handleViewItem = (expense: any) => {
-    console.log('Attempting to navigate to expense detail:', expense);
-    console.log('Expense ID:', expense.id || expense._id);
+    console.log('🔥 BUTTON CLICKED! Attempting to navigate to expense detail:', expense);
+    console.log('🔥 Expense ID:', expense.id);
+    console.log('🔥 Expense _id:', (expense as any)._id);
     
-    const expenseId = expense.id || expense._id;
+    const expenseId = expense.id || (expense as any)._id;
     if (!expenseId) {
-      console.error('No ID found for expense:', expense);
+      console.error('❌ No ID found for expense:', expense);
       return;
     }
     
     const targetRoute = `/material-expense/${expenseId}`;
-    console.log('Navigating to:', targetRoute);
+    console.log('🔥 Navigating to:', targetRoute);
     navigate(targetRoute);
   };
 
@@ -123,7 +124,7 @@ const MaterialExpenses = () => {
               </TableHeader>
               <TableBody>
                 {materialExpenses.map((expense) => (
-                  <TableRow key={expense.id || expense._id}>
+                  <TableRow key={expense.id}>
                     <TableCell className="font-medium">{expense.description}</TableCell>
                     <TableCell>{expense.projectName || 'Unknown Project'}</TableCell>
                     <TableCell className="font-semibold text-red-600">
@@ -135,7 +136,11 @@ const MaterialExpenses = () => {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleViewItem(expense)}
+                        onClick={(e) => {
+                          console.log('🔥 BUTTON CLICK EVENT:', e);
+                          console.log('🔥 EXPENSE DATA:', expense);
+                          handleViewItem(expense);
+                        }}
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
