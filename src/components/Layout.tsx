@@ -3,7 +3,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from "@/components/ui/button";
-import { Home, Building2, Briefcase, DollarSign, Users, LogOut, Menu, X } from 'lucide-react';
+import { Home, Building2, Briefcase, DollarSign, Users, LogOut, Menu, X, Package } from 'lucide-react';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const { user, logout, hasPermission } = useAuth();
@@ -15,6 +15,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     { name: 'Companies', href: '/companies', icon: Building2, current: location.pathname.startsWith('/companies') },
     { name: 'Projects', href: '/projects', icon: Briefcase, current: location.pathname.startsWith('/projects') },
     { name: 'Finances', href: '/finances', icon: DollarSign, current: location.pathname.startsWith('/finances') },
+    ...(hasPermission('manage_materials') ? [{ name: 'Materials', href: '/materials', icon: Package, current: location.pathname.startsWith('/materials') || location.pathname.startsWith('/material-') }] : []),
     ...(hasPermission('manage_resources') ? [{ name: 'Resources', href: '/resources', icon: Users, current: location.pathname.startsWith('/resources') }] : []),
   ];
 
