@@ -49,34 +49,36 @@ function App() {
             <div className="min-h-screen bg-background">
               <Routes>
                 <Route path="/login" element={<Login />} />
-                <Route path="/" element={
+                <Route path="/*" element={
                   <ProtectedRoute>
-                    <Layout />
+                    <Layout>
+                      <Routes>
+                        <Route index element={<Navigate to="/dashboard" replace />} />
+                        <Route path="dashboard" element={<Dashboard />} />
+                        <Route path="projects" element={<Projects />} />
+                        <Route path="projects/:id" element={<ProjectDetails />} />
+                        <Route path="companies" element={<Companies />} />
+                        <Route path="companies/:id" element={<CompanyDetails />} />
+                        <Route path="finances" element={<Finances />} />
+                        <Route path="materials" element={<Materials />} />
+                        <Route path="material-requests" element={<MaterialRequests />} />
+                        <Route path="material-purchases" element={<MaterialPurchases />} />
+                        <Route path="material-expenses" element={<MaterialExpenses />} />
+                        <Route path="material-requests-page" element={<MaterialRequestsPage />} />
+                        <Route path="material-purchases-page" element={<MaterialPurchasesPage />} />
+                        <Route path="material-expenses-page" element={<MaterialExpensesPage />} />
+                        <Route path="material-expense/:id" element={<MaterialExpenseDetail />} />
+                        <Route path="material-purchase/:id" element={<MaterialPurchaseDetail />} />
+                        <Route path="resources" element={<Resources />} />
+                        <Route path="attendance" element={<Attendance />} />
+                        <Route path="users" element={<UserManagement />} />
+                        <Route path="settings" element={<Settings />} />
+                        <Route path="approvals" element={<Approvals />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </Layout>
                   </ProtectedRoute>
-                }>
-                  <Route index element={<Navigate to="/dashboard" replace />} />
-                  <Route path="dashboard" element={<Dashboard />} />
-                  <Route path="projects" element={<Projects />} />
-                  <Route path="projects/:id" element={<ProjectDetails />} />
-                  <Route path="companies" element={<Companies />} />
-                  <Route path="companies/:id" element={<CompanyDetails />} />
-                  <Route path="finances" element={<Finances />} />
-                  <Route path="materials" element={<Materials />} />
-                  <Route path="material-requests" element={<MaterialRequests />} />
-                  <Route path="material-purchases" element={<MaterialPurchases />} />
-                  <Route path="material-expenses" element={<MaterialExpenses />} />
-                  <Route path="material-requests-page" element={<MaterialRequestsPage />} />
-                  <Route path="material-purchases-page" element={<MaterialPurchasesPage />} />
-                  <Route path="material-expenses-page" element={<MaterialExpensesPage />} />
-                  <Route path="material-expense/:id" element={<MaterialExpenseDetail />} />
-                  <Route path="material-purchase/:id" element={<MaterialPurchaseDetail />} />
-                  <Route path="resources" element={<Resources />} />
-                  <Route path="attendance" element={<Attendance />} />
-                  <Route path="users" element={<UserManagement />} />
-                  <Route path="settings" element={<Settings />} />
-                  <Route path="approvals" element={<Approvals />} />
-                </Route>
-                <Route path="*" element={<NotFound />} />
+                } />
               </Routes>
             </div>
             <Toaster />

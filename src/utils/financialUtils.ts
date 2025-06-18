@@ -74,3 +74,82 @@ export const calculateProjectNetProfit = (
   const totalExpenses = calculateProjectTotalExpenses(project, attendanceRecords, allocations);
   return revenue - totalExpenses;
 };
+
+// Project status utilities
+export const formatProjectStatus = (status: string): string => {
+  switch (status) {
+    case 'planning':
+      return 'Planning';
+    case 'in-progress':
+      return 'In Progress';
+    case 'on-hold':
+      return 'On Hold';
+    case 'completed':
+      return 'Completed';
+    case 'cancelled':
+      return 'Cancelled';
+    default:
+      return status;
+  }
+};
+
+export const getProjectStatusColor = (status: string): string => {
+  switch (status) {
+    case 'planning':
+      return 'bg-blue-100 text-blue-800';
+    case 'in-progress':
+      return 'bg-green-100 text-green-800';
+    case 'on-hold':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'completed':
+      return 'bg-gray-100 text-gray-800';
+    case 'cancelled':
+      return 'bg-red-100 text-red-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+};
+
+// Payment status utilities
+export const getPaymentStatusColor = (status: string): string => {
+  switch (status) {
+    case 'pending':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'approved':
+      return 'bg-green-100 text-green-800';
+    case 'rejected':
+      return 'bg-red-100 text-red-800';
+    case 'completed':
+      return 'bg-blue-100 text-blue-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+};
+
+// Expense category utilities
+export const getExpenseCategoryColor = (category: string): string => {
+  switch (category) {
+    case 'salary':
+      return 'bg-blue-100 text-blue-800';
+    case 'equipment':
+      return 'bg-green-100 text-green-800';
+    case 'software':
+      return 'bg-purple-100 text-purple-800';
+    case 'consulting':
+      return 'bg-orange-100 text-orange-800';
+    case 'office':
+      return 'bg-gray-100 text-gray-800';
+    case 'travel':
+      return 'bg-indigo-100 text-indigo-800';
+    case 'marketing':
+      return 'bg-pink-100 text-pink-800';
+    case 'utilities':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'taxes':
+      return 'bg-red-100 text-red-800';
+    case 'other':
+      return 'bg-gray-100 text-gray-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+};
