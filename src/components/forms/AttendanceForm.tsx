@@ -40,83 +40,88 @@ const AttendanceForm = ({ projectId, resources, onSubmit, onCancel }: Attendance
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="resource">Resource</Label>
-        <Select value={selectedAllocationId} onValueChange={setSelectedAllocationId}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select a resource" />
-          </SelectTrigger>
-          <SelectContent>
-            {resources.map((allocation) => (
-              <SelectItem key={allocation.id} value={allocation.id}>
-                {allocation.resource?.name} - {allocation.resource?.role}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+    <div className="p-4 space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="resource">Resource</Label>
+          <Select value={selectedAllocationId} onValueChange={setSelectedAllocationId}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select a resource" />
+            </SelectTrigger>
+            <SelectContent>
+              {resources.map((allocation) => (
+                <SelectItem key={allocation.id} value={allocation.id}>
+                  {allocation.resource?.name} - {allocation.resource?.role}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-      <div className="space-y-2">
-        <Label>Date</Label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-full justify-start text-left font-normal",
-                !date && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {date ? format(date, "PPP") : <span>Pick a date</span>}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={setDate}
-              initialFocus
+        <div className="space-y-2">
+          <Label>Date</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full justify-start text-left font-normal",
+                  !date && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {date ? format(date, "PPP") : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={setDate}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="checkIn">Check In Time</Label>
+            <Input
+              id="checkIn"
+              type="time"
+              value={checkInTime}
+              onChange={(e) => setCheckInTime(e.target.value)}
+              className="w-full"
             />
-          </PopoverContent>
-        </Popover>
-      </div>
+          </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="checkIn">Check In Time</Label>
-          <Input
-            id="checkIn"
-            type="time"
-            value={checkInTime}
-            onChange={(e) => setCheckInTime(e.target.value)}
-          />
+          <div className="space-y-2">
+            <Label htmlFor="checkOut">Check Out Time</Label>
+            <Input
+              id="checkOut"
+              type="time"
+              value={checkOutTime}
+              onChange={(e) => setCheckOutTime(e.target.value)}
+              className="w-full"
+            />
+          </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="checkOut">Check Out Time</Label>
-          <Input
-            id="checkOut"
-            type="time"
-            value={checkOutTime}
-            onChange={(e) => setCheckOutTime(e.target.value)}
-          />
+        <div className="flex flex-col-reverse md:flex-row justify-end space-y-2 space-y-reverse md:space-y-0 md:space-x-2 pt-4">
+          <Button type="button" variant="outline" onClick={onCancel} className="w-full md:w-auto">
+            Cancel
+          </Button>
+          <Button 
+            type="submit" 
+            disabled={!selectedAllocationId || !date || !checkInTime || !checkOutTime}
+            className="w-full md:w-auto"
+          >
+            Record Attendance
+          </Button>
         </div>
-      </div>
-
-      <div className="flex justify-end space-x-2 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button 
-          type="submit" 
-          disabled={!selectedAllocationId || !date || !checkInTime || !checkOutTime}
-        >
-          Record Attendance
-        </Button>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 };
 

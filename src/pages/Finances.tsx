@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
 import { Calendar, Search, Plus, ArrowDown, FileText, FileSpreadsheet, Download } from 'lucide-react';
@@ -164,21 +165,28 @@ const Finances = () => {
     });
   }, [companies, projects, payments, expenses, tab]);
 
-  // Helper functions
-  const getProjectName = (projectData: any): string => {
-    if (!projectData) return 'No Project';
+  // Helper functions - Fixed to properly handle project data
+  const getProjectName = (projectId: any): string => {
+    if (!projectId) return 'No Project';
     
-    const projectId = String(projectData);
-    const project = projectLookup.get(projectId);
+    // Handle if projectId is already a string
+    const id = typeof projectId === 'string' ? projectId : projectId.toString();
+    const project = projectLookup.get(id);
     
-    return project?.name || `Project ${projectId.substring(0, 8)}...`;
+    if (project?.name) {
+      return project.name;
+    }
+    
+    // Fallback to truncated ID if project not found
+    return `Project ${id.substring(0, 8)}...`;
   };
   
-  const getProjectCompany = (projectData: any): string => {
-    if (!projectData) return 'No Company';
+  const getProjectCompany = (projectId: any): string => {
+    if (!projectId) return 'No Company';
     
-    const projectId = String(projectData);
-    const project = projectLookup.get(projectId);
+    // Handle if projectId is already a string
+    const id = typeof projectId === 'string' ? projectId : projectId.toString();
+    const project = projectLookup.get(id);
     
     if (!project) return 'Unknown Company';
     
@@ -273,18 +281,18 @@ const Finances = () => {
       );
 
   return (
-    <div className="animate-fade-in p-4 sm:p-6 no-horizontal-scroll">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 gap-4">
-        <h1 className="text-xl sm:text-2xl font-bold">Financial Management</h1>
+    <div className="animate-fade-in space-y-4 md:space-y-6">
+      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+        <h1 className="text-xl md:text-2xl font-bold">Financial Management</h1>
         <div className="flex gap-2 flex-wrap">
           <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-green-600 hover:bg-green-700 text-sm">
+              <Button className="bg-green-600 hover:bg-green-700 text-sm flex-1 md:flex-none">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Payment
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px] mx-4 max-h-[90vh] overflow-y-auto">
+            <DialogContent className="w-[95vw] max-w-md mx-auto max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Add New Payment</DialogTitle>
                 <DialogDescription>
@@ -297,12 +305,12 @@ const Finances = () => {
           
           <Dialog open={isExpenseDialogOpen} onOpenChange={setIsExpenseDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-red-600 hover:bg-red-700 text-sm">
+              <Button className="bg-red-600 hover:bg-red-700 text-sm flex-1 md:flex-none">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Expense
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px] mx-4 max-h-[90vh] overflow-y-auto">
+            <DialogContent className="w-[95vw] max-w-md mx-auto max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Add New Expense</DialogTitle>
                 <DialogDescription>
@@ -317,29 +325,29 @@ const Finances = () => {
       
       {/* Main tabs */}
       <Tabs value={transactionsTab} onValueChange={(value) => setTransactionsTab(value as 'charts' | 'transactions')}>
-        <TabsList className="mb-6">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="charts" className="text-sm">Charts & Summary</TabsTrigger>
           <TabsTrigger value="transactions" className="text-sm">All Transactions</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="charts">
+        <TabsContent value="charts" className="space-y-4 md:space-y-6">
           {/* Filter tabs */}
-          <div className="flex border-b border-border mb-6 overflow-x-auto">
+          <div className="flex border-b border-border overflow-x-auto">
             <button
-              className={`pb-2 px-4 text-sm whitespace-nowrap ${
+              className={`pb-3 px-4 text-sm whitespace-nowrap border-b-2 transition-colors ${
                 tab === 'payments'
-                  ? 'border-b-2 border-primary text-primary'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
               }`}
               onClick={() => setTab('payments')}
             >
               Payments ({payments.length})
             </button>
             <button
-              className={`pb-2 px-4 text-sm whitespace-nowrap ${
+              className={`pb-3 px-4 text-sm whitespace-nowrap border-b-2 transition-colors ${
                 tab === 'expenses'
-                  ? 'border-b-2 border-primary text-primary'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
               }`}
               onClick={() => setTab('expenses')}
             >
@@ -347,13 +355,13 @@ const Finances = () => {
             </button>
           </div>
           
-          {/* Charts - Improved mobile responsiveness */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6 mb-8">
-            <div className="bg-card shadow-sm rounded-lg p-4 sm:p-6 border border-border">
-              <h2 className="text-base sm:text-lg font-semibold mb-4">
+          {/* Charts - Mobile responsive */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+            <div className="bg-card shadow-sm rounded-lg p-4 md:p-6 border border-border">
+              <h2 className="text-base md:text-lg font-semibold mb-4">
                 {tab === 'payments' ? 'Payment Status' : 'Expense Categories'}
               </h2>
-              <div className="h-64 sm:h-80">
+              <div className="h-60 md:h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -361,7 +369,7 @@ const Finances = () => {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      outerRadius={80}
+                      outerRadius="80%"
                       fill="#8884d8"
                       dataKey="value"
                     >
@@ -377,17 +385,17 @@ const Finances = () => {
                       contentStyle={{ fontSize: '14px' }}
                     />
                     <Legend 
-                      wrapperStyle={{ fontSize: '14px' }}
-                      iconSize={12}
+                      wrapperStyle={{ fontSize: '12px' }}
+                      iconSize={10}
                     />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
             </div>
             
-            <div className="bg-card shadow-sm rounded-lg p-4 sm:p-6 border border-border">
-              <h2 className="text-base sm:text-lg font-semibold mb-4">By Company</h2>
-              <div className="h-64 sm:h-80">
+            <div className="bg-card shadow-sm rounded-lg p-4 md:p-6 border border-border">
+              <h2 className="text-base md:text-lg font-semibold mb-4">By Company</h2>
+              <div className="h-60 md:h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={companyChartData}
@@ -395,25 +403,28 @@ const Finances = () => {
                       top: 5,
                       right: 30,
                       left: 20,
-                      bottom: 5,
+                      bottom: 25,
                     }}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis 
                       dataKey="name" 
-                      fontSize={12}
-                      tick={{ fontSize: 12 }}
+                      fontSize={10}
+                      tick={{ fontSize: 10 }}
+                      angle={-45}
+                      textAnchor="end"
+                      height={60}
                     />
-                    <YAxis fontSize={12} />
+                    <YAxis fontSize={10} />
                     <Tooltip 
                       formatter={(value) => formatCurrency(Number(value))}
                       labelFormatter={(label, payload) => {
                         const item = payload?.[0]?.payload;
                         return item?.fullName || label;
                       }}
-                      contentStyle={{ fontSize: '14px' }}
+                      contentStyle={{ fontSize: '12px' }}
                     />
-                    <Legend wrapperStyle={{ fontSize: '14px' }} />
+                    <Legend wrapperStyle={{ fontSize: '12px' }} />
                     {tab === 'payments' ? (
                       <>
                         <Bar dataKey="received" fill="#10b981" name="Received" />
@@ -430,8 +441,8 @@ const Finances = () => {
           
           {/* Recent transactions table - Mobile responsive */}
           <div className="bg-card shadow-sm rounded-lg border border-border overflow-hidden">
-            <div className="p-4 sm:p-6 border-b border-border">
-              <h2 className="text-base sm:text-lg font-semibold">
+            <div className="p-4 md:p-6 border-b border-border">
+              <h2 className="text-base md:text-lg font-semibold">
                 {tab === 'payments' ? 'Recent Payments' : 'Recent Expenses'}
               </h2>
             </div>
@@ -490,12 +501,12 @@ const Finances = () => {
           </div>
         </TabsContent>
         
-        <TabsContent value="transactions">
+        <TabsContent value="transactions" className="space-y-4">
           <div className="bg-card rounded-lg shadow-sm border border-border">
-            <div className="p-6 border-b border-border">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="p-4 md:p-6 border-b border-border">
+              <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
                 <h2 className="text-lg font-semibold">All Transactions</h2>
-                <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-4">
                   <div className="relative min-w-[200px]">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                       <Search className="w-4 h-4 text-muted-foreground" />
