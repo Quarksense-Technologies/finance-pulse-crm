@@ -58,26 +58,48 @@ const MultiItemMaterialExpenseForm: React.FC<MultiItemMaterialExpenseFormProps> 
     }));
   };
 
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const result = reader.result as string;
+        // Remove the data URL prefix to get only the base64 data
+        const base64Data = result.split(',')[1];
+        resolve(base64Data);
+      };
+      reader.onerror = error => reject(error);
+    });
+  };
+
   const handleSubmit = async (data: any) => {
     try {
       // Submit each item as a separate expense
       for (const [index, item] of data.items.entries()) {
         const itemAttachments = attachments[index] || [];
-        const attachmentData = itemAttachments.map(file => ({
-          name: file.name,
-          url: URL.createObjectURL(file), // In real app, upload to server first
-          type: file.type
-        }));
+        // Convert files to the correct format matching CreateTransactionData interface
+        const attachmentData = await Promise.all(
+          itemAttachments.map(async (file) => ({
+            name: file.name,
+            data: await fileToBase64(file),
+            contentType: file.type,
+            size: file.size
+          }))
+        );
 
-        await createTransactionMutation.mutateAsync({
-          type: 'expense',
+        const transactionData = {
+          type: 'expense' as const,
           amount: parseFloat(item.amount),
           description: `Material Expense: ${item.description}`,
           category: 'materials',
           project: data.projectId,
           date: data.date,
           attachments: attachmentData,
-        });
+        };
+
+        console.log('Sending transaction data:', transactionData);
+
+        await createTransactionMutation.mutateAsync(transactionData);
       }
       
       form.reset();
