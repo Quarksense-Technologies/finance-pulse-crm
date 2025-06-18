@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, IndianRupee, Building, CheckCircle, Clock, X } from 'lucide-react';
@@ -7,7 +8,7 @@ import { formatCurrency, formatDate, getProjectStatusColor, formatProjectStatus 
 import StatusBadge from '@/components/ui/StatusBadge';
 import { useProject } from '@/hooks/api/useProjects';
 import { useTransactions } from '@/hooks/api/useFinances';
-import { useResources } from '@/hooks/api/useResources';
+import { useProjectResources } from '@/hooks/api/useResources';
 import PaymentForm from '@/components/forms/PaymentForm';
 import ExpenseForm from '@/components/forms/ExpenseForm';
 import ProjectStatusUpdate from '@/components/projects/ProjectStatusUpdate';
@@ -23,10 +24,10 @@ const ProjectDetails = () => {
 
   const { data: project, isLoading, error } = useProject(id || '');
   const { data: transactions = [] } = useTransactions({ project: id });
-  const { data: resources = [], isLoading: resourcesLoading, error: resourcesError } = useResources(id);
+  const { data: projectResources = [], isLoading: resourcesLoading, error: resourcesError } = useProjectResources(id || '');
 
   console.log('Project ID:', id);
-  console.log('Resources data:', resources);
+  console.log('Project Resources data:', projectResources);
   console.log('Resources loading:', resourcesLoading);
   console.log('Resources error:', resourcesError);
 
@@ -68,7 +69,7 @@ const ProjectDetails = () => {
   // Calculate totals including resource costs
   const totalPaidPayments = payments.filter(p => (p as any).status === 'paid').reduce((sum, p) => sum + p.amount, 0);
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
-  const resourceCosts = resources.reduce((sum, r) => sum + (r.hoursAllocated * r.hourlyRate), 0);
+  const resourceCosts = projectResources.reduce((sum, allocation) => sum + (allocation.hoursAllocated * (allocation.resource?.hourlyRate || 0)), 0);
   const totalExpensesWithResources = totalExpenses + resourceCosts;
   const profit = totalPaidPayments - totalExpensesWithResources;
   const pendingPayments = payments.filter(p => (p as any).status === 'pending').reduce((sum, p) => sum + p.amount, 0);
@@ -415,7 +416,7 @@ const ProjectDetails = () => {
             <div className="bg-white dark:bg-card p-8 rounded-lg shadow-sm border border-gray-100 dark:border-border">
               <AttendanceManagement 
                 projectId={project.id} 
-                resources={resources}
+                resources={projectResources}
                 resourcesLoading={resourcesLoading}
                 resourcesError={resourcesError}
               />

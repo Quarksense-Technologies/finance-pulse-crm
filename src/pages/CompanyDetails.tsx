@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -80,6 +79,17 @@ const CompanyDetails = () => {
   const totalManpower = projects.reduce((sum, project) => 
     sum + (project.resources?.reduce((sum, resource) => sum + resource.hoursAllocated, 0) || 0), 0);
 
+  // Format address safely
+  const formatAddress = (address: any): string => {
+    if (typeof address === 'string') {
+      return address;
+    }
+    if (address && typeof address === 'object') {
+      return `${address.street || ''}, ${address.city || ''}, ${address.state || ''} ${address.zipCode || ''}, ${address.country || ''}`.replace(/^[, ]+|[, ]+$/g, '');
+    }
+    return 'Not provided';
+  };
+
   // Render the main component after all conditions are checked
   return (
     <div className="animate-fade-in p-6">
@@ -97,7 +107,7 @@ const CompanyDetails = () => {
           <div className="text-center md:text-left">
             <h1 className="text-2xl font-bold">{company.name}</h1>
             <p className="text-gray-500 mt-1">
-              {company.contactPerson} • {company.email}
+              {company.contactInfo?.email || company.email} • {company.contactInfo?.phone || company.phone}
             </p>
           </div>
           <div className="mt-4 md:mt-0 text-center">
@@ -161,20 +171,20 @@ const CompanyDetails = () => {
         <h2 className="text-lg font-semibold mb-4 text-center">Company Information</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="text-center md:text-left">
-            <h3 className="text-sm font-medium text-gray-500">Contact Person</h3>
-            <p className="mt-1">{company.contactPerson}</p>
-          </div>
-          <div className="text-center md:text-left">
-            <h3 className="text-sm font-medium text-gray-500">Email</h3>
-            <p className="mt-1">{company.email}</p>
+            <h3 className="text-sm font-medium text-gray-500">Contact Email</h3>
+            <p className="mt-1">{company.contactInfo?.email || company.email || 'Not provided'}</p>
           </div>
           <div className="text-center md:text-left">
             <h3 className="text-sm font-medium text-gray-500">Phone</h3>
-            <p className="mt-1">{company.phone}</p>
+            <p className="mt-1">{company.contactInfo?.phone || company.phone || 'Not provided'}</p>
+          </div>
+          <div className="text-center md:text-left">
+            <h3 className="text-sm font-medium text-gray-500">Website</h3>
+            <p className="mt-1">{company.contactInfo?.website || 'Not provided'}</p>
           </div>
           <div className="text-center md:text-left">
             <h3 className="text-sm font-medium text-gray-500">Address</h3>
-            <p className="mt-1">{company.address || 'Not provided'}</p>
+            <p className="mt-1">{formatAddress(company.address)}</p>
           </div>
         </div>
       </div>

@@ -1,4 +1,3 @@
-
 import apiClient from './client';
 import { Company } from '@/data/types';
 import { toast } from "@/hooks/use-toast";
@@ -48,15 +47,13 @@ export const companyService = {
       return response.data.map((company: any) => ({
         id: company._id || company.id,
         name: company.name,
-        contactPerson: company.contactInfo?.name || company.contactInfo?.email || 'Unknown',
-        email: company.contactInfo?.email || 'No email provided',
-        phone: company.contactInfo?.phone || 'No phone provided',
-        address: company.address ? 
-          `${company.address.street || ''}, ${company.address.city || ''}, ${company.address.state || ''} ${company.address.zipCode || ''}, ${company.address.country || ''}`.replace(/^[, ]+|[, ]+$/g, '') : 
-          'No address provided',
+        contactInfo: company.contactInfo,
+        address: company.address,
         projects: company.projects || [],
         description: company.description || 'No description provided',
-        logo: company.logo || ''
+        logo: company.logo || '',
+        managers: company.managers || [],
+        createdAt: company.createdAt
       }));
     } catch (error: any) {
       console.error('Error fetching companies:', error);
@@ -76,15 +73,13 @@ export const companyService = {
       return {
         id: response.data._id || response.data.id,
         name: response.data.name || 'Unnamed Company',
-        contactPerson: response.data.contactInfo?.name || response.data.contactInfo?.email || 'Unknown',
-        email: response.data.contactInfo?.email || 'No email provided',
-        phone: response.data.contactInfo?.phone || 'No phone provided',
-        address: response.data.address ? 
-          `${response.data.address.street || ''}, ${response.data.address.city || ''}, ${response.data.address.state || ''} ${response.data.address.zipCode || ''}, ${response.data.address.country || ''}`.replace(/^[, ]+|[, ]+$/g, '') : 
-          'No address provided',
+        contactInfo: response.data.contactInfo,
+        address: response.data.address,
         projects: response.data.projects || [],
         description: response.data.description || 'No description provided',
-        logo: response.data.logo || ''
+        logo: response.data.logo || '',
+        managers: response.data.managers || [],
+        createdAt: response.data.createdAt
       };
     } catch (error: any) {
       console.error(`Error fetching company ${id}:`, error);
@@ -104,15 +99,13 @@ export const companyService = {
       return {
         id: response.data._id || response.data.id,
         name: response.data.name,
-        contactPerson: response.data.contactInfo?.name || response.data.contactInfo?.email || 'Unknown',
-        email: response.data.contactInfo?.email || 'No email provided',
-        phone: response.data.contactInfo?.phone || 'No phone provided',
-        address: response.data.address ? 
-          `${response.data.address.street || ''}, ${response.data.address.city || ''}, ${response.data.address.state || ''} ${response.data.address.zipCode || ''}, ${response.data.address.country || ''}`.replace(/^[, ]+|[, ]+$/g, '') : 
-          'No address provided',
+        contactInfo: response.data.contactInfo,
+        address: response.data.address,
         projects: response.data.projects || [],
         description: response.data.description || 'No description provided',
-        logo: response.data.logo || ''
+        logo: response.data.logo || '',
+        managers: response.data.managers || [],
+        createdAt: response.data.createdAt
       };
     } catch (error: any) {
       console.error('Error creating company:', error);
@@ -143,15 +136,13 @@ export const companyService = {
       return {
         id: response.data._id || response.data.id,
         name: response.data.name,
-        contactPerson: response.data.contactInfo?.name || response.data.contactInfo?.email || 'Unknown',
-        email: response.data.contactInfo?.email || 'No email provided',
-        phone: response.data.contactInfo?.phone || 'No phone provided',
-        address: response.data.address ? 
-          `${response.data.address.street || ''}, ${response.data.address.city || ''}, ${response.data.address.state || ''} ${response.data.address.zipCode || ''}, ${response.data.address.country || ''}`.replace(/^[, ]+|[, ]+$/g, '') : 
-          'No address provided',
+        contactInfo: response.data.contactInfo,
+        address: response.data.address,
         projects: response.data.projects || [],
         description: response.data.description || 'No description provided',
-        logo: response.data.logo || ''
+        logo: response.data.logo || '',
+        managers: response.data.managers || [],
+        createdAt: response.data.createdAt
       };
     } catch (error: any) {
       console.error(`Error updating company ${id}:`, error);

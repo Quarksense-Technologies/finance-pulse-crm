@@ -8,13 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatCurrency, formatDate } from '@/utils/financialUtils';
-import { Resource } from '@/data/types';
+import { ProjectResourceAllocation } from '@/data/types';
 import { toast } from "@/hooks/use-toast";
 import { useProjectAttendance, useCreateAttendance } from '@/hooks/api/useAttendance';
 
 interface AttendanceManagementProps {
   projectId: string;
-  resources: Resource[];
+  resources: ProjectResourceAllocation[];
   resourcesLoading: boolean;
   resourcesError: any;
 }
@@ -106,18 +106,18 @@ const AttendanceManagement: React.FC<AttendanceManagementProps> = ({
   };
 
   const getResourceName = (resourceId: string): string => {
-    const resource = resources.find(r => r.id === resourceId);
-    return resource ? resource.name : 'Unknown Resource';
+    const allocation = resources.find(r => r.resourceId === resourceId);
+    return allocation?.resource?.name || 'Unknown Resource';
   };
 
   const getResourceRole = (resourceId: string): string => {
-    const resource = resources.find(r => r.id === resourceId);
-    return resource ? resource.role : '';
+    const allocation = resources.find(r => r.resourceId === resourceId);
+    return allocation?.resource?.role || '';
   };
 
   const getResourceHourlyRate = (resourceId: string): number => {
-    const resource = resources.find(r => r.id === resourceId);
-    return resource ? resource.hourlyRate : 0;
+    const allocation = resources.find(r => r.resourceId === resourceId);
+    return allocation?.resource?.hourlyRate || 0;
   };
 
   if (resourcesLoading || attendanceLoading) {
@@ -170,9 +170,9 @@ const AttendanceManagement: React.FC<AttendanceManagementProps> = ({
                       <SelectValue placeholder="Select a resource" />
                     </SelectTrigger>
                     <SelectContent>
-                      {resources.map((resource) => (
-                        <SelectItem key={resource.id} value={resource.id}>
-                          {resource.name} - {resource.role}
+                      {resources.map((allocation) => (
+                        <SelectItem key={allocation.id} value={allocation.resourceId}>
+                          {allocation.resource?.name} - {allocation.resource?.role}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -247,17 +247,17 @@ const AttendanceManagement: React.FC<AttendanceManagementProps> = ({
           </div>
         ) : (
           <div className="space-y-2">
-            {resources.map((resource) => (
-              <Card key={resource.id}>
+            {resources.map((allocation) => (
+              <Card key={allocation.id}>
                 <CardContent className="p-2">
                   <div className="flex justify-between items-start mb-1">
                     <div>
-                      <h4 className="font-medium text-xs">{resource.name}</h4>
-                      <p className="text-xs text-gray-600 dark:text-muted-foreground">{resource.role}</p>
+                      <h4 className="font-medium text-xs">{allocation.resource?.name}</h4>
+                      <p className="text-xs text-gray-600 dark:text-muted-foreground">{allocation.resource?.role}</p>
                     </div>
                     <div className="text-right">
                       <div className="text-xs font-medium">
-                        {formatCurrency(resource.hourlyRate * resource.hoursAllocated)}
+                        {formatCurrency((allocation.resource?.hourlyRate || 0) * allocation.hoursAllocated)}
                       </div>
                       <div className="text-xs text-gray-500 dark:text-muted-foreground">Total</div>
                     </div>
@@ -267,17 +267,17 @@ const AttendanceManagement: React.FC<AttendanceManagementProps> = ({
                     <div className="flex items-center">
                       <Calendar className="h-3 w-3 mr-1" />
                       <span className="truncate">
-                        {formatDate(resource.startDate)} - 
-                        {resource.endDate ? formatDate(resource.endDate) : 'Ongoing'}
+                        {formatDate(allocation.startDate)} - 
+                        {allocation.endDate ? formatDate(allocation.endDate) : 'Ongoing'}
                       </span>
                     </div>
                     <div className="flex items-center">
                       <IndianRupee className="h-3 w-3 mr-1" />
-                      <span>{formatCurrency(resource.hourlyRate)} / hour</span>
+                      <span>{formatCurrency(allocation.resource?.hourlyRate || 0)} / hour</span>
                     </div>
                     <div className="flex items-center">
                       <Clock className="h-3 w-3 mr-1" />
-                      <span>{resource.hoursAllocated}h allocated</span>
+                      <span>{allocation.hoursAllocated}h allocated</span>
                     </div>
                   </div>
                 </CardContent>
@@ -328,15 +328,15 @@ const AttendanceManagement: React.FC<AttendanceManagementProps> = ({
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-border">
                 {attendanceRecords.map((record) => {
-                  const resource = resources.find(r => r.id === record.resourceId);
-                  const hourlyRate = record.hourlyRate || resource?.hourlyRate || 0;
+                  const allocation = resources.find(r => r.resourceId === record.resourceId);
+                  const hourlyRate = record.hourlyRate || allocation?.resource?.hourlyRate || 0;
                   
                   return (
                     <tr key={record.id} className="hover:bg-gray-50 dark:hover:bg-muted/50">
                       <td className="px-1 py-1">
                         <div>
-                          <div className="text-xs font-medium">{record.resourceName || resource?.name}</div>
-                          <div className="text-xs text-gray-500 dark:text-muted-foreground">{record.resourceRole || resource?.role}</div>
+                          <div className="text-xs font-medium">{record.resourceName || allocation?.resource?.name}</div>
+                          <div className="text-xs text-gray-500 dark:text-muted-foreground">{record.resourceRole || allocation?.resource?.role}</div>
                         </div>
                       </td>
                       <td className="px-1 py-1 text-xs">
@@ -378,8 +378,8 @@ const AttendanceManagement: React.FC<AttendanceManagementProps> = ({
                 <div className="text-sm font-bold text-green-600">
                   {formatCurrency(
                     attendanceRecords.reduce((sum, record) => {
-                      const resource = resources.find(r => r.id === record.resourceId);
-                      const rate = record.hourlyRate || resource?.hourlyRate || 0;
+                      const allocation = resources.find(r => r.resourceId === record.resourceId);
+                      const rate = record.hourlyRate || allocation?.resource?.hourlyRate || 0;
                       return sum + (record.totalHours * rate);
                     }, 0)
                   )}
