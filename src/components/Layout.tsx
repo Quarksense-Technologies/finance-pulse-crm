@@ -1,170 +1,145 @@
 
-import React, { useState } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { 
-  LayoutDashboard, 
-  Building2, 
-  FolderOpen, 
-  DollarSign, 
-  Users, 
-  Calendar,
-  Settings,
-  CheckSquare,
-  LogOut,
-  Package,
-  Menu,
-  X
-} from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Home, Building2, Briefcase, DollarSign, Users, LogOut, Menu, X } from 'lucide-react';
 
-const Layout = () => {
-  const { user, logout } = useAuth();
+const Layout = ({ children }: { children: React.ReactNode }) => {
+  const { user, logout, hasPermission } = useAuth();
   const location = useLocation();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Companies', href: '/companies', icon: Building2 },
-    { name: 'Projects', href: '/projects', icon: FolderOpen },
-    { name: 'Finances', href: '/finances', icon: DollarSign },
-    { name: 'Materials', href: '/materials', icon: Package },
-    { name: 'Resources', href: '/resources', icon: Users },
-    { name: 'Attendance', href: '/attendance', icon: Calendar },
-    { name: 'Approvals', href: '/approvals', icon: CheckSquare },
+    { name: 'Dashboard', href: '/', icon: Home, current: location.pathname === '/' },
+    { name: 'Companies', href: '/companies', icon: Building2, current: location.pathname.startsWith('/companies') },
+    { name: 'Projects', href: '/projects', icon: Briefcase, current: location.pathname.startsWith('/projects') },
+    { name: 'Finances', href: '/finances', icon: DollarSign, current: location.pathname.startsWith('/finances') },
+    ...(hasPermission('manage_resources') ? [{ name: 'Resources', href: '/resources', icon: Users, current: location.pathname.startsWith('/resources') }] : []),
   ];
-
-  const isActiveRoute = (href: string) => {
-    return location.pathname === href;
-  };
-
-  const getCurrentPageName = () => {
-    const currentRoute = navigation.find(item => isActiveRoute(item.href));
-    if (currentRoute) return currentRoute.name;
-    
-    // Handle sub-pages
-    if (location.pathname.startsWith('/material-')) {
-      return 'Materials';
-    }
-    if (location.pathname.startsWith('/companies/')) {
-      return 'Companies';
-    }
-    if (location.pathname.startsWith('/projects/')) {
-      return 'Projects';
-    }
-    
-    return 'Dashboard';
-  };
 
   const handleLogout = () => {
     logout();
   };
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity lg:hidden z-40"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-sm transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex h-16 items-center justify-between px-6 border-b border-gray-200">
-          <h1 className="text-lg sm:text-xl font-bold text-gray-900 text-center flex-1">Business Management</h1>
-          <button
-            className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
-            onClick={toggleSidebar}
-          >
-            <X className="h-6 w-6" />
-          </button>
-        </div>
-        <nav className="mt-8 px-6 overflow-y-auto pb-20">
-          <ul className="space-y-2">
-            {navigation.map((item) => {
-              const Icon = item.icon;
-              return (
-                <li key={item.name}>
+      {/* Mobile menu */}
+      <div className={`fixed inset-0 z-50 lg:hidden ${isMobileMenuOpen ? 'block' : 'hidden'}`}>
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setIsMobileMenuOpen(false)} />
+        <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white">
+          <div className="absolute top-0 right-0 -mr-12 pt-2">
+            <button
+              type="button"
+              className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <X className="h-6 w-6 text-white" />
+            </button>
+          </div>
+          <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
+            <div className="flex-shrink-0 flex items-center px-4">
+              <h1 className="text-2xl font-bold text-primary">S-gen</h1>
+            </div>
+            <nav className="mt-5 px-2 space-y-1">
+              {navigation.map((item) => {
+                const Icon = item.icon;
+                return (
                   <Link
+                    key={item.name}
                     to={item.href}
-                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${
-                      isActiveRoute(item.href)
-                        ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
+                    className={`${
+                      item.current
+                        ? 'bg-gray-100 text-gray-900'
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                    }`}
-                    onClick={() => setSidebarOpen(false)}
+                    } group flex items-center px-2 py-2 text-base font-medium rounded-md`}
+                    onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    <Icon className="mr-3 h-5 w-5 flex-shrink-0" />
-                    <span className="truncate">{item.name}</span>
+                    <Icon className="mr-4 h-6 w-6" />
+                    {item.name}
                   </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
+                );
+              })}
+            </nav>
+          </div>
+          <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
+            <div className="flex-shrink-0 group block">
+              <div className="flex items-center">
+                <div className="ml-3">
+                  <p className="text-base font-medium text-gray-700">{user?.name}</p>
+                  <p className="text-sm font-medium text-gray-500">{user?.email}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop sidebar */}
+      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0">
+        <div className="flex-1 flex flex-col min-h-0 border-r border-gray-200 bg-white">
+          <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+            <div className="flex items-center flex-shrink-0 px-4">
+              <h1 className="text-2xl font-bold text-primary">S-gen</h1>
+            </div>
+            <nav className="mt-5 flex-1 px-2 bg-white space-y-1">
+              {navigation.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={`${
+                      item.current
+                        ? 'bg-gray-100 text-gray-900'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                  >
+                    <Icon className="mr-3 h-5 w-5" />
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+          <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
+            <div className="flex-shrink-0 w-full group block">
+              <div className="flex items-center">
+                <div className="ml-3 flex-1">
+                  <p className="text-sm font-medium text-gray-700">{user?.name}</p>
+                  <p className="text-xs font-medium text-gray-500">{user?.email}</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="ml-2"
+                >
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-64">
-        {/* Header */}
-        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-6">
-          <div className="flex items-center gap-4">
-            <button
-              className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 absolute left-2"
-              onClick={toggleSidebar}
-            >
-              <Menu className="h-6 w-6" />
-            </button>
-            <h2 className="text-lg font-semibold text-gray-900 truncate text-center flex-1 lg:text-left lg:flex-none lg:ml-0 ml-16">
-              {getCurrentPageName()}
-            </h2>
+      <div className="lg:pl-64 flex flex-col flex-1">
+        <div className="sticky top-0 z-10 lg:hidden pl-1 pt-1 sm:pl-3 sm:pt-3 bg-gray-50">
+          <button
+            type="button"
+            className="-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center rounded-md text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+            onClick={() => setIsMobileMenuOpen(true)}
+          >
+            <Menu className="h-6 w-6" />
+          </button>
+        </div>
+        <main className="flex-1">
+          <div className="py-6">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+              {children}
+            </div>
           </div>
-          
-          <div className="flex items-center space-x-4">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
-                  <Avatar className="h-10 w-10 bg-blue-500">
-                    <AvatarFallback className="bg-blue-500 text-white text-sm font-medium">
-                      {user?.name?.charAt(0).toUpperCase() || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <div className="flex items-center justify-start gap-2 p-3 border-b">
-                  <div className="flex flex-col space-y-1 leading-none">
-                    <p className="font-medium text-sm truncate">{user?.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-                    <p className="text-xs text-muted-foreground capitalize">{user?.role}</p>
-                  </div>
-                </div>
-                <DropdownMenuItem asChild>
-                  <Link to="/settings" className="flex items-center py-2">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleLogout} className="flex items-center py-2">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Log out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </header>
-
-        {/* Page content */}
-        <main className="p-6">
-          <Outlet />
         </main>
       </div>
     </div>

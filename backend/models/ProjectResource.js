@@ -40,7 +40,10 @@ ProjectResourceSchema.set('toJSON', {
   }
 });
 
-// Compound index to prevent duplicate allocations
-ProjectResourceSchema.index({ projectId: 1, resourceId: 1 }, { unique: true });
+// Ensure one resource can only be allocated to one project at a time
+ProjectResourceSchema.index({ resourceId: 1, isActive: 1 }, { 
+  unique: true, 
+  partialFilterExpression: { isActive: true } 
+});
 
 module.exports = mongoose.model('ProjectResource', ProjectResourceSchema);

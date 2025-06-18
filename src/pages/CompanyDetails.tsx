@@ -1,10 +1,11 @@
+
 import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { ArrowDown, Briefcase, Users, DollarSign, Plus } from 'lucide-react';
 import { useCompany } from '@/hooks/api/useCompanies';
 import { useProjects } from '@/hooks/api/useProjects';
-import { formatCurrency, formatDate, calculateProjectRevenue, calculateProjectExpenses, calculateProjectProfit } from '@/utils/financialUtils';
+import { formatCurrency, formatDate, calculateProjectRevenue, calculateProjectExpenses, calculateProjectNetProfit } from '@/utils/financialUtils';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { isHttpError } from '@/services/api/client';
 
@@ -66,7 +67,7 @@ const CompanyDetails = () => {
     );
   }
   
-  // Calculate total revenue, expenses, and profit
+  // Calculate total revenue, expenses, and profit (excluding resource budget allocations)
   const totalRevenue = projects.reduce((sum, project) => 
     sum + calculateProjectRevenue(project), 0);
   
@@ -75,9 +76,9 @@ const CompanyDetails = () => {
   
   const totalProfit = totalRevenue - totalExpenses;
   
-  // Calculate total manpower allocation
-  const totalManpower = projects.reduce((sum, project) => 
-    sum + (project.resources?.reduce((sum, resource) => sum + resource.hoursAllocated, 0) || 0), 0);
+  // Calculate total allocated resources (not as expense)
+  const totalAllocatedResources = projects.reduce((sum, project) => 
+    sum + (project.resources?.length || 0), 0);
 
   // Format address safely
   const formatAddress = (address: any): string => {
@@ -135,8 +136,8 @@ const CompanyDetails = () => {
           <div className="flex items-center justify-center">
             <Users className="w-8 h-8 text-purple-500" />
             <div className="ml-4">
-              <h3 className="text-sm font-medium text-gray-500">Total Manpower</h3>
-              <p className="text-xl font-semibold">{totalManpower} hours</p>
+              <h3 className="text-sm font-medium text-gray-500">Allocated Resources</h3>
+              <p className="text-xl font-semibold">{totalAllocatedResources}</p>
             </div>
           </div>
         </div>
@@ -155,7 +156,7 @@ const CompanyDetails = () => {
           <div className="flex items-center justify-center">
             <DollarSign className="w-8 h-8 text-blue-500" />
             <div className="ml-4">
-              <h3 className="text-sm font-medium text-gray-500">Total Profit</h3>
+              <h3 className="text-sm font-medium text-gray-500">Net Profit</h3>
               <p className={`text-xl font-semibold ${
                 totalProfit >= 0 ? 'text-green-600' : 'text-red-600'
               }`}>
@@ -224,11 +225,11 @@ const CompanyDetails = () => {
                     <span className="font-medium">{project.endDate ? formatDate(project.endDate) : 'Ongoing'}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-500">Profit:</span>
+                    <span className="text-gray-500">Net Profit:</span>
                     <span className={`font-medium ${
-                      calculateProjectProfit(project) >= 0 ? 'text-green-600' : 'text-red-600'
+                      calculateProjectNetProfit(project) >= 0 ? 'text-green-600' : 'text-red-600'
                     }`}>
-                      {formatCurrency(calculateProjectProfit(project))}
+                      {formatCurrency(calculateProjectNetProfit(project))}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">

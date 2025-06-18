@@ -1,4 +1,3 @@
-
 const express = require('express');
 const { check, validationResult } = require('express-validator');
 const Resource = require('../models/Resource');
@@ -258,16 +257,15 @@ router.post(
         });
       }
 
-      // Check if resource is already allocated to this project
+      // Check if resource is already allocated to any active project
       const existingAllocation = await ProjectResource.findOne({
-        projectId,
         resourceId,
         isActive: true
       });
 
       if (existingAllocation) {
         return res.status(400).json({
-          message: 'Resource is already allocated to this project',
+          message: 'Resource is already allocated to another project. Remove from current project first.',
           success: false
         });
       }

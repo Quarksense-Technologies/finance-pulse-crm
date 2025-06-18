@@ -94,7 +94,7 @@ const Login = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
       <div className="p-8 bg-white rounded-lg shadow-md border border-gray-200 w-full max-w-md">
-        <h1 className="text-2xl font-bold text-center mb-6 text-primary">Business CRM</h1>
+        <h1 className="text-2xl font-bold text-center mb-6 text-primary">S-gen</h1>
         <h2 className="text-xl font-semibold mb-6">Log in to your account</h2>
         
         {isPreviewEnvironment && (
