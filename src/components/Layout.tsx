@@ -3,18 +3,30 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from "@/components/ui/button";
-import { Home, Building2, Briefcase, DollarSign, Users, LogOut, Menu, X, Package } from 'lucide-react';
+import { 
+  Sidebar, 
+  SidebarContent, 
+  SidebarFooter, 
+  SidebarHeader, 
+  SidebarMenu, 
+  SidebarMenuButton, 
+  SidebarMenuItem, 
+  SidebarProvider,
+  SidebarTrigger,
+  SidebarInset
+} from "@/components/ui/sidebar";
+import { Home, Building2, Briefcase, DollarSign, Users, LogOut, Package, Clock } from 'lucide-react';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const { user, logout, hasPermission } = useAuth();
   const location = useLocation();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const navigation = [
     { name: 'Dashboard', href: '/', icon: Home, current: location.pathname === '/' },
     { name: 'Companies', href: '/companies', icon: Building2, current: location.pathname.startsWith('/companies') },
     { name: 'Projects', href: '/projects', icon: Briefcase, current: location.pathname.startsWith('/projects') },
     { name: 'Finances', href: '/finances', icon: DollarSign, current: location.pathname.startsWith('/finances') },
+    { name: 'Attendance', href: '/attendance', icon: Clock, current: location.pathname.startsWith('/attendance') },
     ...(hasPermission('manage_materials') ? [{ name: 'Materials', href: '/materials', icon: Package, current: location.pathname.startsWith('/materials') || location.pathname.startsWith('/material-') }] : []),
     ...(hasPermission('manage_resources') ? [{ name: 'Resources', href: '/resources', icon: Users, current: location.pathname.startsWith('/resources') }] : []),
   ];
@@ -24,126 +36,63 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Mobile menu */}
-      <div className={`fixed inset-0 z-50 lg:hidden ${isMobileMenuOpen ? 'block' : 'hidden'}`}>
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setIsMobileMenuOpen(false)} />
-        <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white">
-          <div className="absolute top-0 right-0 -mr-12 pt-2">
-            <button
-              type="button"
-              className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              <X className="h-6 w-6 text-white" />
-            </button>
-          </div>
-          <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
-            <div className="flex-shrink-0 flex items-center px-4">
-              <h1 className="text-2xl font-bold text-primary">S-gen</h1>
-            </div>
-            <nav className="mt-5 px-2 space-y-1">
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full">
+        <Sidebar>
+          <SidebarHeader className="border-b border-border p-4">
+            <h1 className="text-xl font-bold text-primary">S-gen</h1>
+          </SidebarHeader>
+          
+          <SidebarContent className="px-2 py-4">
+            <SidebarMenu>
               {navigation.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`${
-                      item.current
-                        ? 'bg-gray-100 text-gray-900'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                    } group flex items-center px-2 py-2 text-base font-medium rounded-md`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <Icon className="mr-4 h-6 w-6" />
-                    {item.name}
-                  </Link>
+                  <SidebarMenuItem key={item.name}>
+                    <SidebarMenuButton asChild isActive={item.current}>
+                      <Link to={item.href} className="flex items-center gap-3 w-full">
+                        <Icon className="h-4 w-4" />
+                        <span>{item.name}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 );
               })}
-            </nav>
-          </div>
-          <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
-            <div className="flex-shrink-0 group block">
-              <div className="flex items-center">
-                <div className="ml-3">
-                  <p className="text-base font-medium text-gray-700">{user?.name}</p>
-                  <p className="text-sm font-medium text-gray-500">{user?.email}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+            </SidebarMenu>
+          </SidebarContent>
 
-      {/* Desktop sidebar */}
-      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0">
-        <div className="flex-1 flex flex-col min-h-0 border-r border-gray-200 bg-white">
-          <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-            <div className="flex items-center flex-shrink-0 px-4">
-              <h1 className="text-2xl font-bold text-primary">S-gen</h1>
-            </div>
-            <nav className="mt-5 flex-1 px-2 bg-white space-y-1">
-              {navigation.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`${
-                      item.current
-                        ? 'bg-gray-100 text-gray-900'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                    } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
-                  >
-                    <Icon className="mr-3 h-5 w-5" />
-                    {item.name}
-                  </Link>
-                );
-              })}
-            </nav>
-          </div>
-          <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
-            <div className="flex-shrink-0 w-full group block">
-              <div className="flex items-center">
-                <div className="ml-3 flex-1">
-                  <p className="text-sm font-medium text-gray-700">{user?.name}</p>
-                  <p className="text-xs font-medium text-gray-500">{user?.email}</p>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleLogout}
-                  className="ml-2"
-                >
-                  <LogOut className="h-4 w-4" />
-                </Button>
+          <SidebarFooter className="border-t border-border p-4">
+            <div className="flex items-center justify-between w-full">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground truncate">{user?.name}</p>
+                <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
               </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                className="ml-2 flex-shrink-0"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
             </div>
-          </div>
-        </div>
-      </div>
+          </SidebarFooter>
+        </Sidebar>
 
-      {/* Main content */}
-      <div className="lg:pl-64 flex flex-col flex-1">
-        <div className="sticky top-0 z-10 lg:hidden pl-1 pt-1 sm:pl-3 sm:pt-3 bg-gray-50">
-          <button
-            type="button"
-            className="-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center rounded-md text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
-            onClick={() => setIsMobileMenuOpen(true)}
-          >
-            <Menu className="h-6 w-6" />
-          </button>
-        </div>
-        <main className="flex-1">
-          <div className="py-6">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+        <SidebarInset className="flex-1">
+          <header className="flex h-14 items-center gap-2 border-b bg-background px-4 lg:px-6">
+            <SidebarTrigger className="lg:hidden" />
+            <div className="flex-1" />
+          </header>
+          
+          <main className="flex-1 overflow-auto">
+            <div className="p-4 lg:p-6 max-w-full">
               {children}
             </div>
-          </div>
-        </main>
+          </main>
+        </SidebarInset>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
