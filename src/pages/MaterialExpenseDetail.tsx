@@ -43,18 +43,69 @@ const MaterialExpenseDetail = () => {
         return;
       }
 
-      const link = document.createElement('a');
-      link.href = attachment.url;
-      link.download = attachment.name || 'attachment';
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      console.log('🔥 Downloading attachment:', attachment);
 
-      toast({
-        title: "Success",
-        description: "Attachment download started"
-      });
+      // For data URLs (base64 encoded files)
+      if (attachment.url.startsWith('data:')) {
+        const link = document.createElement('a');
+        link.href = attachment.url;
+        link.download = attachment.name || 'attachment';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        toast({
+          title: "Success",
+          description: "Attachment downloaded successfully"
+        });
+        return;
+      }
+
+      // For regular URLs, try to fetch and download
+      try {
+        const response = await fetch(attachment.url, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = attachment.name || 'attachment';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        toast({
+          title: "Success",
+          description: "Attachment downloaded successfully"
+        });
+      } catch (fetchError) {
+        console.error('Fetch failed, trying direct download:', fetchError);
+        
+        // Fallback to direct download
+        const link = document.createElement('a');
+        link.href = attachment.url;
+        link.download = attachment.name || 'attachment';
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        toast({
+          title: "Download Started",
+          description: "If download doesn't start, the file may not be accessible"
+        });
+      }
     } catch (error) {
       console.error('Error downloading attachment:', error);
       toast({
