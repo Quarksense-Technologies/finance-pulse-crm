@@ -2,56 +2,50 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const dotenv = require('dotenv');
-const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/users');
-const companyRoutes = require('./routes/companies');
-const projectRoutes = require('./routes/projects');
-const financeRoutes = require('./routes/finances');
-const resourceRoutes = require('./routes/resources');
-const approvalRoutes = require('./routes/approvals');
-const attendanceRoutes = require('./routes/attendance');
-const materialRoutes = require('./routes/materials');
+const path = require('path');
+require('dotenv').config();
 
-// Load environment variables
-dotenv.config();
-
-// Initialize express app
 const app = express();
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+
+// Increase payload size limit to handle file uploads (10MB)
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => {
-    console.error('MongoDB connection error:', err);
-    process.exit(1);
-  });
-
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/companies', companyRoutes);
-app.use('/api/projects', projectRoutes);
-app.use('/api/finances', financeRoutes);
-app.use('/api/resources', resourceRoutes);
-app.use('/api/approvals', approvalRoutes);
-app.use('/api/attendance', attendanceRoutes);
-app.use('/api/materials', materialRoutes);
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(err.status || 500).json({
-    message: err.message || 'An unexpected error occurred',
-    success: false
-  });
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/finance-pulse', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
 });
 
-// Start server
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+db.once('open', () => {
+  console.log('Connected to MongoDB');
+});
+
+// Routes
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/users', require('./routes/users'));
+app.use('/api/companies', require('./routes/companies'));
+app.use('/api/projects', require('./routes/projects'));
+app.use('/api/finances', require('./routes/finances'));
+app.use('/api/resources', require('./routes/resources'));
+app.use('/api/attendance', require('./routes/attendance'));
+app.use('/api/approvals', require('./routes/approvals'));
+app.use('/api/materials', require('./routes/materials'));
+
+// Serve static files in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../dist')));
+  
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../dist/index.html'));
+  });
+}
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
