@@ -88,14 +88,14 @@ const Settings = () => {
   };
 
   return (
-    <div className="container mx-auto py-4 sm:py-6 max-w-4xl px-4 no-horizontal-scroll">
+    <div className="container mx-auto py-4 sm:py-6 max-w-4xl px-4">
       <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Settings</h1>
 
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="mb-4 sm:mb-6">
-          <TabsTrigger value="profile" className="text-xs sm:text-sm">Profile</TabsTrigger>
-          <TabsTrigger value="appearance" className="text-xs sm:text-sm">Appearance</TabsTrigger>
-          <TabsTrigger value="account" className="text-xs sm:text-sm">Account</TabsTrigger>
+        <TabsList className="mb-4 sm:mb-6 w-full sm:w-auto">
+          <TabsTrigger value="profile" className="text-xs sm:text-sm flex-1 sm:flex-none">Profile</TabsTrigger>
+          <TabsTrigger value="appearance" className="text-xs sm:text-sm flex-1 sm:flex-none">Appearance</TabsTrigger>
+          <TabsTrigger value="account" className="text-xs sm:text-sm flex-1 sm:flex-none">Account</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile">
@@ -226,4 +226,3 @@ const Settings = () => {
 };
 
 export default Settings;
-

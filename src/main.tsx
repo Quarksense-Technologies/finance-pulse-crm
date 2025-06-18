@@ -5,14 +5,16 @@ import App from './App.tsx';
 import './index.css';
 import { AuthProvider } from './hooks/useAuth.tsx';
 
-// Initialize theme from localStorage or system preference
+// Initialize theme from localStorage with light as default
 const initializeTheme = () => {
-  if (localStorage.theme === 'dark' || 
-      (!('theme' in localStorage) && 
-       window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+  if (localStorage.theme === 'dark') {
     document.documentElement.classList.add('dark');
   } else {
+    // Default to light theme
     document.documentElement.classList.remove('dark');
+    if (!localStorage.theme) {
+      localStorage.setItem('theme', 'light');
+    }
   }
 };
 
