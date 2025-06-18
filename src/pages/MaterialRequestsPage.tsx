@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Plus, Eye, Trash2, ArrowLeft } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/utils/financialUtils';
 import { useMaterialRequests, useDeleteMaterialRequest } from '@/hooks/api/useMaterials';
@@ -214,6 +215,65 @@ const MaterialRequestsPage = () => {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Detail View Dialog */}
+      {selectedItem && (
+        <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>{selectedItem.description}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Project</p>
+                  <p className="text-sm">{selectedItem.projectName || 'Unknown Project'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Status</p>
+                  <div className="text-sm">{getStatusBadge(selectedItem.status)}</div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Part Number</p>
+                  <p className="text-sm">{selectedItem.partNo || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Quantity</p>
+                  <p className="text-sm">{selectedItem.quantity}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Estimated Cost</p>
+                  <p className="text-sm">{selectedItem.estimatedCost ? formatCurrency(selectedItem.estimatedCost) : 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Urgency</p>
+                  <div className="text-sm">{getUrgencyBadge(selectedItem.urgency)}</div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Requested By</p>
+                  <p className="text-sm">{selectedItem.requestedBy?.name}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Date</p>
+                  <p className="text-sm">{formatDate(selectedItem.createdAt)}</p>
+                </div>
+              </div>
+              {selectedItem.notes && (
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Notes</p>
+                  <p className="text-sm">{selectedItem.notes}</p>
+                </div>
+              )}
+              {selectedItem.rejectionReason && (
+                <div>
+                  <p className="text-sm font-medium text-red-500">Rejection Reason</p>
+                  <p className="text-sm text-red-600">{selectedItem.rejectionReason}</p>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );
