@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Download, FileText } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/utils/financialUtils';
 import { useMaterialPurchaseById } from '@/hooks/api/useMaterials';
+import { materialService } from '@/services/api/materialService';
 import { toast } from "@/hooks/use-toast";
 
 const MaterialPurchaseDetail = () => {
@@ -18,85 +19,19 @@ const MaterialPurchaseDetail = () => {
 
   const handleDownloadAttachment = async (attachment: any) => {
     try {
-      if (!attachment || !attachment.url) {
+      if (!purchase?.id || !attachment._id) {
         toast({
           title: "Error",
-          description: "Attachment URL not found",
+          description: "Invalid attachment or purchase ID",
           variant: "destructive"
         });
         return;
       }
 
-      console.log('🔥 Downloading attachment:', attachment);
-
-      // For data URLs (base64 encoded files)
-      if (attachment.url.startsWith('data:')) {
-        const link = document.createElement('a');
-        link.href = attachment.url;
-        link.download = attachment.name || 'attachment';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        toast({
-          title: "Success",
-          description: "Attachment downloaded successfully"
-        });
-        return;
-      }
-
-      // For regular URLs, try to fetch and download
-      try {
-        const response = await fetch(attachment.url, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = attachment.name || 'attachment';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-
-        toast({
-          title: "Success",
-          description: "Attachment downloaded successfully"
-        });
-      } catch (fetchError) {
-        console.error('Fetch failed, trying direct download:', fetchError);
-        
-        // Fallback to direct download
-        const link = document.createElement('a');
-        link.href = attachment.url;
-        link.download = attachment.name || 'attachment';
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        toast({
-          title: "Download Started",
-          description: "If download doesn't start, the file may not be accessible"
-        });
-      }
+      await materialService.downloadMaterialPurchaseAttachment(purchase.id, attachment._id);
     } catch (error) {
       console.error('Error downloading attachment:', error);
-      toast({
-        title: "Error",
-        description: `Failed to download attachment: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        variant: "destructive"
-      });
+      // Error is already handled in the service
     }
   };
 
@@ -197,7 +132,7 @@ const MaterialPurchaseDetail = () => {
               <h3 className="text-lg font-semibold mb-4">Attachments</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {purchase.attachments.map((attachment: any, index: number) => (
-                  <Card key={index} className="p-4">
+                  <Card key={attachment._id || index} className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <FileText className="w-5 h-5 text-gray-500" />

@@ -53,8 +53,10 @@ const MaterialPurchaseSchema = new mongoose.Schema({
   },
   attachments: [{
     name: String,
-    url: String,
-    type: String // 'image' or 'pdf'
+    data: String, // Base64 encoded file data
+    contentType: String, // MIME type
+    size: Number,
+    uploadedAt: { type: Date, default: Date.now }
   }],
   createdBy: { 
     type: mongoose.Schema.Types.ObjectId, 

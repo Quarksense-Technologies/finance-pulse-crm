@@ -1,6 +1,6 @@
 
 import apiClient from './client';
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 export interface MaterialRequest {
   id: string;
@@ -46,9 +46,12 @@ export interface MaterialPurchase {
   purchaseDate: string;
   invoiceNumber?: string;
   attachments: Array<{
+    _id: string;
     name: string;
-    url: string;
-    type: string;
+    data?: string;
+    contentType: string;
+    size: number;
+    uploadedAt: string;
   }>;
   createdBy: {
     id: string;
@@ -69,8 +72,12 @@ export interface MaterialExpense {
   status?: string;
   approvalStatus?: string;
   attachments?: Array<{
+    _id: string;
     name: string;
-    url: string;
+    data?: string;
+    contentType: string;
+    size: number;
+    uploadedAt: string;
   }>;
   createdBy?: {
     id: string;
@@ -103,8 +110,9 @@ export interface CreateMaterialPurchaseData {
   invoiceNumber?: string;
   attachments?: Array<{
     name: string;
-    url: string;
-    type: string;
+    data: string;
+    contentType: string;
+    size: number;
   }>;
 }
 
@@ -242,6 +250,91 @@ export const materialService = {
       return response.data;
     } catch (error: any) {
       console.error('Error fetching material expense:', error);
+      throw error;
+    }
+  },
+
+  // Download Attachments
+  async downloadMaterialPurchaseAttachment(purchaseId: string, attachmentId: string): Promise<void> {
+    try {
+      const response = await apiClient.get(`/materials/purchases/${purchaseId}/attachments/${attachmentId}`, {
+        responseType: 'blob'
+      });
+
+      // Get filename from Content-Disposition header
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = 'attachment';
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+        if (filenameMatch) {
+          filename = filenameMatch[1];
+        }
+      }
+
+      // Create blob and download
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: "Success",
+        description: "Attachment downloaded successfully"
+      });
+    } catch (error: any) {
+      console.error('Error downloading purchase attachment:', error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to download attachment",
+        variant: "destructive"
+      });
+      throw error;
+    }
+  },
+
+  async downloadMaterialExpenseAttachment(expenseId: string, attachmentId: string): Promise<void> {
+    try {
+      const response = await apiClient.get(`/materials/expenses/${expenseId}/attachments/${attachmentId}`, {
+        responseType: 'blob'
+      });
+
+      // Get filename from Content-Disposition header
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = 'attachment';
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+        if (filenameMatch) {
+          filename = filenameMatch[1];
+        }
+      }
+
+      // Create blob and download
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: "Success",
+        description: "Attachment downloaded successfully"
+      });
+    } catch (error: any) {
+      console.error('Error downloading expense attachment:', error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to download attachment",
+        variant: "destructive"
+      });
       throw error;
     }
   }

@@ -179,6 +179,97 @@ router.get('/expenses/:id', auth, async (req, res) => {
   }
 });
 
+// @route   GET /api/materials/purchases/:id/attachments/:attachmentId
+// @desc    Download attachment from material purchase
+// @access  Private (any authenticated user)
+router.get('/purchases/:id/attachments/:attachmentId', auth, async (req, res) => {
+  try {
+    const { id, attachmentId } = req.params;
+    
+    const purchase = await MaterialPurchase.findById(id);
+    if (!purchase) {
+      return res.status(404).json({
+        message: 'Material purchase not found',
+        success: false
+      });
+    }
+    
+    const attachment = purchase.attachments.id(attachmentId);
+    if (!attachment) {
+      return res.status(404).json({
+        message: 'Attachment not found',
+        success: false
+      });
+    }
+    
+    // Convert base64 to buffer
+    const fileData = Buffer.from(attachment.data, 'base64');
+    
+    // Set appropriate headers
+    res.set({
+      'Content-Type': attachment.contentType || 'application/octet-stream',
+      'Content-Disposition': `attachment; filename="${attachment.name}"`,
+      'Content-Length': fileData.length
+    });
+    
+    res.send(fileData);
+  } catch (error) {
+    console.error('Error downloading attachment:', error);
+    res.status(500).json({
+      message: 'Server error downloading attachment',
+      success: false
+    });
+  }
+});
+
+// @route   GET /api/materials/expenses/:id/attachments/:attachmentId
+// @desc    Download attachment from material expense
+// @access  Private (any authenticated user)
+router.get('/expenses/:id/attachments/:attachmentId', auth, async (req, res) => {
+  try {
+    const { id, attachmentId } = req.params;
+    
+    const expense = await Transaction.findOne({
+      _id: id,
+      type: 'expense',
+      category: 'materials'
+    });
+    
+    if (!expense) {
+      return res.status(404).json({
+        message: 'Material expense not found',
+        success: false
+      });
+    }
+    
+    const attachment = expense.attachments.id(attachmentId);
+    if (!attachment) {
+      return res.status(404).json({
+        message: 'Attachment not found',
+        success: false
+      });
+    }
+    
+    // Convert base64 to buffer
+    const fileData = Buffer.from(attachment.data, 'base64');
+    
+    // Set appropriate headers
+    res.set({
+      'Content-Type': attachment.contentType || 'application/octet-stream',
+      'Content-Disposition': `attachment; filename="${attachment.name}"`,
+      'Content-Length': fileData.length
+    });
+    
+    res.send(fileData);
+  } catch (error) {
+    console.error('Error downloading attachment:', error);
+    res.status(500).json({
+      message: 'Server error downloading attachment',
+      success: false
+    });
+  }
+});
+
 // @route   POST /api/materials/requests
 // @desc    Create material request
 // @access  Private (any authenticated user)

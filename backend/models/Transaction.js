@@ -59,7 +59,10 @@ const TransactionSchema = new mongoose.Schema({
   rejectedAt: Date,
   attachments: [{
     name: String,
-    url: String
+    data: String, // Base64 encoded file data
+    contentType: String, // MIME type
+    size: Number,
+    uploadedAt: { type: Date, default: Date.now }
   }]
 }, { timestamps: true });
 
