@@ -65,7 +65,12 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
+      reader.onload = () => {
+        const result = reader.result as string;
+        // Remove the data URL prefix to get only the base64 data
+        const base64Data = result.split(',')[1];
+        resolve(base64Data);
+      };
       reader.onerror = error => reject(error);
     });
   };
