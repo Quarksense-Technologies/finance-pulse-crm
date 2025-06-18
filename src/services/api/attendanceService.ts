@@ -4,8 +4,7 @@ import { toast } from "@/hooks/use-toast";
 
 export interface AttendanceRecord {
   id: string;
-  resourceId: string;
-  projectId: string;
+  projectResourceId: string;
   date: string;
   checkInTime: string;
   checkOutTime: string;
@@ -17,8 +16,7 @@ export interface AttendanceRecord {
 }
 
 export interface CreateAttendanceData {
-  resourceId: string;
-  projectId: string;
+  projectResourceId: string;
   date: string;
   checkInTime: string;
   checkOutTime: string;
@@ -42,16 +40,15 @@ export const attendanceService = {
       
       return response.data.map((record: any) => ({
         id: record._id || record.id,
-        resourceId: record.resourceId._id || record.resourceId,
-        projectId: record.projectId._id || record.projectId,
+        projectResourceId: record.projectResourceId._id || record.projectResourceId,
         date: record.date,
         checkInTime: record.checkInTime,
         checkOutTime: record.checkOutTime,
         totalHours: record.totalHours,
-        resourceName: record.resourceId?.name,
-        resourceRole: record.resourceId?.role,
-        projectName: record.projectId?.name,
-        hourlyRate: record.resourceId?.hourlyRate
+        resourceName: record.projectResourceId?.resourceId?.name,
+        resourceRole: record.projectResourceId?.resourceId?.role,
+        projectName: record.projectResourceId?.projectId?.name,
+        hourlyRate: record.projectResourceId?.resourceId?.hourlyRate
       }));
     } catch (error: any) {
       console.error(`Error fetching attendance for project ${projectId}:`, error);
@@ -84,8 +81,8 @@ export const attendanceService = {
       console.log('Creating attendance record with data:', attendanceData);
       
       // Validate the data before sending
-      if (!attendanceData.resourceId || !attendanceData.projectId) {
-        throw new Error('Resource ID and Project ID are required');
+      if (!attendanceData.projectResourceId) {
+        throw new Error('Project Resource ID is required');
       }
       
       const response = await apiClient.post('/attendance', attendanceData);
@@ -98,16 +95,15 @@ export const attendanceService = {
       
       return {
         id: response.data._id || response.data.id,
-        resourceId: response.data.resourceId._id || response.data.resourceId,
-        projectId: response.data.projectId._id || response.data.projectId,
+        projectResourceId: response.data.projectResourceId._id || response.data.projectResourceId,
         date: response.data.date,
         checkInTime: response.data.checkInTime,
         checkOutTime: response.data.checkOutTime,
         totalHours: response.data.totalHours,
-        resourceName: response.data.resourceId?.name,
-        resourceRole: response.data.resourceId?.role,
-        projectName: response.data.projectId?.name,
-        hourlyRate: response.data.resourceId?.hourlyRate
+        resourceName: response.data.projectResourceId?.resourceId?.name,
+        resourceRole: response.data.projectResourceId?.resourceId?.role,
+        projectName: response.data.projectResourceId?.projectId?.name,
+        hourlyRate: response.data.projectResourceId?.resourceId?.hourlyRate
       };
     } catch (error: any) {
       console.error('Error creating attendance record:', error);
@@ -137,16 +133,15 @@ export const attendanceService = {
       
       return {
         id: response.data._id || response.data.id,
-        resourceId: response.data.resourceId._id || response.data.resourceId,
-        projectId: response.data.projectId._id || response.data.projectId,
+        projectResourceId: response.data.projectResourceId._id || response.data.projectResourceId,
         date: response.data.date,
         checkInTime: response.data.checkInTime,
         checkOutTime: response.data.checkOutTime,
         totalHours: response.data.totalHours,
-        resourceName: response.data.resourceId?.name,
-        resourceRole: response.data.resourceId?.role,
-        projectName: response.data.projectId?.name,
-        hourlyRate: response.data.resourceId?.hourlyRate
+        resourceName: response.data.projectResourceId?.resourceId?.name,
+        resourceRole: response.data.projectResourceId?.resourceId?.role,
+        projectName: response.data.projectResourceId?.projectId?.name,
+        hourlyRate: response.data.projectResourceId?.resourceId?.hourlyRate
       };
     } catch (error: any) {
       console.error(`Error updating attendance record ${id}:`, error);

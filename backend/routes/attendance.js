@@ -2,8 +2,7 @@
 const express = require('express');
 const { check, validationResult } = require('express-validator');
 const Attendance = require('../models/Attendance');
-const Resource = require('../models/Resource');
-const Project = require('../models/Project');
+const ProjectResource = require('../models/ProjectResource');
 const auth = require('../middleware/auth');
 const roleCheck = require('../middleware/roleCheck');
 const router = express.Router();
@@ -16,8 +15,20 @@ router.get('/project/:projectId', auth, async (req, res) => {
     const { projectId } = req.params;
     const { month, year } = req.query;
 
+    // First get all project resource allocations for this project
+    const projectResources = await ProjectResource.find({ 
+      projectId, 
+      isActive: true 
+    });
+
+    if (projectResources.length === 0) {
+      return res.status(200).json([]);
+    }
+
+    const projectResourceIds = projectResources.map(pr => pr._id);
+
     // Build filter
-    const filter = { projectId };
+    const filter = { projectResourceId: { $in: projectResourceIds } };
     
     if (month && year) {
       const startDate = new Date(year, month - 1, 1);
@@ -29,8 +40,13 @@ router.get('/project/:projectId', auth, async (req, res) => {
     }
 
     const attendanceRecords = await Attendance.find(filter)
-      .populate('resourceId', 'name role hourlyRate')
-      .populate('projectId', 'name')
+      .populate({
+        path: 'projectResourceId',
+        populate: [
+          { path: 'resourceId', select: 'name role hourlyRate' },
+          { path: 'projectId', select: 'name' }
+        ]
+      })
       .sort({ date: -1 });
 
     res.status(200).json(attendanceRecords);
@@ -51,8 +67,20 @@ router.get('/resource/:resourceId', auth, async (req, res) => {
     const { resourceId } = req.params;
     const { month, year } = req.query;
 
+    // First get all project resource allocations for this resource
+    const projectResources = await ProjectResource.find({ 
+      resourceId, 
+      isActive: true 
+    });
+
+    if (projectResources.length === 0) {
+      return res.status(200).json([]);
+    }
+
+    const projectResourceIds = projectResources.map(pr => pr._id);
+
     // Build filter
-    const filter = { resourceId };
+    const filter = { projectResourceId: { $in: projectResourceIds } };
     
     if (month && year) {
       const startDate = new Date(year, month - 1, 1);
@@ -64,8 +92,13 @@ router.get('/resource/:resourceId', auth, async (req, res) => {
     }
 
     const attendanceRecords = await Attendance.find(filter)
-      .populate('resourceId', 'name role hourlyRate')
-      .populate('projectId', 'name')
+      .populate({
+        path: 'projectResourceId',
+        populate: [
+          { path: 'resourceId', select: 'name role hourlyRate' },
+          { path: 'projectId', select: 'name' }
+        ]
+      })
       .sort({ date: -1 });
 
     res.status(200).json(attendanceRecords);
@@ -85,44 +118,64 @@ router.get('/report', auth, async (req, res) => {
   try {
     const { month, year, projectId } = req.query;
 
-    // Build filter
-    const filter = {};
-    
+    // Build filter for project resources
+    const projectResourceFilter = {};
     if (projectId) {
-      filter.projectId = projectId;
+      projectResourceFilter.projectId = projectId;
     }
+
+    // Get project resources based on filter
+    const projectResources = await ProjectResource.find({
+      ...projectResourceFilter,
+      isActive: true
+    });
+
+    if (projectResources.length === 0) {
+      return res.status(200).json([]);
+    }
+
+    const projectResourceIds = projectResources.map(pr => pr._id);
+
+    // Build attendance filter
+    const attendanceFilter = { projectResourceId: { $in: projectResourceIds } };
     
     if (month && year) {
       const startDate = new Date(year, month - 1, 1);
       const endDate = new Date(year, month, 0);
-      filter.date = {
+      attendanceFilter.date = {
         $gte: startDate,
         $lte: endDate
       };
     }
 
-    const attendanceRecords = await Attendance.find(filter)
-      .populate('resourceId', 'name role hourlyRate')
-      .populate('projectId', 'name');
+    const attendanceRecords = await Attendance.find(attendanceFilter)
+      .populate({
+        path: 'projectResourceId',
+        populate: [
+          { path: 'resourceId', select: 'name role hourlyRate' },
+          { path: 'projectId', select: 'name' }
+        ]
+      });
 
-    // Group by resource and calculate totals
+    // Group by resource and project combination
     const reportData = {};
     
     attendanceRecords.forEach(record => {
-      const key = `${record.resourceId._id}-${record.projectId._id}`;
+      const projectResource = record.projectResourceId;
+      const key = `${projectResource.resourceId._id}-${projectResource.projectId._id}`;
       
       if (!reportData[key]) {
         reportData[key] = {
-          resourceId: record.resourceId._id,
-          resourceName: record.resourceId.name,
-          resourceRole: record.resourceId.role,
-          projectId: record.projectId._id,
-          projectName: record.projectId.name,
+          resourceId: projectResource.resourceId._id,
+          resourceName: projectResource.resourceId.name,
+          resourceRole: projectResource.resourceId.role,
+          projectId: projectResource.projectId._id,
+          projectName: projectResource.projectId.name,
           month: month ? new Date(year, month - 1).toLocaleString('default', { month: 'long' }) : 'All',
           year: parseInt(year) || new Date().getFullYear(),
           totalHours: 0,
           totalDays: 0,
-          hourlyRate: record.resourceId.hourlyRate || 0,
+          hourlyRate: projectResource.resourceId.hourlyRate || 0,
           totalCost: 0
         };
       }
@@ -154,8 +207,7 @@ router.post(
   auth,
   roleCheck(['admin', 'manager']),
   [
-    check('resourceId', 'Resource ID is required').not().isEmpty(),
-    check('projectId', 'Project ID is required').not().isEmpty(),
+    check('projectResourceId', 'Project Resource ID is required').not().isEmpty(),
     check('date', 'Date is required').isISO8601().toDate(),
     check('checkInTime', 'Check-in time is required').not().isEmpty(),
     check('checkOutTime', 'Check-out time is required').not().isEmpty()
@@ -171,22 +223,23 @@ router.post(
     }
 
     try {
-      const { resourceId, projectId, date, checkInTime, checkOutTime } = req.body;
+      const { projectResourceId, date, checkInTime, checkOutTime } = req.body;
 
-      // Verify resource and project exist
-      const resource = await Resource.findById(resourceId);
-      const project = await Project.findById(projectId);
+      // Verify project resource allocation exists
+      const projectResource = await ProjectResource.findById(projectResourceId)
+        .populate('resourceId', 'name role hourlyRate')
+        .populate('projectId', 'name');
 
-      if (!resource) {
+      if (!projectResource) {
         return res.status(404).json({
-          message: 'Resource not found',
+          message: 'Project resource allocation not found',
           success: false
         });
       }
 
-      if (!project) {
-        return res.status(404).json({
-          message: 'Project not found',
+      if (!projectResource.isActive) {
+        return res.status(400).json({
+          message: 'Project resource allocation is not active',
           success: false
         });
       }
@@ -204,10 +257,22 @@ router.post(
         });
       }
 
+      // Check if attendance record already exists for this date
+      const existingAttendance = await Attendance.findOne({
+        projectResourceId,
+        date: new Date(date)
+      });
+
+      if (existingAttendance) {
+        return res.status(400).json({
+          message: 'Attendance record already exists for this resource on this date',
+          success: false
+        });
+      }
+
       // Create attendance record
       const attendance = new Attendance({
-        resourceId,
-        projectId,
+        projectResourceId,
         date: new Date(date),
         checkInTime,
         checkOutTime,
@@ -218,8 +283,13 @@ router.post(
       await attendance.save();
 
       // Populate the response
-      await attendance.populate('resourceId', 'name role hourlyRate');
-      await attendance.populate('projectId', 'name');
+      await attendance.populate({
+        path: 'projectResourceId',
+        populate: [
+          { path: 'resourceId', select: 'name role hourlyRate' },
+          { path: 'projectId', select: 'name' }
+        ]
+      });
 
       res.status(201).json(attendance);
     } catch (error) {
@@ -284,8 +354,13 @@ router.put(
       await attendance.save();
 
       // Populate the response
-      await attendance.populate('resourceId', 'name role hourlyRate');
-      await attendance.populate('projectId', 'name');
+      await attendance.populate({
+        path: 'projectResourceId',
+        populate: [
+          { path: 'resourceId', select: 'name role hourlyRate' },
+          { path: 'projectId', select: 'name' }
+        ]
+      });
 
       res.status(200).json(attendance);
     } catch (error) {

@@ -19,7 +19,7 @@ interface AttendanceFormProps {
 }
 
 const AttendanceForm = ({ projectId, resources, onSubmit, onCancel }: AttendanceFormProps) => {
-  const [selectedResourceId, setSelectedResourceId] = useState('');
+  const [selectedAllocationId, setSelectedAllocationId] = useState('');
   const [date, setDate] = useState<Date>();
   const [checkInTime, setCheckInTime] = useState('');
   const [checkOutTime, setCheckOutTime] = useState('');
@@ -27,13 +27,12 @@ const AttendanceForm = ({ projectId, resources, onSubmit, onCancel }: Attendance
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedResourceId || !date || !checkInTime || !checkOutTime) {
+    if (!selectedAllocationId || !date || !checkInTime || !checkOutTime) {
       return;
     }
 
     onSubmit({
-      resourceId: selectedResourceId,
-      projectId,
+      projectResourceId: selectedAllocationId,
       date: date.toISOString().split('T')[0],
       checkInTime,
       checkOutTime
@@ -44,13 +43,13 @@ const AttendanceForm = ({ projectId, resources, onSubmit, onCancel }: Attendance
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="resource">Resource</Label>
-        <Select value={selectedResourceId} onValueChange={setSelectedResourceId}>
+        <Select value={selectedAllocationId} onValueChange={setSelectedAllocationId}>
           <SelectTrigger>
             <SelectValue placeholder="Select a resource" />
           </SelectTrigger>
           <SelectContent>
             {resources.map((allocation) => (
-              <SelectItem key={allocation.id} value={allocation.resourceId}>
+              <SelectItem key={allocation.id} value={allocation.id}>
                 {allocation.resource?.name} - {allocation.resource?.role}
               </SelectItem>
             ))}
@@ -112,7 +111,7 @@ const AttendanceForm = ({ projectId, resources, onSubmit, onCancel }: Attendance
         </Button>
         <Button 
           type="submit" 
-          disabled={!selectedResourceId || !date || !checkInTime || !checkOutTime}
+          disabled={!selectedAllocationId || !date || !checkInTime || !checkOutTime}
         >
           Record Attendance
         </Button>

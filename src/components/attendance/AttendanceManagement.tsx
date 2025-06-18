@@ -27,7 +27,6 @@ const AttendanceManagement = ({
   resourcesError 
 }: AttendanceManagementProps) => {
   const [showAttendanceForm, setShowAttendanceForm] = useState(false);
-  const [selectedResourceId, setSelectedResourceId] = useState<string>('');
 
   const currentMonth = new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear();
@@ -43,10 +42,8 @@ const AttendanceManagement = ({
 
   const handleAttendanceSubmit = async (attendanceData: any) => {
     try {
-      await createAttendanceMutation.mutateAsync({
-        ...attendanceData,
-        projectId
-      });
+      console.log('Submitting attendance data:', attendanceData);
+      await createAttendanceMutation.mutateAsync(attendanceData);
       setShowAttendanceForm(false);
       refetchAttendance();
     } catch (error) {
@@ -113,7 +110,7 @@ const AttendanceManagement = ({
           />
           <Dialog open={showAttendanceForm} onOpenChange={setShowAttendanceForm}>
             <DialogTrigger asChild>
-              <Button size="sm" variant="outline">
+              <Button size="sm" variant="outline" disabled={resources.length === 0}>
                 <Clock className="h-4 w-4 mr-2" />
                 Record Attendance
               </Button>
@@ -242,17 +239,6 @@ const AttendanceManagement = ({
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap text-sm">
                           <div className="flex flex-col sm:flex-row gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setSelectedResourceId(allocation.resourceId);
-                                setShowAttendanceForm(true);
-                              }}
-                              className="text-xs"
-                            >
-                              Add Attendance
-                            </Button>
                             <Button
                               size="sm"
                               variant="destructive"
