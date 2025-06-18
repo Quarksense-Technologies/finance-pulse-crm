@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
@@ -77,15 +76,11 @@ const MultiItemMaterialExpenseForm: React.FC<MultiItemMaterialExpenseFormProps> 
       // Submit each item as a separate expense
       for (const [index, item] of data.items.entries()) {
         const itemAttachments = attachments[index] || [];
-        // Convert files to the correct format matching CreateTransactionData interface
-        const attachmentData = await Promise.all(
-          itemAttachments.map(async (file) => ({
-            name: file.name,
-            data: await fileToBase64(file),
-            contentType: file.type,
-            size: file.size
-          }))
-        );
+        // Convert files to the format expected by the finance API (with url property)
+        const attachmentData = itemAttachments.map(file => ({
+          name: file.name,
+          url: URL.createObjectURL(file), // Finance API expects url format
+        }));
 
         const transactionData = {
           type: 'expense' as const,

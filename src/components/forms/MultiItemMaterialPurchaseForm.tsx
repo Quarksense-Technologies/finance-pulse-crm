@@ -77,8 +77,28 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
 
   const handleSubmit = async (data: any) => {
     try {
+      console.log('Form data before processing:', data);
+      
+      // Validate required fields
+      if (!data.projectId) {
+        console.error('Project ID is missing');
+        return;
+      }
+
       // Submit each item as a separate purchase
       for (const [index, item] of data.items.entries()) {
+        console.log(`Processing item ${index + 1}:`, item);
+        
+        // Validate required item fields
+        if (!item.description || !item.quantity || !item.price) {
+          console.error(`Item ${index + 1} is missing required fields:`, {
+            description: item.description,
+            quantity: item.quantity,
+            price: item.price
+          });
+          continue;
+        }
+
         const quantity = parseFloat(item.quantity) || 0;
         const price = parseFloat(item.price) || 0;
         const gst = parseFloat(item.gst) || 0;
