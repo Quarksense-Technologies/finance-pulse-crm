@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
@@ -23,8 +24,9 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
   const createMaterialPurchaseMutation = useCreateMaterialPurchase();
   const [attachments, setAttachments] = useState<{[key: number]: File[]}>({});
   
-  // Maximum file size: 5MB per file
-  const MAX_FILE_SIZE = 5 * 1024 * 1024;
+  // Reduced file size limits to prevent payload too large errors
+  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB per file
+  const MAX_TOTAL_SIZE = 5 * 1024 * 1024; // 5MB total per item
   
   const form = useForm({
     defaultValues: {
@@ -57,7 +59,20 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
       if (oversizedFiles.length > 0) {
         toast({
           title: "File too large",
-          description: `Files must be smaller than 5MB. Please compress or use smaller files.`,
+          description: `Files must be smaller than 2MB. Please compress or use smaller files.`,
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Check total size including existing files
+      const existingSize = (attachments[index] || []).reduce((sum, file) => sum + file.size, 0);
+      const newSize = newFiles.reduce((sum, file) => sum + file.size, 0);
+      
+      if (existingSize + newSize > MAX_TOTAL_SIZE) {
+        toast({
+          title: "Total size too large",
+          description: `Total attachment size per item cannot exceed 5MB.`,
           variant: "destructive"
         });
         return;
@@ -136,10 +151,10 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
         
         // Check total attachment size for this item
         const totalSize = itemAttachments.reduce((sum, file) => sum + file.size, 0);
-        if (totalSize > MAX_FILE_SIZE * 2) { // Allow up to 10MB total per item
+        if (totalSize > MAX_TOTAL_SIZE) {
           toast({
             title: "Attachments too large",
-            description: `Total attachment size for item ${index + 1} exceeds 10MB. Please reduce file sizes.`,
+            description: `Total attachment size for item ${index + 1} exceeds 5MB. Please reduce file sizes.`,
             variant: "destructive"
           });
           continue;
@@ -170,7 +185,15 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
           attachments: attachmentData,
         };
 
-        console.log('Sending purchase data:', purchaseData);
+        console.log('Sending purchase data:', {
+          ...purchaseData,
+          attachments: purchaseData.attachments.map(att => ({
+            name: att.name,
+            contentType: att.contentType,
+            size: att.size,
+            dataLength: att.data.length
+          }))
+        });
 
         await createMaterialPurchaseMutation.mutateAsync(purchaseData);
       }
@@ -180,7 +203,7 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
       if (onSubmit) onSubmit();
     } catch (error: any) {
       console.error('Error creating material purchases:', error);
-      if (error.response?.status === 413) {
+      if (error.response?.status === 413 || error.message?.includes('too large')) {
         toast({
           title: "Request too large",
           description: "Files are too large. Please use smaller files or fewer attachments.",
@@ -220,13 +243,14 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
             <FormField
               control={form.control}
               name="projectId"
+              rules={{ required: "Please select a project" }}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Project *</FormLabel>
                   <Select 
                     disabled={!!preselectedProjectId}
                     onValueChange={field.onChange} 
-                    defaultValue={field.value}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -306,6 +330,7 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
                       <FormField
                         control={form.control}
                         name={`items.${index}.description`}
+                        rules={{ required: "Description is required" }}
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Description *</FormLabel>
@@ -348,6 +373,7 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
                       <FormField
                         control={form.control}
                         name={`items.${index}.quantity`}
+                        rules={{ required: "Quantity is required" }}
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Quantity *</FormLabel>
@@ -362,6 +388,7 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
                       <FormField
                         control={form.control}
                         name={`items.${index}.price`}
+                        rules={{ required: "Price is required" }}
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Unit Price ($) *</FormLabel>
@@ -404,7 +431,7 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
 
                     {/* File Attachments with size validation */}
                     <div className="space-y-2">
-                      <FormLabel>Attachments (Max 5MB per file)</FormLabel>
+                      <FormLabel>Attachments (Max 2MB per file, 5MB total)</FormLabel>
                       <div className="flex items-center gap-2">
                         <Input
                           type="file"
@@ -427,6 +454,9 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
                       
                       {attachments[index] && attachments[index].length > 0 && (
                         <div className="space-y-2">
+                          <p className="text-xs text-gray-500">
+                            Total size: {((attachments[index] || []).reduce((sum, file) => sum + file.size, 0) / 1024 / 1024).toFixed(2)} MB
+                          </p>
                           {attachments[index].map((file, fileIndex) => (
                             <div key={fileIndex} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                               <span className="text-sm truncate">
