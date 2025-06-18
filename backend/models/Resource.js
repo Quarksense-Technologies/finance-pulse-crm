@@ -6,27 +6,27 @@ const ResourceSchema = new mongoose.Schema({
     type: String, 
     required: true 
   },
-  projectId: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Project', 
+  role: { 
+    type: String, 
     required: true 
   },
-  role: String,
-  hoursAllocated: { 
-    type: Number, 
-    default: 0 
+  email: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  phone: {
+    type: String
   },
   hourlyRate: { 
     type: Number, 
     default: 0 
   },
-  startDate: { 
-    type: Date, 
-    required: true 
-  },
-  endDate: { 
-    type: Date,
-    default: null
+  skills: [String],
+  department: String,
+  isActive: {
+    type: Boolean,
+    default: true
   }
 }, { timestamps: true });
 

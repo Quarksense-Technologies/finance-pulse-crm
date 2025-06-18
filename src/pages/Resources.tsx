@@ -3,17 +3,17 @@ import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, User, Calendar, DollarSign } from 'lucide-react';
+import { Plus, Users, UserCheck, DollarSign } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import ManpowerResourceForm from '@/components/resources/ManpowerResourceForm';
-import ResourcesList from '@/components/resources/ResourcesList';
-import { useAllResources } from '@/hooks/api/useResources';
+import { useResources } from '@/hooks/api/useResources';
 import { formatCurrency } from '@/utils/financialUtils';
+import ResourceForm from '@/components/forms/ResourceForm';
+import ResourcesList from '@/components/resources/ResourcesList';
 
 const Resources = () => {
   const { hasPermission } = useAuth();
   const [showResourceForm, setShowResourceForm] = useState(false);
-  const { data: resources = [], refetch } = useAllResources();
+  const { data: resources = [], refetch } = useResources();
 
   const handleResourceAdded = () => {
     setShowResourceForm(false);
@@ -21,14 +21,8 @@ const Resources = () => {
   };
 
   // Calculate stats from actual resources
-  const totalResources = resources.length;
-  const activeResources = resources.filter(r => {
-    const now = new Date();
-    const startDate = new Date(r.startDate);
-    const endDate = r.endDate ? new Date(r.endDate) : null;
-    return startDate <= now && (!endDate || endDate >= now);
-  }).length;
-
+  const totalResources = resources.filter(r => r.isActive).length;
+  const activeResources = resources.filter(r => r.isActive).length;
   const averageHourlyRate = resources.length > 0 
     ? resources.reduce((sum, r) => sum + r.hourlyRate, 0) / resources.length 
     : 0;
@@ -51,8 +45,8 @@ const Resources = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Resources</h1>
-          <p className="text-gray-600 mt-1">Manage team members and their assignments</p>
+          <h1 className="text-3xl font-bold">Resource Management</h1>
+          <p className="text-gray-600 mt-1">Manage your team members and their information</p>
         </div>
         <Dialog open={showResourceForm} onOpenChange={setShowResourceForm}>
           <DialogTrigger asChild>
@@ -65,7 +59,7 @@ const Resources = () => {
             <DialogHeader>
               <DialogTitle>Add New Resource</DialogTitle>
             </DialogHeader>
-            <ManpowerResourceForm onResourceAdded={handleResourceAdded} />
+            <ResourceForm onResourceAdded={handleResourceAdded} />
           </DialogContent>
         </Dialog>
       </div>
@@ -76,7 +70,7 @@ const Resources = () => {
           <CardContent className="p-6">
             <div className="flex items-center">
               <div className="p-2 bg-blue-100 rounded-full">
-                <User className="h-6 w-6 text-blue-600" />
+                <Users className="h-6 w-6 text-blue-600" />
               </div>
               <div className="ml-4">
                 <h3 className="text-sm font-medium text-gray-500">Total Resources</h3>
@@ -90,7 +84,7 @@ const Resources = () => {
           <CardContent className="p-6">
             <div className="flex items-center">
               <div className="p-2 bg-green-100 rounded-full">
-                <Calendar className="h-6 w-6 text-green-600" />
+                <UserCheck className="h-6 w-6 text-green-600" />
               </div>
               <div className="ml-4">
                 <h3 className="text-sm font-medium text-gray-500">Active Resources</h3>

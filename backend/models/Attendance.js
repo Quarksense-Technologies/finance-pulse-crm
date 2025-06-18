@@ -2,14 +2,9 @@
 const mongoose = require('mongoose');
 
 const AttendanceSchema = new mongoose.Schema({
-  resourceId: { 
+  projectResourceId: { 
     type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Resource', 
-    required: true 
-  },
-  projectId: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Project', 
+    ref: 'ProjectResource', 
     required: true 
   },
   date: { 
@@ -44,7 +39,7 @@ AttendanceSchema.set('toJSON', {
   }
 });
 
-// Create compound index to prevent duplicate entries for same resource on same date
-AttendanceSchema.index({ resourceId: 1, date: 1 }, { unique: true });
+// Create compound index to prevent duplicate entries for same resource allocation on same date
+AttendanceSchema.index({ projectResourceId: 1, date: 1 }, { unique: true });
 
 module.exports = mongoose.model('Attendance', AttendanceSchema);

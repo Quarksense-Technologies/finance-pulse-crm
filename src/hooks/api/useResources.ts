@@ -1,22 +1,13 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { resourceService, CreateResourceData, UpdateResourceData } from '@/services/api/resourceService';
+import { resourceService, CreateResourceData, UpdateResourceData, AllocateResourceData } from '@/services/api/resourceService';
 
-export const useResources = (projectId?: string) => {
-  return useQuery({
-    queryKey: ['resources', projectId],
-    queryFn: () => resourceService.getResources(projectId),
-    enabled: !!projectId,
-    staleTime: 0, // Always refetch to ensure fresh data
-    gcTime: 0, // Don't cache stale data (renamed from cacheTime)
-  });
-};
-
-export const useAllResources = () => {
+// Resource Management Hooks
+export const useResources = () => {
   return useQuery({
     queryKey: ['resources'],
     queryFn: () => resourceService.getResources(),
-    staleTime: 0, // Always refetch to ensure fresh data
-    gcTime: 0, // Don't cache stale data (renamed from cacheTime)
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
 
@@ -33,24 +24,8 @@ export const useCreateResource = () => {
   
   return useMutation({
     mutationFn: (data: CreateResourceData) => resourceService.createResource(data),
-    onSuccess: (data, variables) => {
-      console.log('Resource created successfully, invalidating all caches...');
-      
-      // Clear all resource-related queries completely
-      queryClient.removeQueries({ queryKey: ['resources'] });
-      queryClient.removeQueries({ queryKey: ['resourcesSummary'] });
-      queryClient.removeQueries({ queryKey: ['projects'] });
-      queryClient.removeQueries({ queryKey: ['project', variables.projectId] });
-      
-      // Force immediate refetch of all queries
-      setTimeout(() => {
-        queryClient.refetchQueries({ queryKey: ['resources'] });
-        queryClient.refetchQueries({ queryKey: ['resourcesSummary'] });
-        queryClient.refetchQueries({ queryKey: ['projects'] });
-        queryClient.refetchQueries({ queryKey: ['project', variables.projectId] });
-      }, 100);
-      
-      console.log('All caches cleared and refetch initiated');
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['resources'] });
     },
   });
 };
@@ -62,17 +37,8 @@ export const useUpdateResource = () => {
     mutationFn: ({ id, data }: { id: string; data: UpdateResourceData }) => 
       resourceService.updateResource(id, data),
     onSuccess: (data, variables) => {
-      // Clear all resource-related queries completely
-      queryClient.removeQueries({ queryKey: ['resources'] });
-      queryClient.removeQueries({ queryKey: ['resourcesSummary'] });
-      queryClient.removeQueries({ queryKey: ['projects'] });
-      
-      // Force immediate refetch
-      setTimeout(() => {
-        queryClient.refetchQueries({ queryKey: ['resources'] });
-        queryClient.refetchQueries({ queryKey: ['resourcesSummary'] });
-        queryClient.refetchQueries({ queryKey: ['projects'] });
-      }, 100);
+      queryClient.invalidateQueries({ queryKey: ['resources'] });
+      queryClient.invalidateQueries({ queryKey: ['resource', variables.id] });
     },
   });
 };
@@ -83,17 +49,58 @@ export const useDeleteResource = () => {
   return useMutation({
     mutationFn: resourceService.deleteResource,
     onSuccess: () => {
-      // Clear all resource-related queries completely
-      queryClient.removeQueries({ queryKey: ['resources'] });
-      queryClient.removeQueries({ queryKey: ['resourcesSummary'] });
-      queryClient.removeQueries({ queryKey: ['projects'] });
-      
-      // Force immediate refetch
-      setTimeout(() => {
-        queryClient.refetchQueries({ queryKey: ['resources'] });
-        queryClient.refetchQueries({ queryKey: ['resourcesSummary'] });
-        queryClient.refetchQueries({ queryKey: ['projects'] });
-      }, 100);
+      queryClient.invalidateQueries({ queryKey: ['resources'] });
     },
   });
 };
+
+// Project Resource Allocation Hooks
+export const useProjectResources = (projectId: string) => {
+  return useQuery({
+    queryKey: ['projectResources', projectId],
+    queryFn: () => resourceService.getProjectResources(projectId),
+    enabled: !!projectId,
+    staleTime: 0,
+  });
+};
+
+export const useAllocateResource = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ projectId, data }: { projectId: string; data: AllocateResourceData }) => 
+      resourceService.allocateResourceToProject(projectId, data),
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['projectResources', variables.projectId] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+    },
+  });
+};
+
+export const useUpdateResourceAllocation = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<AllocateResourceData> }) => 
+      resourceService.updateResourceAllocation(id, data),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['projectResources', data.projectId] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+    },
+  });
+};
+
+export const useRemoveResourceAllocation = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: resourceService.removeResourceAllocation,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projectResources'] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+    },
+  });
+};
+
+// Legacy hooks for backward compatibility
+export const useAllResources = useResources;

@@ -2,83 +2,19 @@
 const express = require('express');
 const { check, validationResult } = require('express-validator');
 const Resource = require('../models/Resource');
+const ProjectResource = require('../models/ProjectResource');
 const Project = require('../models/Project');
 const auth = require('../middleware/auth');
 const roleCheck = require('../middleware/roleCheck');
 const router = express.Router();
-
-// @route   GET /api/resources/summary
-// @desc    Get resources summary
-// @access  Private (any authenticated user)
-router.get('/summary', auth, async (req, res) => {
-  try {
-    // Get all resources
-    const resources = await Resource.find();
-    
-    // Calculate total allocated hours
-    const totalAllocated = resources.reduce((sum, resource) => sum + resource.hoursAllocated, 0);
-    
-    // Calculate average hourly rate
-    const totalCost = resources.reduce((sum, resource) => sum + (resource.hoursAllocated * resource.hourlyRate), 0);
-    const averageCost = resources.length > 0 && totalAllocated > 0 ? totalCost / totalAllocated : 0;
-    
-    // Count projects with resources
-    const projectsWithResources = new Set(resources.map(resource => resource.projectId.toString())).size;
-    
-    // Build response
-    const summary = {
-      totalAllocated,
-      averageCost,
-      projectsWithResources
-    };
-    
-    res.status(200).json(summary);
-  } catch (error) {
-    console.error('Error generating resources summary:', error);
-    res.status(500).json({
-      message: 'Server error generating resources summary',
-      success: false
-    });
-  }
-});
-
-// @route   GET /api/resources/project/:id
-// @desc    Get resources for a specific project
-// @access  Private (any authenticated user)
-router.get('/project/:id', auth, async (req, res) => {
-  try {
-    // Check if project exists
-    const project = await Project.findById(req.params.id);
-    
-    if (!project) {
-      return res.status(404).json({
-        message: 'Project not found',
-        success: false
-      });
-    }
-    
-    // Get resources for the project
-    const resources = await Resource.find({ projectId: req.params.id })
-      .sort({ startDate: -1 });
-    
-    res.status(200).json(resources);
-  } catch (error) {
-    console.error(`Error fetching resources for project ${req.params.id}:`, error);
-    res.status(500).json({
-      message: 'Server error fetching project resources',
-      success: false
-    });
-  }
-});
 
 // @route   GET /api/resources
 // @desc    Get all resources
 // @access  Private (any authenticated user)
 router.get('/', auth, async (req, res) => {
   try {
-    const resources = await Resource.find()
-      .populate('projectId', 'name')
-      .sort({ startDate: -1 });
+    const resources = await Resource.find({ isActive: true })
+      .sort({ name: 1 });
     
     res.status(200).json(resources);
   } catch (error) {
@@ -95,8 +31,7 @@ router.get('/', auth, async (req, res) => {
 // @access  Private (any authenticated user)
 router.get('/:id', auth, async (req, res) => {
   try {
-    const resource = await Resource.findById(req.params.id)
-      .populate('projectId', 'name');
+    const resource = await Resource.findById(req.params.id);
     
     if (!resource) {
       return res.status(404).json({
@@ -115,6 +50,63 @@ router.get('/:id', auth, async (req, res) => {
   }
 });
 
+// @route   POST /api/resources
+// @desc    Create new resource
+// @access  Admin or Manager
+router.post(
+  '/',
+  auth,
+  roleCheck(['admin', 'manager']),
+  [
+    check('name', 'Name is required').not().isEmpty(),
+    check('role', 'Role is required').not().isEmpty(),
+    check('email', 'Valid email is required').isEmail(),
+    check('hourlyRate', 'Hourly rate must be a number').optional().isNumeric()
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        message: errors.array()[0].msg,
+        success: false 
+      });
+    }
+
+    try {
+      const { name, role, email, phone, hourlyRate, skills, department } = req.body;
+
+      // Check if resource with email already exists
+      const existingResource = await Resource.findOne({ email });
+      if (existingResource) {
+        return res.status(400).json({
+          message: 'Resource with this email already exists',
+          success: false
+        });
+      }
+
+      const resource = new Resource({
+        name,
+        role,
+        email,
+        phone,
+        hourlyRate: hourlyRate || 0,
+        skills: skills || [],
+        department
+      });
+
+      await resource.save();
+      
+      res.status(201).json(resource);
+    } catch (error) {
+      console.error('Error creating resource:', error);
+      res.status(500).json({
+        message: 'Server error creating resource',
+        success: false
+      });
+    }
+  }
+);
+
 // @route   PUT /api/resources/:id
 // @desc    Update resource
 // @access  Admin or Manager
@@ -124,7 +116,6 @@ router.put(
   roleCheck(['admin', 'manager']),
   async (req, res) => {
     try {
-      // Check if resource exists
       let resource = await Resource.findById(req.params.id);
       
       if (!resource) {
@@ -134,42 +125,18 @@ router.put(
         });
       }
       
-      // Update resource with only provided fields
       const updateData = {};
-      const { 
-        name, 
-        role, 
-        hoursAllocated,
-        hourlyRate,
-        startDate,
-        endDate
-      } = req.body;
+      const { name, role, email, phone, hourlyRate, skills, department, isActive } = req.body;
       
       if (name) updateData.name = name;
       if (role) updateData.role = role;
-      if (hourlyRate) updateData.hourlyRate = hourlyRate;
-      if (startDate) updateData.startDate = startDate;
-      if (endDate !== undefined) updateData.endDate = endDate;
+      if (email) updateData.email = email;
+      if (phone !== undefined) updateData.phone = phone;
+      if (hourlyRate !== undefined) updateData.hourlyRate = hourlyRate;
+      if (skills) updateData.skills = skills;
+      if (department) updateData.department = department;
+      if (isActive !== undefined) updateData.isActive = isActive;
       
-      // Handle change in hours allocated - update project total as well
-      if (hoursAllocated !== undefined && hoursAllocated !== resource.hoursAllocated) {
-        // Get the project to update manpowerAllocated
-        const project = await Project.findById(resource.projectId);
-        if (project) {
-          let currentManpower = project.manpowerAllocated || 0;
-          // Adjust the manpower allocation
-          currentManpower = currentManpower - resource.hoursAllocated + hoursAllocated;
-          
-          await Project.findByIdAndUpdate(
-            resource.projectId,
-            { $set: { manpowerAllocated: currentManpower } }
-          );
-        }
-        
-        updateData.hoursAllocated = hoursAllocated;
-      }
-      
-      // Update resource
       resource = await Resource.findByIdAndUpdate(
         req.params.id,
         { $set: updateData },
@@ -188,11 +155,10 @@ router.put(
 );
 
 // @route   DELETE /api/resources/:id
-// @desc    Delete resource
-// @access  Admin or Manager
-router.delete('/:id', auth, roleCheck(['admin', 'manager']), async (req, res) => {
+// @desc    Delete resource (soft delete)
+// @access  Admin
+router.delete('/:id', auth, roleCheck(['admin']), async (req, res) => {
   try {
-    // Get resource
     const resource = await Resource.findById(req.params.id);
     
     if (!resource) {
@@ -202,29 +168,202 @@ router.delete('/:id', auth, roleCheck(['admin', 'manager']), async (req, res) =>
       });
     }
     
-    // Update project's manpowerAllocated
-    const project = await Project.findById(resource.projectId);
-    if (project) {
-      let currentManpower = project.manpowerAllocated || 0;
-      currentManpower -= resource.hoursAllocated;
-      
-      await Project.findByIdAndUpdate(
-        resource.projectId,
-        { $set: { manpowerAllocated: Math.max(0, currentManpower) } } // Ensure it doesn't go below 0
-      );
-    }
+    // Soft delete - mark as inactive
+    await Resource.findByIdAndUpdate(req.params.id, { isActive: false });
     
-    // Delete resource
-    await Resource.findByIdAndDelete(req.params.id);
+    // Also deactivate all project allocations
+    await ProjectResource.updateMany(
+      { resourceId: req.params.id },
+      { isActive: false }
+    );
     
     res.status(200).json({
-      message: 'Resource removed successfully',
+      message: 'Resource deactivated successfully',
       success: true
     });
   } catch (error) {
     console.error(`Error deleting resource ${req.params.id}:`, error);
     res.status(500).json({
       message: 'Server error deleting resource',
+      success: false
+    });
+  }
+});
+
+// PROJECT RESOURCE ALLOCATION ROUTES
+
+// @route   GET /api/resources/project/:projectId
+// @desc    Get allocated resources for a project
+// @access  Private
+router.get('/project/:projectId', auth, async (req, res) => {
+  try {
+    const allocations = await ProjectResource.find({ 
+      projectId: req.params.projectId,
+      isActive: true 
+    })
+    .populate('resourceId')
+    .populate('projectId', 'name')
+    .sort({ startDate: -1 });
+    
+    res.status(200).json(allocations);
+  } catch (error) {
+    console.error(`Error fetching project resources for ${req.params.projectId}:`, error);
+    res.status(500).json({
+      message: 'Server error fetching project resources',
+      success: false
+    });
+  }
+});
+
+// @route   POST /api/resources/project/:projectId/allocate
+// @desc    Allocate resource to project
+// @access  Admin or Manager
+router.post(
+  '/project/:projectId/allocate',
+  auth,
+  roleCheck(['admin', 'manager']),
+  [
+    check('resourceId', 'Resource ID is required').not().isEmpty(),
+    check('startDate', 'Start date is required').isISO8601().toDate(),
+    check('hoursAllocated', 'Hours allocated must be a number').optional().isNumeric()
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        message: errors.array()[0].msg,
+        success: false 
+      });
+    }
+
+    try {
+      const { projectId } = req.params;
+      const { resourceId, hoursAllocated, startDate, endDate } = req.body;
+
+      // Verify project and resource exist
+      const project = await Project.findById(projectId);
+      const resource = await Resource.findById(resourceId);
+
+      if (!project) {
+        return res.status(404).json({
+          message: 'Project not found',
+          success: false
+        });
+      }
+
+      if (!resource) {
+        return res.status(404).json({
+          message: 'Resource not found',
+          success: false
+        });
+      }
+
+      // Check if resource is already allocated to this project
+      const existingAllocation = await ProjectResource.findOne({
+        projectId,
+        resourceId,
+        isActive: true
+      });
+
+      if (existingAllocation) {
+        return res.status(400).json({
+          message: 'Resource is already allocated to this project',
+          success: false
+        });
+      }
+
+      const allocation = new ProjectResource({
+        projectId,
+        resourceId,
+        hoursAllocated: hoursAllocated || 0,
+        startDate: new Date(startDate),
+        endDate: endDate ? new Date(endDate) : null
+      });
+
+      await allocation.save();
+
+      // Populate the response
+      await allocation.populate('resourceId');
+      await allocation.populate('projectId', 'name');
+      
+      res.status(201).json(allocation);
+    } catch (error) {
+      console.error('Error allocating resource to project:', error);
+      res.status(500).json({
+        message: 'Server error allocating resource',
+        success: false
+      });
+    }
+  }
+);
+
+// @route   PUT /api/resources/project-allocation/:id
+// @desc    Update project resource allocation
+// @access  Admin or Manager
+router.put(
+  '/project-allocation/:id',
+  auth,
+  roleCheck(['admin', 'manager']),
+  async (req, res) => {
+    try {
+      let allocation = await ProjectResource.findById(req.params.id);
+      
+      if (!allocation) {
+        return res.status(404).json({
+          message: 'Resource allocation not found',
+          success: false
+        });
+      }
+      
+      const updateData = {};
+      const { hoursAllocated, startDate, endDate, isActive } = req.body;
+      
+      if (hoursAllocated !== undefined) updateData.hoursAllocated = hoursAllocated;
+      if (startDate) updateData.startDate = new Date(startDate);
+      if (endDate !== undefined) updateData.endDate = endDate ? new Date(endDate) : null;
+      if (isActive !== undefined) updateData.isActive = isActive;
+      
+      allocation = await ProjectResource.findByIdAndUpdate(
+        req.params.id,
+        { $set: updateData },
+        { new: true }
+      ).populate('resourceId').populate('projectId', 'name');
+      
+      res.status(200).json(allocation);
+    } catch (error) {
+      console.error(`Error updating resource allocation ${req.params.id}:`, error);
+      res.status(500).json({
+        message: 'Server error updating resource allocation',
+        success: false
+      });
+    }
+  }
+);
+
+// @route   DELETE /api/resources/project-allocation/:id
+// @desc    Remove resource allocation from project
+// @access  Admin or Manager
+router.delete('/project-allocation/:id', auth, roleCheck(['admin', 'manager']), async (req, res) => {
+  try {
+    const allocation = await ProjectResource.findById(req.params.id);
+    
+    if (!allocation) {
+      return res.status(404).json({
+        message: 'Resource allocation not found',
+        success: false
+      });
+    }
+    
+    await ProjectResource.findByIdAndUpdate(req.params.id, { isActive: false });
+    
+    res.status(200).json({
+      message: 'Resource allocation removed successfully',
+      success: true
+    });
+  } catch (error) {
+    console.error(`Error removing resource allocation ${req.params.id}:`, error);
+    res.status(500).json({
+      message: 'Server error removing resource allocation',
       success: false
     });
   }
