@@ -20,6 +20,9 @@ const MaterialExpenses = () => {
   // Use the new dedicated material expenses endpoint
   const { data: materialExpenses = [], isLoading, error } = useMaterialExpenses();
 
+  console.log('🔥 MaterialExpenses component rendered');
+  console.log('🔥 Material expenses data:', materialExpenses);
+
   const getStatusBadge = (status: string) => {
     const statusColors: Record<string, string> = {
       pending: 'bg-yellow-100 text-yellow-800',
@@ -36,7 +39,8 @@ const MaterialExpenses = () => {
   };
 
   const handleViewItem = (expense: any) => {
-    console.log('🔥 BUTTON CLICKED! Attempting to navigate to expense detail:', expense);
+    console.log('🔥🔥 HANDLE VIEW ITEM CALLED!!! 🔥🔥');
+    console.log('🔥 Expense object received:', expense);
     console.log('🔥 Expense ID:', expense.id);
     console.log('🔥 Expense _id:', (expense as any)._id);
     
@@ -124,32 +128,42 @@ const MaterialExpenses = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {materialExpenses.map((expense) => (
-                  <TableRow key={expense.id}>
-                    <TableCell className="font-medium">{expense.description}</TableCell>
-                    <TableCell>{expense.projectName || 'Unknown Project'}</TableCell>
-                    <TableCell className="font-semibold text-red-600">
-                      {formatCurrency(expense.amount)}
-                    </TableCell>
-                    <TableCell>{getStatusBadge(expense.approvalStatus || 'pending')}</TableCell>
-                    <TableCell>{formatDate(expense.date)}</TableCell>
-                    <TableCell>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={(e) => {
-                          console.log('🔥 MATERIAL EXPENSE BUTTON CLICK EVENT:', e);
-                          console.log('🔥 MATERIAL EXPENSE DATA:', expense);
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleViewItem(expense);
-                        }}
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {materialExpenses.map((expense, index) => {
+                  console.log(`🔥 Rendering expense ${index}:`, expense);
+                  return (
+                    <TableRow key={expense.id}>
+                      <TableCell className="font-medium">{expense.description}</TableCell>
+                      <TableCell>{expense.projectName || 'Unknown Project'}</TableCell>
+                      <TableCell className="font-semibold text-red-600">
+                        {formatCurrency(expense.amount)}
+                      </TableCell>
+                      <TableCell>{getStatusBadge(expense.approvalStatus || 'pending')}</TableCell>
+                      <TableCell>{formatDate(expense.date)}</TableCell>
+                      <TableCell>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            console.log('🔥🔥🔥 BUTTON CLICKED!!! 🔥🔥🔥');
+                            console.log('🔥 Click event:', e);
+                            console.log('🔥 Event target:', e.target);
+                            console.log('🔥 Event currentTarget:', e.currentTarget);
+                            console.log('🔥 Expense being clicked:', expense);
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleViewItem(expense);
+                          }}
+                          onMouseEnter={() => console.log('🔥 Mouse entered button')}
+                          onMouseLeave={() => console.log('🔥 Mouse left button')}
+                          onPointerDown={() => console.log('🔥 Pointer down on button')}
+                          onPointerUp={() => console.log('🔥 Pointer up on button')}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </CardContent>

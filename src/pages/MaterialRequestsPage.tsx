@@ -20,6 +20,9 @@ const MaterialRequestsPage = () => {
   const { data: materialRequests = [], isLoading } = useMaterialRequests();
   const deleteRequestMutation = useDeleteMaterialRequest();
 
+  console.log('🔥 MaterialRequestsPage component rendered');
+  console.log('🔥 Material requests data:', materialRequests);
+
   const handleDeleteRequest = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this material request?')) {
       try {
@@ -28,6 +31,13 @@ const MaterialRequestsPage = () => {
         console.error('Error deleting material request:', error);
       }
     }
+  };
+
+  const handleViewRequest = (request: any) => {
+    console.log('🔥🔥 HANDLE VIEW REQUEST CALLED!!! 🔥🔥');
+    console.log('🔥 Request object received:', request);
+    console.log('🔥 Setting selectedItem:', request);
+    setSelectedItem(request);
   };
 
   const getStatusBadge = (status: string) => {
@@ -142,42 +152,63 @@ const MaterialRequestsPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {materialRequests.map((request) => (
-                    <TableRow key={request.id}>
-                      <TableCell className="font-medium">{request.description}</TableCell>
-                      <TableCell>{request.projectName || 'Unknown Project'}</TableCell>
-                      <TableCell>{request.partNo || 'N/A'}</TableCell>
-                      <TableCell>{request.quantity}</TableCell>
-                      <TableCell>{request.estimatedCost ? formatCurrency(request.estimatedCost) : 'N/A'}</TableCell>
-                      <TableCell>{getStatusBadge(request.status)}</TableCell>
-                      <TableCell>{getUrgencyBadge(request.urgency)}</TableCell>
-                      <TableCell>{request.requestedBy?.name}</TableCell>
-                      <TableCell>{formatDate(request.createdAt)}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setSelectedItem(request)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          {(request.requestedBy.id === user?.id || hasPermission('delete_materials')) && (
+                  {materialRequests.map((request, index) => {
+                    console.log(`🔥 Rendering request ${index}:`, request);
+                    return (
+                      <TableRow key={request.id}>
+                        <TableCell className="font-medium">{request.description}</TableCell>
+                        <TableCell>{request.projectName || 'Unknown Project'}</TableCell>
+                        <TableCell>{request.partNo || 'N/A'}</TableCell>
+                        <TableCell>{request.quantity}</TableCell>
+                        <TableCell>{request.estimatedCost ? formatCurrency(request.estimatedCost) : 'N/A'}</TableCell>
+                        <TableCell>{getStatusBadge(request.status)}</TableCell>
+                        <TableCell>{getUrgencyBadge(request.urgency)}</TableCell>
+                        <TableCell>{request.requestedBy?.name}</TableCell>
+                        <TableCell>{formatDate(request.createdAt)}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
                             <Button
                               size="sm"
-                              variant="destructive"
-                              onClick={() => handleDeleteRequest(request.id)}
-                              disabled={deleteRequestMutation.isPending}
+                              variant="outline"
+                              onClick={(e) => {
+                                console.log('🔥🔥🔥 VIEW BUTTON CLICKED!!! 🔥🔥🔥');
+                                console.log('🔥 Click event:', e);
+                                console.log('🔥 Event target:', e.target);
+                                console.log('🔥 Event currentTarget:', e.currentTarget);
+                                console.log('🔥 Request being clicked:', request);
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleViewRequest(request);
+                              }}
+                              onMouseEnter={() => console.log('🔥 Mouse entered view button')}
+                              onMouseLeave={() => console.log('🔥 Mouse left view button')}
+                              onPointerDown={() => console.log('🔥 Pointer down on view button')}
+                              onPointerUp={() => console.log('🔥 Pointer up on view button')}
                               className="h-8 w-8 p-0"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Eye className="w-4 h-4" />
                             </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                            {(request.requestedBy.id === user?.id || hasPermission('delete_materials')) && (
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={(e) => {
+                                  console.log('🔥 DELETE BUTTON CLICKED');
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleDeleteRequest(request.id);
+                                }}
+                                disabled={deleteRequestMutation.isPending}
+                                className="h-8 w-8 p-0"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
