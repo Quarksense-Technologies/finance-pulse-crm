@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -137,8 +138,10 @@ const MaterialExpenses = () => {
                         size="sm"
                         variant="outline"
                         onClick={(e) => {
-                          console.log('🔥 BUTTON CLICK EVENT:', e);
-                          console.log('🔥 EXPENSE DATA:', expense);
+                          console.log('🔥 MATERIAL EXPENSE BUTTON CLICK EVENT:', e);
+                          console.log('🔥 MATERIAL EXPENSE DATA:', expense);
+                          e.preventDefault();
+                          e.stopPropagation();
                           handleViewItem(expense);
                         }}
                       >

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -59,9 +60,9 @@ const Approvals = () => {
 
   if (!hasPermission('approve_transactions')) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center min-h-screen p-4">
         <Card className="w-full max-w-md">
-          <CardHeader>
+          <CardHeader className="text-center">
             <CardTitle>Access Denied</CardTitle>
             <CardDescription>You don't have permission to access this page.</CardDescription>
           </CardHeader>
@@ -71,60 +72,81 @@ const Approvals = () => {
   }
 
   if (isLoading) {
-    return <div className="flex justify-center items-center h-64">Loading approvals...</div>;
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-lg">Loading approvals...</div>
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto py-6">
-      <h1 className="text-3xl font-bold mb-6">Approval Requests</h1>
+    <div className="container mx-auto py-6 px-4 max-w-6xl">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Approval Requests</h1>
+        <p className="text-gray-600 mt-2">Review and approve pending requests</p>
+      </div>
 
       <Tabs defaultValue="expenses" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6">
-          <TabsTrigger value="expenses">Expenses ({expenseApprovals.length})</TabsTrigger>
-          <TabsTrigger value="materials">Material Requests ({materialRequestApprovals.length})</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 mb-6 max-w-md">
+          <TabsTrigger value="expenses" className="text-sm">
+            Expenses ({expenseApprovals.length})
+          </TabsTrigger>
+          <TabsTrigger value="materials" className="text-sm">
+            Material Requests ({materialRequestApprovals.length})
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="expenses">
+        <TabsContent value="expenses" className="space-y-4">
           {expenseApprovals.length === 0 ? (
-            <Card>
+            <Card className="text-center py-12">
               <CardHeader>
-                <CardTitle>No Pending Expense Approvals</CardTitle>
+                <CardTitle className="text-xl text-gray-600">No Pending Expense Approvals</CardTitle>
                 <CardDescription>All expense claims have been processed.</CardDescription>
               </CardHeader>
             </Card>
           ) : (
-            expenseApprovals.map((item) => (
-              <ApprovalCard 
-                key={item.id} 
-                item={item} 
-                onApprove={handleApprove} 
-                onReject={openRejectDialog}
-                onViewDetails={() => setSelectedItem(item)}
-                isLoading={approveItemMutation.isPending || rejectItemMutation.isPending}
-              />
-            ))
+            <div className="space-y-4">
+              {expenseApprovals.map((item) => (
+                <ApprovalCard 
+                  key={item.id} 
+                  item={item} 
+                  onApprove={handleApprove} 
+                  onReject={openRejectDialog}
+                  onViewDetails={() => {
+                    console.log('🔥 VIEW DETAILS CLICKED - EXPENSE:', item);
+                    setSelectedItem(item);
+                  }}
+                  isLoading={approveItemMutation.isPending || rejectItemMutation.isPending}
+                />
+              ))}
+            </div>
           )}
         </TabsContent>
 
-        <TabsContent value="materials">
+        <TabsContent value="materials" className="space-y-4">
           {materialRequestApprovals.length === 0 ? (
-            <Card>
+            <Card className="text-center py-12">
               <CardHeader>
-                <CardTitle>No Pending Material Requests</CardTitle>
+                <CardTitle className="text-xl text-gray-600">No Pending Material Requests</CardTitle>
                 <CardDescription>All material requests have been processed.</CardDescription>
               </CardHeader>
             </Card>
           ) : (
-            materialRequestApprovals.map((item) => (
-              <MaterialRequestCard 
-                key={item.id} 
-                item={item} 
-                onApprove={handleApprove} 
-                onReject={openRejectDialog}
-                onViewDetails={() => setSelectedItem(item)}
-                isLoading={approveItemMutation.isPending || rejectItemMutation.isPending}
-              />
-            ))
+            <div className="space-y-4">
+              {materialRequestApprovals.map((item) => (
+                <MaterialRequestCard 
+                  key={item.id} 
+                  item={item} 
+                  onApprove={handleApprove} 
+                  onReject={openRejectDialog}
+                  onViewDetails={() => {
+                    console.log('🔥 VIEW DETAILS CLICKED - MATERIAL REQUEST:', item);
+                    setSelectedItem(item);
+                  }}
+                  isLoading={approveItemMutation.isPending || rejectItemMutation.isPending}
+                />
+              ))}
+            </div>
           )}
         </TabsContent>
       </Tabs>
@@ -162,20 +184,20 @@ const Approvals = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Detail View Dialog - Fixed alignment and positioning */}
+      {/* Detail View Dialog */}
       {selectedItem && (
         <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader className="pb-4">
-              <DialogTitle className="text-lg font-semibold">
+          <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+            <DialogHeader className="pb-6 border-b">
+              <DialogTitle className="text-xl font-semibold">
                 {selectedItem.type === 'material_request' ? 'Material Request Details' : 'Expense Details'}
               </DialogTitle>
             </DialogHeader>
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-6 py-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-gray-700">Project</Label>
-                  <p className="text-sm text-gray-900">{selectedItem.projectName}</p>
+                  <p className="text-sm text-gray-900 font-medium">{selectedItem.projectName}</p>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-gray-700">Requested By</Label>
@@ -187,12 +209,12 @@ const Approvals = () => {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-gray-700">Amount</Label>
-                  <p className="text-sm font-semibold text-gray-900">{formatCurrency(selectedItem.amount)}</p>
+                  <p className="text-lg font-bold text-gray-900">{formatCurrency(selectedItem.amount)}</p>
                 </div>
               </div>
               
               {selectedItem.type === 'material_request' && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t">
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-gray-700">Part Number</Label>
                     <p className="text-sm text-gray-900">{selectedItem.partNo || 'N/A'}</p>
@@ -216,32 +238,36 @@ const Approvals = () => {
                 </div>
               )}
 
-              <div className="space-y-2">
+              <div className="space-y-2 pt-4 border-t">
                 <Label className="text-sm font-medium text-gray-700">Description</Label>
-                <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded-md">{selectedItem.description}</p>
+                <div className="text-sm text-gray-900 bg-gray-50 p-4 rounded-md border">
+                  {selectedItem.description}
+                </div>
               </div>
 
               {selectedItem.notes && (
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-gray-700">Notes</Label>
-                  <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded-md">{selectedItem.notes}</p>
+                  <div className="text-sm text-gray-900 bg-gray-50 p-4 rounded-md border">
+                    {selectedItem.notes}
+                  </div>
                 </div>
               )}
 
               {selectedItem.attachments && selectedItem.attachments.length > 0 && (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <Label className="text-sm font-medium text-gray-700">Attachments</Label>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {selectedItem.attachments.map((attachment: any, index: number) => (
                       <Button
                         key={index}
                         size="sm"
                         variant="outline"
                         onClick={() => window.open(attachment.url, '_blank')}
-                        className="h-8"
+                        className="h-auto p-3 justify-start"
                       >
-                        <FileText className="w-4 h-4 mr-1" />
-                        {attachment.name}
+                        <FileText className="w-4 h-4 mr-2 flex-shrink-0" />
+                        <span className="truncate">{attachment.name}</span>
                       </Button>
                     ))}
                   </div>
@@ -265,58 +291,62 @@ interface ApprovalCardProps {
 
 const ApprovalCard = ({ item, onApprove, onReject, onViewDetails, isLoading }: ApprovalCardProps) => {
   return (
-    <Card className="mb-4">
-      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-        <div>
-          <CardTitle>
-            Expense Claim - {formatCurrency(item.amount)}
-          </CardTitle>
-          <CardDescription>
-            Requested on {formatDate(item.createdAt || item.date)} by {item.createdBy?.name || 'Unknown User'}
-          </CardDescription>
+    <Card className="hover:shadow-md transition-shadow">
+      <CardHeader className="pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div className="flex-1">
+            <CardTitle className="text-lg font-semibold">
+              Expense Claim - {formatCurrency(item.amount)}
+            </CardTitle>
+            <CardDescription className="mt-1">
+              Requested on {formatDate(item.createdAt || item.date)} by {item.createdBy?.name || 'Unknown User'}
+            </CardDescription>
+          </div>
+          <StatusBadge status={item.status || 'pending'} />
         </div>
-        <StatusBadge status={item.status || 'pending'} />
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-4">
           <div>
             <h4 className="text-sm font-semibold mb-2">Details</h4>
-            <p className="text-sm">{item.description}</p>
+            <p className="text-sm text-gray-700 mb-2">{item.description}</p>
             {item.category && (
-              <p className="text-sm text-gray-500 mt-1">Category: {item.category}</p>
+              <p className="text-xs text-gray-500">Category: {item.category}</p>
             )}
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-xs text-gray-500">
               Project: {item.projectName || 'Unknown Project'}
             </p>
           </div>
-          <div className="flex justify-end items-center">
-            <div className="flex gap-2">
-              <Button 
-                size="sm"
-                variant="outline"
-                onClick={onViewDetails}
-              >
-                <Eye className="w-4 h-4 mr-1" /> View
-              </Button>
-              <Button 
-                size="sm"
-                variant="outline"
-                className="flex items-center gap-1"
-                onClick={() => onApprove(item.id, item.type)}
-                disabled={isLoading}
-              >
-                <Check className="w-4 h-4" /> Approve
-              </Button>
-              <Button 
-                size="sm"
-                variant="destructive"
-                className="flex items-center gap-1"
-                onClick={() => onReject(item)}
-                disabled={isLoading}
-              >
-                <X className="w-4 h-4" /> Reject
-              </Button>
-            </div>
+          <div className="flex flex-wrap gap-2 pt-3 border-t">
+            <Button 
+              size="sm"
+              variant="outline"
+              onClick={(e) => {
+                console.log('🔥 EXPENSE VIEW BUTTON CLICKED:', e);
+                onViewDetails();
+              }}
+              className="flex items-center gap-1"
+            >
+              <Eye className="w-4 h-4" /> View
+            </Button>
+            <Button 
+              size="sm"
+              variant="outline"
+              className="flex items-center gap-1 text-green-600 hover:text-green-700"
+              onClick={() => onApprove(item.id, item.type)}
+              disabled={isLoading}
+            >
+              <Check className="w-4 h-4" /> Approve
+            </Button>
+            <Button 
+              size="sm"
+              variant="outline"
+              className="flex items-center gap-1 text-red-600 hover:text-red-700"
+              onClick={() => onReject(item)}
+              disabled={isLoading}
+            >
+              <X className="w-4 h-4" /> Reject
+            </Button>
           </div>
         </div>
       </CardContent>
@@ -326,75 +356,75 @@ const ApprovalCard = ({ item, onApprove, onReject, onViewDetails, isLoading }: A
 
 const MaterialRequestCard = ({ item, onApprove, onReject, onViewDetails, isLoading }: ApprovalCardProps) => {
   return (
-    <Card className="mb-4">
-      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-        <div>
-          <CardTitle>
-            Material Request - {item.description}
-          </CardTitle>
-          <CardDescription>
-            Requested on {formatDate(item.createdAt)} by {item.createdBy?.name || 'Unknown User'}
-          </CardDescription>
-        </div>
-        <div className="flex items-center gap-2">
-          <StatusBadge status={item.status || 'pending'} />
-          {item.urgency && (
-            <Badge className={
-              item.urgency === 'high' ? 'bg-red-100 text-red-800' :
-              item.urgency === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-              'bg-green-100 text-green-800'
-            }>
-              {item.urgency.charAt(0).toUpperCase() + item.urgency.slice(1)}
-            </Badge>
-          )}
+    <Card className="hover:shadow-md transition-shadow">
+      <CardHeader className="pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div className="flex-1">
+            <CardTitle className="text-lg font-semibold">
+              Material Request - {item.description}
+            </CardTitle>
+            <CardDescription className="mt-1">
+              Requested on {formatDate(item.createdAt)} by {item.createdBy?.name || 'Unknown User'}
+            </CardDescription>
+          </div>
+          <div className="flex items-center gap-2">
+            <StatusBadge status={item.status || 'pending'} />
+            {item.urgency && (
+              <Badge className={
+                item.urgency === 'high' ? 'bg-red-100 text-red-800' :
+                item.urgency === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                'bg-green-100 text-green-800'
+              }>
+                {item.urgency.charAt(0).toUpperCase() + item.urgency.slice(1)}
+              </Badge>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-4">
           <div>
             <h4 className="text-sm font-semibold mb-2">Details</h4>
-            <p className="text-sm">{item.description}</p>
-            {item.partNo && (
-              <p className="text-sm text-gray-500 mt-1">Part No: {item.partNo}</p>
-            )}
-            <p className="text-sm text-gray-500 mt-1">Quantity: {item.quantity}</p>
-            <p className="text-sm text-gray-500 mt-1">
-              Project: {item.projectName || 'Unknown Project'}
-            </p>
-            {item.amount > 0 && (
-              <p className="text-sm text-gray-500 mt-1">
-                Estimated Cost: {formatCurrency(item.amount)}
-              </p>
-            )}
-          </div>
-          <div className="flex justify-end items-center">
-            <div className="flex gap-2">
-              <Button 
-                size="sm"
-                variant="outline"
-                onClick={onViewDetails}
-              >
-                <Eye className="w-4 h-4 mr-1" /> View
-              </Button>
-              <Button 
-                size="sm"
-                variant="outline"
-                className="flex items-center gap-1"
-                onClick={() => onApprove(item.id, item.type)}
-                disabled={isLoading}
-              >
-                <Check className="w-4 h-4" /> Approve
-              </Button>
-              <Button 
-                size="sm"
-                variant="destructive"
-                className="flex items-center gap-1"
-                onClick={() => onReject(item)}
-                disabled={isLoading}
-              >
-                <X className="w-4 h-4" /> Reject
-              </Button>
+            <p className="text-sm text-gray-700 mb-2">{item.description}</p>
+            <div className="grid grid-cols-2 gap-2 text-xs text-gray-500">
+              {item.partNo && <p>Part No: {item.partNo}</p>}
+              <p>Quantity: {item.quantity}</p>
+              <p className="col-span-2">Project: {item.projectName || 'Unknown Project'}</p>
+              {item.amount > 0 && (
+                <p className="col-span-2">Estimated Cost: {formatCurrency(item.amount)}</p>
+              )}
             </div>
+          </div>
+          <div className="flex flex-wrap gap-2 pt-3 border-t">
+            <Button 
+              size="sm"
+              variant="outline"
+              onClick={(e) => {
+                console.log('🔥 MATERIAL REQUEST VIEW BUTTON CLICKED:', e);
+                onViewDetails();
+              }}
+              className="flex items-center gap-1"
+            >
+              <Eye className="w-4 h-4" /> View
+            </Button>
+            <Button 
+              size="sm"
+              variant="outline"
+              className="flex items-center gap-1 text-green-600 hover:text-green-700"
+              onClick={() => onApprove(item.id, item.type)}
+              disabled={isLoading}
+            >
+              <Check className="w-4 h-4" /> Approve
+            </Button>
+            <Button 
+              size="sm"
+              variant="outline"
+              className="flex items-center gap-1 text-red-600 hover:text-red-700"
+              onClick={() => onReject(item)}
+              disabled={isLoading}
+            >
+              <X className="w-4 h-4" /> Reject
+            </Button>
           </div>
         </div>
       </CardContent>
