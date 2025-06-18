@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
@@ -24,9 +23,9 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
   const createMaterialPurchaseMutation = useCreateMaterialPurchase();
   const [attachments, setAttachments] = useState<{[key: number]: File[]}>({});
   
-  // Reduced file size limits to prevent payload too large errors
-  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB per file
-  const MAX_TOTAL_SIZE = 5 * 1024 * 1024; // 5MB total per item
+  // Much more aggressive file size limits to prevent payload too large errors
+  const MAX_FILE_SIZE = 500 * 1024; // 500KB per file
+  const MAX_TOTAL_SIZE = 1 * 1024 * 1024; // 1MB total per item
   
   const form = useForm({
     defaultValues: {
@@ -59,7 +58,7 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
       if (oversizedFiles.length > 0) {
         toast({
           title: "File too large",
-          description: `Files must be smaller than 2MB. Please compress or use smaller files.`,
+          description: `Files must be smaller than 500KB. Please compress or use smaller files.`,
           variant: "destructive"
         });
         return;
@@ -72,7 +71,7 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
       if (existingSize + newSize > MAX_TOTAL_SIZE) {
         toast({
           title: "Total size too large",
-          description: `Total attachment size per item cannot exceed 5MB.`,
+          description: `Total attachment size per item cannot exceed 1MB.`,
           variant: "destructive"
         });
         return;
@@ -154,15 +153,27 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
         if (totalSize > MAX_TOTAL_SIZE) {
           toast({
             title: "Attachments too large",
-            description: `Total attachment size for item ${index + 1} exceeds 5MB. Please reduce file sizes.`,
+            description: `Total attachment size for item ${index + 1} exceeds 1MB. Please reduce file sizes.`,
             variant: "destructive"
           });
           continue;
         }
         
+        // Limit number of attachments to prevent large requests
+        const maxAttachments = 3;
+        const limitedAttachments = itemAttachments.slice(0, maxAttachments);
+        
+        if (itemAttachments.length > maxAttachments) {
+          toast({
+            title: "Too many attachments",
+            description: `Maximum ${maxAttachments} attachments per item. Only the first ${maxAttachments} will be uploaded.`,
+            variant: "destructive"
+          });
+        }
+        
         // Convert files to the correct format matching CreateMaterialPurchaseData interface
         const attachmentData = await Promise.all(
-          itemAttachments.map(async (file) => ({
+          limitedAttachments.map(async (file) => ({
             name: file.name,
             data: await fileToBase64(file),
             contentType: file.type,
@@ -195,6 +206,10 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
           }))
         });
 
+        // Calculate total request size for logging
+        const requestSize = JSON.stringify(purchaseData).length;
+        console.log(`Request size for item ${index + 1}: ${(requestSize / 1024).toFixed(2)} KB`);
+
         await createMaterialPurchaseMutation.mutateAsync(purchaseData);
       }
       
@@ -206,7 +221,7 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
       if (error.response?.status === 413 || error.message?.includes('too large')) {
         toast({
           title: "Request too large",
-          description: "Files are too large. Please use smaller files or fewer attachments.",
+          description: "Files are too large. Please use smaller files (under 500KB each) or fewer attachments.",
           variant: "destructive"
         });
       }
@@ -429,9 +444,9 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
                       />
                     </div>
 
-                    {/* File Attachments with size validation */}
+                    {/* File Attachments with very strict size validation */}
                     <div className="space-y-2">
-                      <FormLabel>Attachments (Max 2MB per file, 5MB total)</FormLabel>
+                      <FormLabel>Attachments (Max 500KB per file, 1MB total, 3 files max)</FormLabel>
                       <div className="flex items-center gap-2">
                         <Input
                           type="file"
@@ -455,12 +470,12 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
                       {attachments[index] && attachments[index].length > 0 && (
                         <div className="space-y-2">
                           <p className="text-xs text-gray-500">
-                            Total size: {((attachments[index] || []).reduce((sum, file) => sum + file.size, 0) / 1024 / 1024).toFixed(2)} MB
+                            Total size: {((attachments[index] || []).reduce((sum, file) => sum + file.size, 0) / 1024).toFixed(2)} KB
                           </p>
                           {attachments[index].map((file, fileIndex) => (
                             <div key={fileIndex} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                               <span className="text-sm truncate">
-                                {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                                {file.name} ({(file.size / 1024).toFixed(2)} KB)
                               </span>
                               <Button
                                 type="button"
