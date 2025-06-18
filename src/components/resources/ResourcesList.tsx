@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
-import { Trash2, Edit, Calendar, IndianRupee } from 'lucide-react';
-import { formatDate, formatCurrency } from '@/utils/financialUtils';
+import { Trash2, Edit, Mail, Phone } from 'lucide-react';
+import { formatCurrency } from '@/utils/financialUtils';
 import { Button } from "@/components/ui/button";
-import { useAllResources, useDeleteResource } from '@/hooks/api/useResources';
+import { useResources, useDeleteResource } from '@/hooks/api/useResources';
 import { toast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -16,17 +16,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-interface ProjectInfo {
-  id: string;
-  name: string;
-}
-
 const ResourcesList = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [resourceToDelete, setResourceToDelete] = useState<string | null>(null);
   
-  // Use useAllResources instead of useResources to get all resources
-  const { data: resources = [], isLoading, refetch } = useAllResources();
+  const { data: resources = [], isLoading, refetch } = useResources();
   const deleteResourceMutation = useDeleteResource();
 
   console.log('Resources data in ResourcesList:', resources);
@@ -43,7 +37,6 @@ const ResourcesList = () => {
           title: "Resource Deleted",
           description: "The resource has been successfully removed.",
         });
-        // Force refetch after deletion
         refetch();
       } catch (error) {
         console.error('Error deleting resource:', error);
@@ -52,16 +45,6 @@ const ResourcesList = () => {
         setDeleteDialogOpen(false);
       }
     }
-  };
-
-  const renderProjectName = (projectId: any): string => {
-    if (!projectId) return 'Unknown Project';
-    
-    if (typeof projectId === 'object' && projectId !== null) {
-      return 'name' in projectId ? String(projectId.name) : 'Unnamed Project';
-    }
-    
-    return String(projectId);
   };
 
   return (
@@ -83,6 +66,9 @@ const ResourcesList = () => {
                 <div>
                   <h3 className="font-medium">{resource.name}</h3>
                   <p className="text-sm text-gray-600">{resource.role}</p>
+                  {resource.department && (
+                    <p className="text-xs text-gray-500">{resource.department}</p>
+                  )}
                 </div>
                 <div className="flex space-x-2">
                   <Button 
@@ -110,32 +96,40 @@ const ResourcesList = () => {
               
               <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
                 <div className="flex items-center text-sm text-gray-600">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  <span>
-                    {formatDate(resource.startDate)} - 
-                    {resource.endDate ? formatDate(resource.endDate) : 'Ongoing'}
-                  </span>
+                  <Mail className="h-4 w-4 mr-2" />
+                  <span>{resource.email}</span>
                 </div>
-                <div className="flex items-center text-sm text-gray-600">
-                  <IndianRupee className="h-4 w-4 mr-2" />
-                  <span>{formatCurrency(resource.hourlyRate)} / hour</span>
-                </div>
+                {resource.phone && (
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Phone className="h-4 w-4 mr-2" />
+                    <span>{resource.phone}</span>
+                  </div>
+                )}
               </div>
               
               <div className="mt-2 flex justify-between text-sm">
-                <span className="text-gray-600">Total hours:</span>
-                <span className="font-medium">{resource.hoursAllocated} hrs</span>
+                <span className="text-gray-600">Hourly rate:</span>
+                <span className="font-medium">{formatCurrency(resource.hourlyRate)} / hour</span>
               </div>
               
-              <div className="mt-1 flex justify-between text-sm">
-                <span className="text-gray-600">Total cost:</span>
-                <span className="font-medium">
-                  {formatCurrency(resource.hourlyRate * resource.hoursAllocated)}
-                </span>
-              </div>
+              {resource.skills && resource.skills.length > 0 && (
+                <div className="mt-2">
+                  <span className="text-xs text-gray-600">Skills: </span>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {resource.skills.map((skill, index) => (
+                      <span 
+                        key={index}
+                        className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
               
               <div className="mt-2 text-xs text-gray-500">
-                Project: {renderProjectName(resource.projectId)}
+                Status: {resource.isActive ? 'Active' : 'Inactive'}
               </div>
             </div>
           ))}
@@ -148,7 +142,7 @@ const ResourcesList = () => {
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete the resource
-              and remove the allocated hours from the project.
+              and remove all associated project allocations.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

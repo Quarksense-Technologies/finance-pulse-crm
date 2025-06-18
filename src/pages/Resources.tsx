@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Users, UserCheck, DollarSign } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useResources } from '@/hooks/api/useResources';
+import { useResources, useCreateResource } from '@/hooks/api/useResources';
 import { formatCurrency } from '@/utils/financialUtils';
 import ResourceForm from '@/components/forms/ResourceForm';
 import ResourcesList from '@/components/resources/ResourcesList';
@@ -14,10 +14,16 @@ const Resources = () => {
   const { hasPermission } = useAuth();
   const [showResourceForm, setShowResourceForm] = useState(false);
   const { data: resources = [], refetch } = useResources();
+  const createResourceMutation = useCreateResource();
 
-  const handleResourceAdded = () => {
-    setShowResourceForm(false);
-    refetch();
+  const handleResourceAdded = async (resourceData: any) => {
+    try {
+      await createResourceMutation.mutateAsync(resourceData);
+      setShowResourceForm(false);
+      refetch();
+    } catch (error) {
+      console.error('Error creating resource:', error);
+    }
   };
 
   // Calculate stats from actual resources
@@ -59,7 +65,10 @@ const Resources = () => {
             <DialogHeader>
               <DialogTitle>Add New Resource</DialogTitle>
             </DialogHeader>
-            <ResourceForm onResourceAdded={handleResourceAdded} />
+            <ResourceForm 
+              onSubmit={handleResourceAdded} 
+              onCancel={() => setShowResourceForm(false)}
+            />
           </DialogContent>
         </Dialog>
       </div>

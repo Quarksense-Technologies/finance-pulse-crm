@@ -4,76 +4,44 @@ import { useForm } from 'react-hook-form';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Resource } from '@/data/types';
-import { useProjects } from '@/hooks/api/useProjects';
 
 interface ResourceFormProps {
-  preselectedProjectId?: string;
   onSubmit: (data: Partial<Resource>) => void;
+  onCancel?: () => void;
 }
 
-const ResourceForm: React.FC<ResourceFormProps> = ({ preselectedProjectId, onSubmit }) => {
-  const { data: projects = [] } = useProjects();
-  
+const ResourceForm: React.FC<ResourceFormProps> = ({ onSubmit, onCancel }) => {
   const form = useForm({
     defaultValues: {
-      projectId: preselectedProjectId || '',
       name: '',
       role: '',
-      hoursAllocated: '',
+      email: '',
+      phone: '',
       hourlyRate: '',
-      startDate: new Date().toISOString().slice(0, 10),
-      endDate: '',
+      skills: '',
+      department: '',
     },
   });
 
   const handleSubmit = (data: any) => {
     onSubmit({
-      id: `resource-${Date.now()}`,
-      projectId: data.projectId,
       name: data.name,
       role: data.role,
-      hoursAllocated: parseInt(data.hoursAllocated, 10),
-      hourlyRate: parseFloat(data.hourlyRate),
-      startDate: data.startDate,
-      endDate: data.endDate || null,
+      email: data.email,
+      phone: data.phone || undefined,
+      hourlyRate: parseFloat(data.hourlyRate) || 0,
+      skills: data.skills ? data.skills.split(',').map((s: string) => s.trim()) : [],
+      department: data.department || undefined,
+      isActive: true,
     });
     form.reset();
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 mt-4">
-        <FormField
-          control={form.control}
-          name="projectId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Project</FormLabel>
-              <Select 
-                disabled={!!preselectedProjectId}
-                onValueChange={field.onChange} 
-                defaultValue={field.value}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a project" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {projects.map((project) => (
-                    <SelectItem key={project.id} value={project.id}>
-                      {project.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="name"
@@ -102,68 +70,83 @@ const ResourceForm: React.FC<ResourceFormProps> = ({ preselectedProjectId, onSub
           )}
         />
 
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="hoursAllocated"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Hours Allocated</FormLabel>
-                <FormControl>
-                  <Input {...field} type="number" min="1" placeholder="40" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input {...field} type="email" placeholder="email@example.com" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <FormField
-            control={form.control}
-            name="hourlyRate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Hourly Rate ($)</FormLabel>
-                <FormControl>
-                  <Input {...field} type="number" min="0" step="0.01" placeholder="25.00" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name="phone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Phone (Optional)</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="Phone number" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="startDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Start Date</FormLabel>
-                <FormControl>
-                  <Input {...field} type="date" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <FormField
+          control={form.control}
+          name="hourlyRate"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Hourly Rate ($)</FormLabel>
+              <FormControl>
+                <Input {...field} type="number" min="0" step="0.01" placeholder="25.00" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <FormField
-            control={form.control}
-            name="endDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>End Date (Optional)</FormLabel>
-                <FormControl>
-                  <Input {...field} type="date" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name="skills"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Skills (comma-separated)</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="React, Node.js, Python" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-        <div className="flex justify-end">
-          <Button type="submit">Assign Resource</Button>
+        <FormField
+          control={form.control}
+          name="department"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Department (Optional)</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="Engineering, Design, etc." />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <div className="flex justify-end space-x-2">
+          {onCancel && (
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+          )}
+          <Button type="submit">Add Resource</Button>
         </div>
       </form>
     </Form>

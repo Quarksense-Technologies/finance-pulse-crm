@@ -25,6 +25,10 @@ export interface Company {
     phone: string;
     website?: string;
   };
+  contactPerson?: string;
+  email?: string;
+  phone?: string;
+  projects?: Project[];
   managers: string[];
   createdAt: string;
 }
@@ -84,6 +88,7 @@ export interface Payment {
   date: string;
   method: string;
   reference?: string;
+  status?: string;
 }
 
 export interface Expense {
@@ -121,7 +126,9 @@ export interface Transaction {
 export interface FinancialSummary {
   totalIncome: number;
   totalExpenses: number;
+  totalRevenue: number;
   netProfit: number;
+  profit: number;
   pendingApprovals: number;
 }
 
@@ -178,6 +185,10 @@ export interface AttendanceRecord {
   id: string;
   projectResourceId: string;
   projectResource?: ProjectResourceAllocation;
+  resourceId?: string;
+  resourceName?: string;
+  resourceRole?: string;
+  hourlyRate?: number;
   date: string;
   checkInTime: string;
   checkOutTime: string;
