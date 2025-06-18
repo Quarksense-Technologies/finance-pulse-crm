@@ -2,7 +2,7 @@
 
 FROM node:18-alpine AS deps
 WORKDIR /app
-COPY backend/package*.json ./    
+COPY package*.json ./    
 RUN npm install --omit=dev
 
 FROM node:18-alpine AS runner
