@@ -1,16 +1,17 @@
 
 import React, { useState } from 'react';
-import { Calendar, Clock, IndianRupee, Plus } from 'lucide-react';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { formatCurrency, formatDate } from '@/utils/financialUtils';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Calendar, Clock, Users, AlertCircle } from 'lucide-react';
 import { ProjectResourceAllocation } from '@/data/types';
-import { toast } from "@/hooks/use-toast";
+import { formatCurrency, formatDate } from '@/utils/financialUtils';
 import { useProjectAttendance, useCreateAttendance } from '@/hooks/api/useAttendance';
+import { useRemoveResourceAllocation } from '@/hooks/api/useResources';
+import AttendanceForm from '@/components/forms/AttendanceForm';
+import ResourceAllocationDialog from '@/components/resources/ResourceAllocationDialog';
+import { toast } from "@/hooks/use-toast";
 
 interface AttendanceManagementProps {
   projectId: string;
@@ -19,383 +20,348 @@ interface AttendanceManagementProps {
   resourcesError: any;
 }
 
-const AttendanceManagement: React.FC<AttendanceManagementProps> = ({
-  projectId,
-  resources,
-  resourcesLoading,
-  resourcesError
-}) => {
-  const [isAddAttendanceOpen, setIsAddAttendanceOpen] = useState(false);
-  const [selectedResource, setSelectedResource] = useState<string>('');
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [checkInTime, setCheckInTime] = useState<string>('09:00');
-  const [checkOutTime, setCheckOutTime] = useState<string>('17:00');
+const AttendanceManagement = ({ 
+  projectId, 
+  resources, 
+  resourcesLoading, 
+  resourcesError 
+}: AttendanceManagementProps) => {
+  const [showAttendanceForm, setShowAttendanceForm] = useState(false);
+  const [selectedResourceId, setSelectedResourceId] = useState<string>('');
 
-  const { data: attendanceRecords = [], isLoading: attendanceLoading, refetch: refetchAttendance } = useProjectAttendance(projectId);
+  const currentMonth = new Date().getMonth() + 1;
+  const currentYear = new Date().getFullYear();
+
+  const { data: attendanceRecords = [], refetch: refetchAttendance } = useProjectAttendance(
+    projectId, 
+    currentMonth, 
+    currentYear
+  );
+
   const createAttendanceMutation = useCreateAttendance();
+  const removeResourceMutation = useRemoveResourceAllocation();
 
-  console.log('Project ID:', projectId);
-  console.log('Resources:', resources);
-  console.log('Attendance Records:', attendanceRecords);
-
-  const calculateHours = (checkIn: string, checkOut: string): number => {
-    const [checkInHour, checkInMinute] = checkIn.split(':').map(Number);
-    const [checkOutHour, checkOutMinute] = checkOut.split(':').map(Number);
-    
-    const checkInTotal = checkInHour + checkInMinute / 60;
-    const checkOutTotal = checkOutHour + checkOutMinute / 60;
-    
-    return Math.max(0, checkOutTotal - checkInTotal);
-  };
-
-  const handleAddAttendance = async () => {
-    if (!selectedResource || !selectedDate || !checkInTime || !checkOutTime) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all fields",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const totalHours = calculateHours(checkInTime, checkOutTime);
-    
-    if (totalHours <= 0) {
-      toast({
-        title: "Invalid Time",
-        description: "Check-out time must be after check-in time",
-        variant: "destructive"
-      });
-      return;
-    }
-
+  const handleAttendanceSubmit = async (attendanceData: any) => {
     try {
-      console.log('Submitting attendance data:', {
-        resourceId: selectedResource,
-        projectId: projectId,
-        date: selectedDate,
-        checkInTime: checkInTime,
-        checkOutTime: checkOutTime
-      });
-
       await createAttendanceMutation.mutateAsync({
-        resourceId: selectedResource,
-        projectId: projectId,
-        date: selectedDate,
-        checkInTime: checkInTime,
-        checkOutTime: checkOutTime
+        ...attendanceData,
+        projectId
       });
-
-      // Reset form
-      setIsAddAttendanceOpen(false);
-      setSelectedResource('');
-      setSelectedDate(new Date().toISOString().split('T')[0]);
-      setCheckInTime('09:00');
-      setCheckOutTime('17:00');
-
-      // Refresh attendance data
-      await refetchAttendance();
-
-      toast({
-        title: "Success",
-        description: "Attendance record added successfully"
-      });
+      setShowAttendanceForm(false);
+      refetchAttendance();
     } catch (error) {
       console.error('Error creating attendance:', error);
     }
   };
 
-  const getResourceName = (resourceId: string): string => {
-    const allocation = resources.find(r => r.resourceId === resourceId);
-    return allocation?.resource?.name || 'Unknown Resource';
+  const handleRemoveResource = async (allocationId: string, resourceName: string) => {
+    if (window.confirm(`Are you sure you want to remove ${resourceName} from this project?`)) {
+      try {
+        await removeResourceMutation.mutateAsync(allocationId);
+        toast({
+          title: "Success",
+          description: `${resourceName} removed from project`,
+        });
+      } catch (error) {
+        console.error('Error removing resource:', error);
+      }
+    }
   };
 
-  const getResourceRole = (resourceId: string): string => {
-    const allocation = resources.find(r => r.resourceId === resourceId);
-    return allocation?.resource?.role || '';
+  const handleResourceAllocated = () => {
+    // This will be handled by the query invalidation in the hook
   };
 
-  const getResourceHourlyRate = (resourceId: string): number => {
-    const allocation = resources.find(r => r.resourceId === resourceId);
-    return allocation?.resource?.hourlyRate || 0;
-  };
-
-  if (resourcesLoading || attendanceLoading) {
+  if (resourcesLoading) {
     return (
-      <div className="text-center py-4 text-gray-500 dark:text-muted-foreground">
-        Loading...
+      <div className="flex justify-center items-center h-32">
+        <div className="text-gray-500">Loading resources...</div>
       </div>
     );
   }
 
   if (resourcesError) {
     return (
-      <div className="text-center py-4">
-        <div className="text-red-500 mb-2">Error loading resources</div>
-        <div className="text-sm text-gray-500 dark:text-muted-foreground">{resourcesError.message}</div>
+      <div className="flex items-center justify-center h-32 text-red-500">
+        <AlertCircle className="h-5 w-5 mr-2" />
+        <span>Error loading resources</span>
       </div>
     );
   }
 
+  // Calculate attendance statistics
+  const totalAttendanceHours = attendanceRecords.reduce((sum, record) => sum + record.totalHours, 0);
+  const totalAttendanceCost = attendanceRecords.reduce((sum, record) => {
+    const hourlyRate = record.hourlyRate || 0;
+    return sum + (record.totalHours * hourlyRate);
+  }, 0);
+
   return (
-    <div className="space-y-3 p-2">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+    <div className="space-y-6">
+      {/* Header with responsive layout */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h2 className="text-base font-semibold">Resources & Attendance</h2>
-          <p className="text-xs text-gray-500 dark:text-muted-foreground">
-            Manage attendance for project resources
+          <h2 className="text-xl sm:text-2xl font-semibold">Resource Management</h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Manage project resources and track attendance
           </p>
         </div>
-        
-        {resources.length > 0 && (
-          <Dialog open={isAddAttendanceOpen} onOpenChange={setIsAddAttendanceOpen}>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <ResourceAllocationDialog 
+            projectId={projectId} 
+            onResourceAllocated={handleResourceAllocated}
+          />
+          <Dialog open={showAttendanceForm} onOpenChange={setShowAttendanceForm}>
             <DialogTrigger asChild>
-              <Button size="sm" className="w-full sm:w-auto h-8 text-xs">
-                <Plus className="h-3 w-3 mr-1" />
-                Add Attendance
+              <Button size="sm" variant="outline">
+                <Clock className="h-4 w-4 mr-2" />
+                Record Attendance
               </Button>
             </DialogTrigger>
-            <DialogContent className="mx-2 w-auto max-w-md">
+            <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle className="text-base">Add Attendance Record</DialogTitle>
-                <DialogDescription className="text-sm">
-                  Add check-in and check-out time for a resource
-                </DialogDescription>
+                <DialogTitle>Record Attendance</DialogTitle>
               </DialogHeader>
-              <div className="grid gap-3 py-2">
-                <div className="space-y-1">
-                  <Label htmlFor="resource" className="text-sm">Resource</Label>
-                  <Select value={selectedResource} onValueChange={setSelectedResource}>
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Select a resource" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {resources.map((allocation) => (
-                        <SelectItem key={allocation.id} value={allocation.resourceId}>
-                          {allocation.resource?.name} - {allocation.resource?.role}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-1">
-                  <Label htmlFor="date" className="text-sm">Date</Label>
-                  <Input
-                    id="date"
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className="h-8 text-xs"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                    <Label htmlFor="checkin" className="text-sm">Check-in</Label>
-                    <Input
-                      id="checkin"
-                      type="time"
-                      value={checkInTime}
-                      onChange={(e) => setCheckInTime(e.target.value)}
-                      className="h-8 text-xs"
-                    />
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <Label htmlFor="checkout" className="text-sm">Check-out</Label>
-                    <Input
-                      id="checkout"
-                      type="time"
-                      value={checkOutTime}
-                      onChange={(e) => setCheckOutTime(e.target.value)}
-                      className="h-8 text-xs"
-                    />
-                  </div>
-                </div>
-                
-                {checkInTime && checkOutTime && (
-                  <div className="text-xs text-gray-600 dark:text-gray-400">
-                    Total Hours: {calculateHours(checkInTime, checkOutTime).toFixed(1)}
-                  </div>
-                )}
-              </div>
-              <div className="flex justify-end space-x-2 pt-2">
-                <Button variant="outline" size="sm" className="h-8 px-3 text-xs" onClick={() => setIsAddAttendanceOpen(false)}>
-                  Cancel
-                </Button>
-                <Button 
-                  size="sm" 
-                  className="h-8 px-3 text-xs"
-                  onClick={handleAddAttendance}
-                  disabled={createAttendanceMutation.isPending}
-                >
-                  {createAttendanceMutation.isPending ? 'Adding...' : 'Add Record'}
-                </Button>
-              </div>
+              <AttendanceForm
+                projectId={projectId}
+                resources={resources}
+                onSubmit={handleAttendanceSubmit}
+                onCancel={() => setShowAttendanceForm(false)}
+              />
             </DialogContent>
           </Dialog>
-        )}
+        </div>
       </div>
 
-      {/* Resources List */}
-      <div className="space-y-2">
-        <h3 className="text-sm font-medium">Allocated Resources ({resources.length})</h3>
-        {resources.length === 0 ? (
-          <div className="text-center py-4 text-gray-500 dark:text-muted-foreground text-xs">
-            No resources assigned to this project
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {resources.map((allocation) => (
-              <Card key={allocation.id}>
-                <CardContent className="p-2">
-                  <div className="flex justify-between items-start mb-1">
-                    <div>
-                      <h4 className="font-medium text-xs">{allocation.resource?.name}</h4>
-                      <p className="text-xs text-gray-600 dark:text-muted-foreground">{allocation.resource?.role}</p>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xs font-medium">
-                        {formatCurrency((allocation.resource?.hourlyRate || 0) * allocation.hoursAllocated)}
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-muted-foreground">Total</div>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 gap-1 text-xs text-gray-600 dark:text-muted-foreground">
-                    <div className="flex items-center">
-                      <Calendar className="h-3 w-3 mr-1" />
-                      <span className="truncate">
-                        {formatDate(allocation.startDate)} - 
-                        {allocation.endDate ? formatDate(allocation.endDate) : 'Ongoing'}
-                      </span>
-                    </div>
-                    <div className="flex items-center">
-                      <IndianRupee className="h-3 w-3 mr-1" />
-                      <span>{formatCurrency(allocation.resource?.hourlyRate || 0)} / hour</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Clock className="h-3 w-3 mr-1" />
-                      <span>{allocation.hoursAllocated}h allocated</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Attendance Records */}
-      <div className="space-y-2">
-        <h3 className="text-sm font-medium">
-          Attendance Records ({attendanceRecords.length})
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="ml-2 h-6 px-2 text-xs"
-            onClick={() => refetchAttendance()}
-          >
-            Refresh
-          </Button>
-        </h3>
-        {attendanceRecords.length === 0 ? (
-          <div className="text-center py-4 text-gray-500 dark:text-muted-foreground text-xs">
-            No attendance records found for this project
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white dark:bg-card rounded-lg border border-gray-100 dark:border-border">
-              <thead className="bg-gray-50 dark:bg-muted">
-                <tr>
-                  <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 dark:text-muted-foreground uppercase">
-                    Resource
-                  </th>
-                  <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 dark:text-muted-foreground uppercase">
-                    Date
-                  </th>
-                  <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 dark:text-muted-foreground uppercase">
-                    In/Out
-                  </th>
-                  <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 dark:text-muted-foreground uppercase">
-                    Hours
-                  </th>
-                  <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 dark:text-muted-foreground uppercase">
-                    Cost
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-border">
-                {attendanceRecords.map((record) => {
-                  const allocation = resources.find(r => r.resourceId === record.resourceId);
-                  const hourlyRate = record.hourlyRate || allocation?.resource?.hourlyRate || 0;
-                  
-                  return (
-                    <tr key={record.id} className="hover:bg-gray-50 dark:hover:bg-muted/50">
-                      <td className="px-1 py-1">
-                        <div>
-                          <div className="text-xs font-medium">{record.resourceName || allocation?.resource?.name}</div>
-                          <div className="text-xs text-gray-500 dark:text-muted-foreground">{record.resourceRole || allocation?.resource?.role}</div>
-                        </div>
-                      </td>
-                      <td className="px-1 py-1 text-xs">
-                        {formatDate(record.date)}
-                      </td>
-                      <td className="px-1 py-1 text-xs">
-                        {record.checkInTime} - {record.checkOutTime}
-                      </td>
-                      <td className="px-1 py-1 text-xs font-medium">
-                        {record.totalHours.toFixed(1)}h
-                      </td>
-                      <td className="px-1 py-1 text-xs font-medium text-green-600">
-                        {formatCurrency(record.totalHours * hourlyRate)}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/* Summary */}
-      {attendanceRecords.length > 0 && (
+      {/* Stats cards - responsive grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Card>
-          <CardHeader className="pb-1">
-            <CardTitle className="text-sm">Summary</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0 p-2">
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <div>
-                <div className="text-sm font-bold text-blue-600">
-                  {attendanceRecords.reduce((sum, record) => sum + record.totalHours, 0).toFixed(1)}h
-                </div>
-                <div className="text-xs text-gray-500 dark:text-muted-foreground">Total</div>
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-blue-100 rounded-full">
+                <Users className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
               </div>
-              <div>
-                <div className="text-sm font-bold text-green-600">
-                  {formatCurrency(
-                    attendanceRecords.reduce((sum, record) => {
-                      const allocation = resources.find(r => r.resourceId === record.resourceId);
-                      const rate = record.hourlyRate || allocation?.resource?.hourlyRate || 0;
-                      return sum + (record.totalHours * rate);
-                    }, 0)
-                  )}
-                </div>
-                <div className="text-xs text-gray-500 dark:text-muted-foreground">Cost</div>
-              </div>
-              <div>
-                <div className="text-sm font-bold text-purple-600">
-                  {attendanceRecords.length}
-                </div>
-                <div className="text-xs text-gray-500 dark:text-muted-foreground">Records</div>
+              <div className="ml-3 sm:ml-4">
+                <h3 className="text-xs sm:text-sm font-medium text-gray-500">Allocated Resources</h3>
+                <p className="text-lg sm:text-2xl font-semibold">{resources.length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-      )}
+
+        <Card>
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-green-100 rounded-full">
+                <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+              </div>
+              <div className="ml-3 sm:ml-4">
+                <h3 className="text-xs sm:text-sm font-medium text-gray-500">Total Hours</h3>
+                <p className="text-lg sm:text-2xl font-semibold">{totalAttendanceHours.toFixed(1)}h</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="sm:col-span-2 lg:col-span-1">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-orange-100 rounded-full">
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600" />
+              </div>
+              <div className="ml-3 sm:ml-4">
+                <h3 className="text-xs sm:text-sm font-medium text-gray-500">Total Cost</h3>
+                <p className="text-lg sm:text-2xl font-semibold">{formatCurrency(totalAttendanceCost)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Allocated Resources */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg sm:text-xl">Allocated Resources</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {resources.length > 0 ? (
+            <div className="overflow-x-auto">
+              <div className="min-w-[600px]">
+                <table className="min-w-full">
+                  <thead className="bg-gray-50 dark:bg-gray-800">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Resource
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Role
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Hours Allocated
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Hourly Rate
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Period
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                    {resources.map((allocation) => (
+                      <tr key={allocation.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {allocation.resource?.name}
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            {allocation.resource?.email}
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <Badge variant="secondary">
+                            {allocation.resource?.role}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                          {allocation.hoursAllocated}h
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                          {formatCurrency(allocation.resource?.hourlyRate || 0)}
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                          <div>
+                            <div>Start: {formatDate(allocation.startDate)}</div>
+                            {allocation.endDate && (
+                              <div>End: {formatDate(allocation.endDate)}</div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm">
+                          <div className="flex flex-col sm:flex-row gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedResourceId(allocation.resourceId);
+                                setShowAttendanceForm(true);
+                              }}
+                              className="text-xs"
+                            >
+                              Add Attendance
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleRemoveResource(allocation.id, allocation.resource?.name || 'Resource')}
+                              className="text-xs"
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                No resources allocated
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">
+                Start by allocating resources to this project.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Attendance Records */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg sm:text-xl">
+            Attendance Records ({new Date().toLocaleString('default', { month: 'long', year: 'numeric' })})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {attendanceRecords.length > 0 ? (
+            <div className="overflow-x-auto">
+              <div className="min-w-[600px]">
+                <table className="min-w-full">
+                  <thead className="bg-gray-50 dark:bg-gray-800">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Date
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Resource
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Check In
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Check Out
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Total Hours
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Cost
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                    {attendanceRecords.map((record) => (
+                      <tr key={record.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                          {formatDate(record.date)}
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {record.resourceName}
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            {record.resourceRole}
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                          {record.checkInTime}
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                          {record.checkOutTime}
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {record.totalHours}h
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                          {formatCurrency((record.hourlyRate || 0) * record.totalHours)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                No attendance records
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400">
+                Start recording attendance for allocated resources.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
