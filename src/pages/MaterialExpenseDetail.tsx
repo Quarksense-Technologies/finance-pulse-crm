@@ -43,24 +43,13 @@ const MaterialExpenseDetail = () => {
         return;
       }
 
-      if (attachment.url.startsWith('data:')) {
-        // For base64 data URLs, create a download link
-        const link = document.createElement('a');
-        link.href = attachment.url;
-        link.download = attachment.name || 'attachment';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } else {
-        // For regular URLs, open in new tab for download
-        const link = document.createElement('a');
-        link.href = attachment.url;
-        link.download = attachment.name || 'attachment';
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
+      const link = document.createElement('a');
+      link.href = attachment.url;
+      link.download = attachment.name || 'attachment';
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
       toast({
         title: "Success",
@@ -78,7 +67,7 @@ const MaterialExpenseDetail = () => {
 
   if (!hasPermission('add_expense')) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center min-h-screen p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Access Denied</CardTitle>
@@ -90,98 +79,101 @@ const MaterialExpenseDetail = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">Loading expense details...</div>
+      <div className="flex justify-center items-center min-h-screen">Loading expense details...</div>
     );
   }
 
   if (error || !expense) {
     return (
-      <div className="container mx-auto py-6">
-        <Button variant="outline" onClick={() => navigate('/material-expenses')} className="mb-6">
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Material Expenses
-        </Button>
-        <Card>
-          <CardHeader>
-            <CardTitle>Expense Not Found</CardTitle>
-          </CardHeader>
-        </Card>
+      <div className="min-h-screen p-2 sm:p-4">
+        <div className="max-w-7xl mx-auto space-y-4">
+          <Button variant="outline" onClick={() => navigate('/material-expenses')} className="mb-6">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Material Expenses
+          </Button>
+          <Card className="min-h-[60vh] flex items-center justify-center">
+            <CardHeader className="text-center">
+              <CardTitle>Expense Not Found</CardTitle>
+            </CardHeader>
+          </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-6">
-      <Button variant="outline" onClick={() => navigate('/material-expenses')} className="mb-6">
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Material Expenses
-      </Button>
+    <div className="min-h-screen p-2 sm:p-4">
+      <div className="max-w-7xl mx-auto space-y-4">
+        <Button variant="outline" onClick={() => navigate('/material-expenses')} className="mb-6">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Material Expenses
+        </Button>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{expense.description}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm font-medium text-gray-500">Project</p>
-              <p className="text-sm">{expense.projectName || 'Unknown Project'}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500">Status</p>
-              <div className="text-sm">{getStatusBadge(expense.approvalStatus || 'pending')}</div>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500">Category</p>
-              <p className="text-sm">{expense.category}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500">Date</p>
-              <p className="text-sm">{formatDate(expense.date)}</p>
-            </div>
-          </div>
-
-          <div className="bg-red-50 p-6 rounded-lg">
-            <h3 className="text-lg font-semibold mb-2">Amount</h3>
-            <p className="text-4xl font-bold text-red-600">
-              {formatCurrency(expense.amount)}
-            </p>
-          </div>
-
-          {expense.attachments && expense.attachments.length > 0 ? (
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Attachments</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {expense.attachments.map((attachment: any, index: number) => (
-                  <Card key={index} className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <FileText className="w-5 h-5 text-gray-500" />
-                        <span className="text-sm font-medium">
-                          {attachment.name || `Attachment ${index + 1}`}
-                        </span>
-                      </div>
-                      <Button
-                        size="sm"
-                        onClick={() => handleDownloadAttachment(attachment)}
-                        className="ml-2"
-                      >
-                        <Download className="w-4 h-4 mr-1" />
-                        Download
-                      </Button>
-                    </div>
-                  </Card>
-                ))}
+        <Card className="min-h-[70vh]">
+          <CardHeader>
+            <CardTitle className="text-xl sm:text-2xl">{expense.description}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6 p-4 sm:p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Project</p>
+                <p className="text-base">{expense.projectName || 'Unknown Project'}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Status</p>
+                <div className="text-base">{getStatusBadge(expense.approvalStatus || 'pending')}</div>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Category</p>
+                <p className="text-base">{expense.category}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Date</p>
+                <p className="text-base">{formatDate(expense.date)}</p>
               </div>
             </div>
-          ) : (
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Attachments</h3>
-              <p className="text-gray-500">No attachments available</p>
+
+            <div className="bg-red-50 p-6 rounded-lg">
+              <h3 className="text-xl font-semibold mb-2">Amount</h3>
+              <p className="text-4xl font-bold text-red-600">
+                {formatCurrency(expense.amount)}
+              </p>
             </div>
-          )}
-        </CardContent>
-      </Card>
+
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold">Attachments</h3>
+              {expense.attachments && expense.attachments.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {expense.attachments.map((attachment: any, index: number) => (
+                    <Card key={index} className="p-4 hover:shadow-md transition-shadow">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3 min-w-0 flex-1">
+                          <FileText className="w-6 h-6 text-gray-500 flex-shrink-0" />
+                          <span className="text-sm font-medium truncate">
+                            {attachment.name || `Attachment ${index + 1}`}
+                          </span>
+                        </div>
+                        <Button
+                          size="sm"
+                          onClick={() => handleDownloadAttachment(attachment)}
+                          className="ml-2 flex-shrink-0"
+                        >
+                          <Download className="w-4 h-4 mr-1" />
+                          Download
+                        </Button>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <Card className="p-8 text-center">
+                  <p className="text-gray-500">No attachments available</p>
+                </Card>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
