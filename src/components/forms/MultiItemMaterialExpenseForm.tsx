@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Trash2, Upload, X } from 'lucide-react';
 import { useProjects } from '@/hooks/api/useProjects';
 import { useCreateTransaction } from '@/hooks/api/useFinances';
+import { toast } from "@/hooks/use-toast";
 
 interface MultiItemMaterialExpenseFormProps {
   preselectedProjectId?: string;
@@ -22,6 +23,9 @@ const MultiItemMaterialExpenseForm: React.FC<MultiItemMaterialExpenseFormProps> 
   const { data: projects = [] } = useProjects();
   const createTransactionMutation = useCreateTransaction();
   const [attachments, setAttachments] = useState<{[key: number]: File[]}>({});
+  
+  // Maximum file size: 5MB per file
+  const MAX_FILE_SIZE = 5 * 1024 * 1024;
   
   const form = useForm({
     defaultValues: {
@@ -43,6 +47,18 @@ const MultiItemMaterialExpenseForm: React.FC<MultiItemMaterialExpenseFormProps> 
   const handleFileUpload = (index: number, files: FileList | null) => {
     if (files) {
       const newFiles = Array.from(files);
+      
+      // Check file sizes
+      const oversizedFiles = newFiles.filter(file => file.size > MAX_FILE_SIZE);
+      if (oversizedFiles.length > 0) {
+        toast({
+          title: "File too large",
+          description: `Files must be smaller than 5MB. Please compress or use smaller files.`,
+          variant: "destructive"
+        });
+        return;
+      }
+      
       setAttachments(prev => ({
         ...prev,
         [index]: [...(prev[index] || []), ...newFiles]
@@ -76,6 +92,18 @@ const MultiItemMaterialExpenseForm: React.FC<MultiItemMaterialExpenseFormProps> 
       // Submit each item as a separate expense
       for (const [index, item] of data.items.entries()) {
         const itemAttachments = attachments[index] || [];
+        
+        // Check total attachment size for this item
+        const totalSize = itemAttachments.reduce((sum, file) => sum + file.size, 0);
+        if (totalSize > MAX_FILE_SIZE * 2) { // Allow up to 10MB total per item
+          toast({
+            title: "Attachments too large",
+            description: `Total attachment size for item ${index + 1} exceeds 10MB. Please reduce file sizes.`,
+            variant: "destructive"
+          });
+          continue;
+        }
+        
         // Convert files to the format expected by the finance API (with url property)
         const attachmentData = itemAttachments.map(file => ({
           name: file.name,
@@ -100,8 +128,15 @@ const MultiItemMaterialExpenseForm: React.FC<MultiItemMaterialExpenseFormProps> 
       form.reset();
       setAttachments({});
       if (onSubmit) onSubmit();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating material expenses:', error);
+      if (error.response?.status === 413) {
+        toast({
+          title: "Request too large",
+          description: "Files are too large. Please use smaller files or fewer attachments.",
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -240,9 +275,9 @@ const MultiItemMaterialExpenseForm: React.FC<MultiItemMaterialExpenseFormProps> 
                       )}
                     />
 
-                    {/* File Attachments */}
+                    {/* File Attachments with size validation */}
                     <div className="space-y-2">
-                      <FormLabel>Attachments</FormLabel>
+                      <FormLabel>Attachments (Max 5MB per file)</FormLabel>
                       <div className="flex items-center gap-2">
                         <Input
                           type="file"
@@ -267,7 +302,9 @@ const MultiItemMaterialExpenseForm: React.FC<MultiItemMaterialExpenseFormProps> 
                         <div className="space-y-2">
                           {attachments[index].map((file, fileIndex) => (
                             <div key={fileIndex} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                              <span className="text-sm truncate">{file.name}</span>
+                              <span className="text-sm truncate">
+                                {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                              </span>
                               <Button
                                 type="button"
                                 variant="ghost"
