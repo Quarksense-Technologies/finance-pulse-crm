@@ -82,12 +82,13 @@ const MultiItemMaterialPurchaseForm: React.FC<MultiItemMaterialPurchaseFormProps
         const totalAmount = subtotal + gstAmount;
 
         const itemAttachments = attachments[index] || [];
-        // Convert files to base64 properly
+        // Convert files to the correct format matching CreateMaterialPurchaseData interface
         const attachmentData = await Promise.all(
           itemAttachments.map(async (file) => ({
             name: file.name,
-            url: await fileToBase64(file),
-            type: file.type
+            data: await fileToBase64(file),
+            contentType: file.type,
+            size: file.size
           }))
         );
 
