@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">finance-pulse-crm</string>
+    <string name="title_activity_main">finance-pulse-crm</string>
+    <string name="package_name">app.lovable.d57acd1ddfc446949601f81cd7d28b50</string>
+    <string name="custom_url_scheme">app.lovable.d57acd1ddfc446949601f81cd7d28b50</string>
+</resources>
