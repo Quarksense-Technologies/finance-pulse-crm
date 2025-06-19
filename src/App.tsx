@@ -49,36 +49,148 @@ function App() {
             <div className="min-h-screen bg-background">
               <Routes>
                 <Route path="/login" element={<Login />} />
-                <Route path="/*" element={
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/dashboard" element={
                   <ProtectedRoute>
                     <Layout>
-                      <Routes>
-                        <Route index element={<Navigate to="/dashboard" replace />} />
-                        <Route path="dashboard" element={<Dashboard />} />
-                        <Route path="projects" element={<Projects />} />
-                        <Route path="projects/:id" element={<ProjectDetails />} />
-                        <Route path="companies" element={<Companies />} />
-                        <Route path="companies/:id" element={<CompanyDetails />} />
-                        <Route path="finances" element={<Finances />} />
-                        <Route path="materials" element={<Materials />} />
-                        <Route path="material-requests" element={<MaterialRequests />} />
-                        <Route path="material-purchases" element={<MaterialPurchases />} />
-                        <Route path="material-expenses" element={<MaterialExpenses />} />
-                        <Route path="material-requests-page" element={<MaterialRequestsPage />} />
-                        <Route path="material-purchases-page" element={<MaterialPurchasesPage />} />
-                        <Route path="material-expenses-page" element={<MaterialExpensesPage />} />
-                        <Route path="material-expense/:id" element={<MaterialExpenseDetail />} />
-                        <Route path="material-purchase/:id" element={<MaterialPurchaseDetail />} />
-                        <Route path="resources" element={<Resources />} />
-                        <Route path="attendance" element={<Attendance />} />
-                        <Route path="users" element={<UserManagement />} />
-                        <Route path="settings" element={<Settings />} />
-                        <Route path="approvals" element={<Approvals />} />
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
+                      <Dashboard />
                     </Layout>
                   </ProtectedRoute>
                 } />
+                <Route path="/projects" element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Projects />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/projects/:id" element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <ProjectDetails />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/companies" element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Companies />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/companies/:id" element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <CompanyDetails />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/finances" element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Finances />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/materials" element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Materials />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/material-requests" element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <MaterialRequests />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/material-purchases" element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <MaterialPurchases />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/material-expenses" element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <MaterialExpenses />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/material-requests-page" element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <MaterialRequestsPage />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/material-purchases-page" element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <MaterialPurchasesPage />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/material-expenses-page" element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <MaterialExpensesPage />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/material-expense/:id" element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <MaterialExpenseDetail />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/material-purchase/:id" element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <MaterialPurchaseDetail />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/resources" element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Resources />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/attendance" element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Attendance />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/users" element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <UserManagement />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/settings" element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Settings />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/approvals" element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Approvals />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                <Route path="*" element={<NotFound />} />
               </Routes>
             </div>
             <Toaster />
