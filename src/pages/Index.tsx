@@ -64,10 +64,10 @@ const Index = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Welcome Section */}
-      <div className="space-y-2">
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+      <div className="space-y-1 sm:space-y-2">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
           Welcome back, {user?.name}
         </h1>
         <p className="text-muted-foreground text-sm sm:text-base">
@@ -76,75 +76,75 @@ const Index = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <Card className="p-3 sm:p-4">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 p-0">
+            <CardTitle className="text-xs sm:text-sm font-medium">Active Projects</CardTitle>
+            <Activity className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">12</div>
+          <CardContent className="p-0 pt-1">
+            <div className="text-lg sm:text-2xl font-bold">12</div>
             <p className="text-xs text-muted-foreground">+2 from last month</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+        <Card className="p-3 sm:p-4">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 p-0">
+            <CardTitle className="text-xs sm:text-sm font-medium">Total Revenue</CardTitle>
+            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$45,231</div>
+          <CardContent className="p-0 pt-1">
+            <div className="text-lg sm:text-2xl font-bold">$45,231</div>
             <p className="text-xs text-muted-foreground">+20.1% from last month</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Team Members</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+        <Card className="p-3 sm:p-4">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 p-0">
+            <CardTitle className="text-xs sm:text-sm font-medium">Team Members</CardTitle>
+            <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">24</div>
+          <CardContent className="p-0 pt-1">
+            <div className="text-lg sm:text-2xl font-bold">24</div>
             <p className="text-xs text-muted-foreground">+3 this week</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Tasks</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+        <Card className="p-3 sm:p-4">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 p-0">
+            <CardTitle className="text-xs sm:text-sm font-medium">Pending Tasks</CardTitle>
+            <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">8</div>
+          <CardContent className="p-0 pt-1">
+            <div className="text-lg sm:text-2xl font-bold">8</div>
             <p className="text-xs text-muted-foreground">Due this week</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Quick Actions */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-foreground">Quick Actions</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="space-y-3 sm:space-y-4">
+        <h2 className="text-lg sm:text-xl font-semibold text-foreground">Quick Actions</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {quickActions.map((action) => {
             const Icon = action.icon;
             return (
               <Card key={action.title} className="hover:shadow-md transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${action.color} text-white`}>
-                      <Icon className="h-5 w-5" />
+                <CardHeader className="pb-2 sm:pb-3">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className={`p-1.5 sm:p-2 rounded-lg ${action.color} text-white`}>
+                      <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
                     </div>
-                    <div>
-                      <CardTitle className="text-base">{action.title}</CardTitle>
-                      <CardDescription className="text-sm">
+                    <div className="min-w-0 flex-1">
+                      <CardTitle className="text-sm sm:text-base truncate">{action.title}</CardTitle>
+                      <CardDescription className="text-xs sm:text-sm">
                         {action.description}
                       </CardDescription>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <Button asChild className="w-full" size="sm">
+                  <Button asChild className="w-full h-8 sm:h-9 text-xs sm:text-sm" size="sm">
                     <Link to={action.href}>
                       Go to {action.title}
                     </Link>
@@ -158,26 +158,26 @@ const Index = () => {
 
       {/* Recent Activity */}
       <Card>
-        <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
-          <CardDescription>Latest updates from your business</CardDescription>
+        <CardHeader className="pb-3 sm:pb-4">
+          <CardTitle className="text-base sm:text-lg">Recent Activity</CardTitle>
+          <CardDescription className="text-sm">Latest updates from your business</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 text-sm">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span>New project "Office Renovation" was created</span>
-              <span className="text-muted-foreground ml-auto">2 hours ago</span>
+          <div className="space-y-3 sm:space-y-4">
+            <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm">
+              <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+              <span className="flex-1 min-w-0">New project "Office Renovation" was created</span>
+              <span className="text-muted-foreground text-xs">2h ago</span>
             </div>
-            <div className="flex items-center gap-3 text-sm">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <span>Payment of $5,000 was recorded</span>
-              <span className="text-muted-foreground ml-auto">4 hours ago</span>
+            <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm">
+              <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+              <span className="flex-1 min-w-0">Payment of $5,000 was recorded</span>
+              <span className="text-muted-foreground text-xs">4h ago</span>
             </div>
-            <div className="flex items-center gap-3 text-sm">
-              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-              <span>Material request submitted for review</span>
-              <span className="text-muted-foreground ml-auto">6 hours ago</span>
+            <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm">
+              <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0"></div>
+              <span className="flex-1 min-w-0">Material request submitted for review</span>
+              <span className="text-muted-foreground text-xs">6h ago</span>
             </div>
           </div>
         </CardContent>
