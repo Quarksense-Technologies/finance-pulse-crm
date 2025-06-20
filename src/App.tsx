@@ -28,6 +28,7 @@ import Attendance from './pages/Attendance';
 import UserManagement from '@/pages/UserManagement';
 import Settings from '@/pages/Settings';
 import Approvals from '@/pages/Approvals';
+import UICustomization from '@/pages/UICustomization';
 import NotFound from '@/pages/NotFound';
 import './App.css';
 
@@ -180,6 +181,13 @@ function App() {
                   <ProtectedRoute>
                     <Layout>
                       <Settings />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/ui-customization" element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <UICustomization />
                     </Layout>
                   </ProtectedRoute>
                 } />

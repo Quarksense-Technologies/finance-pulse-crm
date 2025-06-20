@@ -12,7 +12,8 @@ import {
   Package, 
   Clock,
   TrendingUp,
-  Activity
+  Activity,
+  Palette
 } from 'lucide-react';
 
 const Index = () => {
@@ -60,6 +61,13 @@ const Index = () => {
       href: '/resources', 
       icon: Users,
       color: 'bg-indigo-500'
+    }] : []),
+    ...(hasPermission('admin') ? [{ 
+      title: 'UI Customization', 
+      description: 'Customize app appearance', 
+      href: '/ui-customization', 
+      icon: Palette,
+      color: 'bg-pink-500'
     }] : []),
   ];
 
