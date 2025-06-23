@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -62,7 +61,7 @@ const Index = () => {
       icon: Users,
       color: 'bg-indigo-500'
     }] : []),
-    ...(hasPermission('admin') ? [{ 
+    ...(hasPermission('manage_users') ? [{ 
       title: 'UI Customization', 
       description: 'Customize app appearance', 
       href: '/ui-customization', 
