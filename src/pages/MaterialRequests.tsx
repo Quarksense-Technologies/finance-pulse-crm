@@ -1,209 +1,304 @@
 
 import React, { useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
-import { Plus, Eye, Trash2 } from 'lucide-react';
-import { formatCurrency, formatDate } from '@/utils/financialUtils';
-import { useMaterialRequests, useDeleteMaterialRequest } from '@/hooks/api/useMaterials';
+import { Plus, Package, Clock, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useMaterialRequests } from '@/hooks/api/useMaterials';
+import { useProjects } from '@/hooks/api/useProjects';
+import MaterialRequestForm from '@/components/forms/MaterialRequestForm';
 import MultiItemMaterialRequestForm from '@/components/forms/MultiItemMaterialRequestForm';
+import { formatCurrency } from '@/utils/financialUtils';
 
 const MaterialRequests = () => {
-  const { user, hasPermission } = useAuth();
-  const [showRequestForm, setShowRequestForm] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<any>(null);
-
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { data: materialRequests = [], isLoading } = useMaterialRequests();
-  const deleteRequestMutation = useDeleteMaterialRequest();
+  const { data: projects = [] } = useProjects();
 
-  const handleDeleteRequest = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this material request?')) {
-      try {
-        await deleteRequestMutation.mutateAsync(id);
-      } catch (error) {
-        console.error('Error deleting material request:', error);
-      }
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
+      case 'approved': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
+      case 'rejected': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    const statusColors: Record<string, string> = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      approved: 'bg-green-100 text-green-800',
-      rejected: 'bg-red-100 text-red-800',
-      purchased: 'bg-blue-100 text-blue-800',
-    };
-
-    return (
-      <Badge className={statusColors[status] || 'bg-gray-100 text-gray-800'}>
-        {status.charAt(0).toUpperCase() + status.slice(1)}
-      </Badge>
-    );
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'pending': return <Clock className="h-3 w-3" />;
+      case 'approved': return <CheckCircle className="h-3 w-3" />;
+      case 'rejected': return <XCircle className="h-3 w-3" />;
+      default: return <AlertCircle className="h-3 w-3" />;
+    }
   };
 
-  const getUrgencyBadge = (urgency: string) => {
-    const urgencyColors: Record<string, string> = {
-      low: 'bg-green-100 text-green-800',
-      medium: 'bg-yellow-100 text-yellow-800',
-      high: 'bg-red-100 text-red-800',
-    };
-
-    return (
-      <Badge className={urgencyColors[urgency] || 'bg-gray-100 text-gray-800'}>
-        {urgency.charAt(0).toUpperCase() + urgency.slice(1)}
-      </Badge>
-    );
+  const getUrgencyColor = (urgency: string) => {
+    switch (urgency) {
+      case 'high': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
+      case 'medium': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400';
+      case 'low': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
+    }
   };
 
-  if (!hasPermission('manage_materials')) {
+  const pendingRequests = materialRequests.filter(req => req.status === 'pending');
+  const totalEstimatedCost = materialRequests.reduce((sum, req) => sum + (req.estimatedCost || 0), 0);
+
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Access Denied</CardTitle>
-            <CardDescription>You don't have permission to access this page.</CardDescription>
-          </CardHeader>
-        </Card>
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading material requests...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Material Requests</h1>
-        <Dialog open={showRequestForm} onOpenChange={setShowRequestForm}>
+    <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground truncate">
+            Material Requests
+          </h1>
+          <p className="text-sm sm:text-base text-muted-foreground mt-1">
+            Request materials for your projects
+          </p>
+        </div>
+        
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              New Request
+            <Button className="w-full sm:w-auto shrink-0" size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">New Request</span>
+              <span className="sm:hidden">Add</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl">
+          <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create Material Request</DialogTitle>
             </DialogHeader>
-            <MultiItemMaterialRequestForm onSubmit={() => setShowRequestForm(false)} />
+            
+            <Tabs defaultValue="single" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="single" className="text-xs sm:text-sm">Single Item</TabsTrigger>
+                <TabsTrigger value="multiple" className="text-xs sm:text-sm">Multiple Items</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="single">
+                <MaterialRequestForm onSubmit={() => setIsDialogOpen(false)} />
+              </TabsContent>
+              
+              <TabsContent value="multiple">
+                <MultiItemMaterialRequestForm onSubmit={() => setIsDialogOpen(false)} />
+              </TabsContent>
+            </Tabs>
           </DialogContent>
         </Dialog>
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">Loading requests...</div>
-      ) : materialRequests.length === 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>No Material Requests</CardTitle>
-            <CardDescription>No material requests have been made yet.</CardDescription>
-          </CardHeader>
-        </Card>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>Material Requests ({materialRequests.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Part No</TableHead>
-                  <TableHead>Quantity</TableHead>
-                  <TableHead>Est. Cost</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Urgency</TableHead>
-                  <TableHead>Requested By</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {materialRequests.map((request) => (
-                  <TableRow key={request.id}>
-                    <TableCell className="font-medium">{request.description}</TableCell>
-                    <TableCell>{request.projectName || 'Unknown Project'}</TableCell>
-                    <TableCell>{request.partNo || 'N/A'}</TableCell>
-                    <TableCell>{request.quantity}</TableCell>
-                    <TableCell>{request.estimatedCost ? formatCurrency(request.estimatedCost) : 'N/A'}</TableCell>
-                    <TableCell>{getStatusBadge(request.status)}</TableCell>
-                    <TableCell>{getUrgencyBadge(request.urgency)}</TableCell>
-                    <TableCell>{request.requestedBy?.name}</TableCell>
-                    <TableCell>{formatDate(request.createdAt)}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setSelectedItem(request)}
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        {(request.requestedBy.id === user?.id || hasPermission('delete_materials')) && (
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDeleteRequest(request.id)}
-                            disabled={deleteRequestMutation.isPending}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <Card className="p-3 sm:p-4">
+          <CardContent className="p-0">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg shrink-0">
+                <Package className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-xs sm:text-sm font-medium text-muted-foreground truncate">
+                  Total Requests
+                </h3>
+                <p className="text-lg sm:text-xl font-semibold">{materialRequests.length}</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
-      )}
 
-      {/* Detail View Dialog */}
-      {selectedItem && (
-        <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>{selectedItem.description}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Project</p>
-                  <p className="text-sm">{selectedItem.projectName || 'Unknown Project'}</p>
+        <Card className="p-3 sm:p-4">
+          <CardContent className="p-0">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg shrink-0">
+                <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-600 dark:text-yellow-400" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-xs sm:text-sm font-medium text-muted-foreground truncate">
+                  Pending
+                </h3>
+                <p className="text-lg sm:text-xl font-semibold">{pendingRequests.length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="p-3 sm:p-4">
+          <CardContent className="p-0">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-green-100 dark:bg-green-900/20 rounded-lg shrink-0">
+                <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-600 dark:text-green-400" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-xs sm:text-sm font-medium text-muted-foreground truncate">
+                  Approved
+                </h3>
+                <p className="text-lg sm:text-xl font-semibold">
+                  {materialRequests.filter(req => req.status === 'approved').length}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="p-3 sm:p-4">
+          <CardContent className="p-0">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="p-1.5 sm:p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg shrink-0">
+                <Package className="h-3 w-3 sm:h-4 sm:w-4 text-purple-600 dark:text-purple-400" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-xs sm:text-sm font-medium text-muted-foreground truncate">
+                  Est. Cost
+                </h3>
+                <p className="text-lg sm:text-xl font-semibold">{formatCurrency(totalEstimatedCost)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Requests List */}
+      <Card>
+        <CardHeader className="pb-3 sm:pb-4">
+          <CardTitle className="text-base sm:text-lg">Recent Requests</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {materialRequests.length === 0 ? (
+            <div className="text-center py-8 sm:py-12">
+              <Package className="h-12 w-12 sm:h-16 sm:w-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-base sm:text-lg font-medium mb-2">No material requests yet</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Start by creating your first material request
+              </p>
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Request
+                  </Button>
+                </DialogTrigger>
+              </Dialog>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <div className="min-w-[600px]">
+                {/* Desktop Table Header */}
+                <div className="hidden sm:grid grid-cols-12 gap-3 px-4 py-3 bg-muted/50 text-xs sm:text-sm font-medium text-muted-foreground border-b">
+                  <div className="col-span-3">Description</div>
+                  <div className="col-span-2">Project</div>
+                  <div className="col-span-2">Part No</div>
+                  <div className="col-span-1">Qty</div>
+                  <div className="col-span-2">Cost</div>
+                  <div className="col-span-1">Priority</div>
+                  <div className="col-span-1">Status</div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Status</p>
-                  <p className="text-sm">{getStatusBadge(selectedItem.status)}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Quantity</p>
-                  <p className="text-sm">{selectedItem.quantity}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Urgency</p>
-                  <p className="text-sm">{getUrgencyBadge(selectedItem.urgency)}</p>
+
+                {/* Table Rows */}
+                <div className="divide-y divide-border">
+                  {materialRequests.map((request) => {
+                    const project = projects.find(p => p.id === request.projectId);
+                    
+                    return (
+                      <div key={request.id} className="px-3 sm:px-4 py-3 sm:py-4">
+                        {/* Mobile Layout */}
+                        <div className="sm:hidden space-y-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              <h4 className="font-medium text-sm truncate">{request.description}</h4>
+                              <p className="text-xs text-muted-foreground truncate">
+                                {project?.name || 'Unknown Project'}
+                              </p>
+                            </div>
+                            <div className="flex gap-1 shrink-0">
+                              <Badge className={`text-xs px-1.5 py-0.5 ${getUrgencyColor(request.urgency)}`}>
+                                {request.urgency}
+                              </Badge>
+                              <Badge className={`text-xs px-1.5 py-0.5 ${getStatusColor(request.status)}`}>
+                                <span className="flex items-center gap-1">
+                                  {getStatusIcon(request.status)}
+                                  {request.status}
+                                </span>
+                              </Badge>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div>
+                              <span className="text-muted-foreground">Part:</span>
+                              <span className="ml-1">{request.partNo || 'N/A'}</span>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Qty:</span>
+                              <span className="ml-1">{request.quantity}</span>
+                            </div>
+                            <div className="col-span-2">
+                              <span className="text-muted-foreground">Est. Cost:</span>
+                              <span className="ml-1 font-medium">
+                                {request.estimatedCost ? formatCurrency(request.estimatedCost) : 'TBD'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Desktop Layout */}
+                        <div className="hidden sm:grid grid-cols-12 gap-3 items-center text-sm">
+                          <div className="col-span-3">
+                            <div className="font-medium truncate">{request.description}</div>
+                            {request.notes && (
+                              <div className="text-xs text-muted-foreground truncate mt-1">
+                                {request.notes}
+                              </div>
+                            )}
+                          </div>
+                          <div className="col-span-2 truncate">
+                            {project?.name || 'Unknown Project'}
+                          </div>
+                          <div className="col-span-2 truncate">
+                            {request.partNo || 'N/A'}
+                          </div>
+                          <div className="col-span-1">
+                            {request.quantity}
+                          </div>
+                          <div className="col-span-2 font-medium">
+                            {request.estimatedCost ? formatCurrency(request.estimatedCost) : 'TBD'}
+                          </div>
+                          <div className="col-span-1">
+                            <Badge className={`text-xs ${getUrgencyColor(request.urgency)}`}>
+                              {request.urgency}
+                            </Badge>
+                          </div>
+                          <div className="col-span-1">
+                            <Badge className={`text-xs ${getStatusColor(request.status)}`}>
+                              <span className="flex items-center gap-1">
+                                {getStatusIcon(request.status)}
+                                {request.status}
+                              </span>
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-              {selectedItem.notes && (
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Notes</p>
-                  <p className="text-sm">{selectedItem.notes}</p>
-                </div>
-              )}
-              {selectedItem.rejectionReason && (
-                <div>
-                  <p className="text-sm font-medium text-red-500">Rejection Reason</p>
-                  <p className="text-sm text-red-600">{selectedItem.rejectionReason}</p>
-                </div>
-              )}
             </div>
-          </DialogContent>
-        </Dialog>
-      )}
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
