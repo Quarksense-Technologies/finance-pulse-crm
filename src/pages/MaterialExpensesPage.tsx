@@ -66,18 +66,18 @@ const MaterialExpensesPage = () => {
 
   if (showForm) {
     return (
-      <div className="min-h-screen p-2 sm:p-4">
+      <div className="min-h-screen p-3 sm:p-4 lg:p-6 max-w-full overflow-hidden">
         <div className="max-w-7xl mx-auto space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-            <Button variant="outline" onClick={() => setShowForm(false)} className="w-full sm:w-auto">
+            <Button variant="outline" onClick={() => setShowForm(false)} size="sm" className="w-full sm:w-auto">
               <ArrowLeft className="w-4 h-4 mr-2" />
               <span className="hidden sm:inline">Back to Expenses</span>
               <span className="sm:hidden">Back</span>
             </Button>
-            <h1 className="text-xl sm:text-3xl font-bold">Add Material Expense</h1>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">Add Material Expense</h1>
           </div>
-          <Card className="min-h-[80vh]">
-            <CardContent className="p-4 sm:p-6">
+          <Card className="min-h-[70vh]">
+            <CardContent className="p-3 sm:p-4 lg:p-6">
               <MultiItemMaterialExpenseForm onSubmit={() => setShowForm(false)} />
             </CardContent>
           </Card>
@@ -87,18 +87,20 @@ const MaterialExpensesPage = () => {
   }
 
   return (
-    <div className="min-h-screen p-2 sm:p-4">
-      <div className="max-w-7xl mx-auto space-y-4">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-            <Button variant="outline" onClick={() => navigate('/materials')} className="w-full sm:w-auto">
+    <div className="min-h-screen p-3 sm:p-4 lg:p-6 max-w-full overflow-hidden">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 min-w-0">
+            <Button variant="outline" onClick={() => navigate('/materials')} size="sm" className="w-full sm:w-auto shrink-0">
               <ArrowLeft className="w-4 h-4 mr-2" />
               <span className="hidden sm:inline">Back to Materials</span>
               <span className="sm:hidden">Back</span>
             </Button>
-            <h1 className="text-xl sm:text-3xl font-bold">Material Expenses</h1>
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">Material Expenses</h1>
+            </div>
           </div>
-          <Button onClick={() => setShowForm(true)} className="w-full sm:w-auto">
+          <Button onClick={() => setShowForm(true)} size="sm" className="w-full sm:w-auto shrink-0">
             <Plus className="w-4 h-4 mr-2" />
             <span className="hidden sm:inline">Add Expense</span>
             <span className="sm:hidden">Add</span>
@@ -106,56 +108,105 @@ const MaterialExpensesPage = () => {
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center items-center h-64">Loading expenses...</div>
+          <div className="flex justify-center items-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading expenses...</p>
+            </div>
+          </div>
         ) : materialExpenses.length === 0 ? (
-          <Card className="min-h-[70vh] flex items-center justify-center">
+          <Card className="min-h-[60vh] flex items-center justify-center">
             <CardHeader className="text-center">
               <CardTitle>No Material Expenses</CardTitle>
               <CardDescription>No material expenses have been recorded yet.</CardDescription>
             </CardHeader>
           </Card>
         ) : (
-          <Card className="min-h-[70vh]">
-            <CardHeader>
-              <CardTitle className="text-lg sm:text-xl">Material Expenses ({materialExpenses.length})</CardTitle>
+          <Card className="min-h-[60vh]">
+            <CardHeader className="pb-3 sm:pb-4">
+              <CardTitle className="text-base sm:text-lg xl:text-xl">Material Expenses ({materialExpenses.length})</CardTitle>
             </CardHeader>
-            <CardContent className="p-2 sm:p-6">
+            <CardContent className="p-0">
               <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="min-w-[200px]">Description</TableHead>
-                      <TableHead className="min-w-[150px]">Project</TableHead>
-                      <TableHead className="min-w-[120px]">Amount</TableHead>
-                      <TableHead className="min-w-[100px]">Status</TableHead>
-                      <TableHead className="min-w-[120px]">Date</TableHead>
-                      <TableHead className="min-w-[80px]">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+                <div className="min-w-[600px]">
+                  {/* Desktop Table Header */}
+                  <div className="hidden sm:grid grid-cols-12 gap-3 px-4 py-3 bg-muted/50 text-xs sm:text-sm font-medium text-muted-foreground border-b">
+                    <div className="col-span-3">Description</div>
+                    <div className="col-span-2">Project</div>
+                    <div className="col-span-2">Amount</div>
+                    <div className="col-span-2">Status</div>
+                    <div className="col-span-2">Date</div>
+                    <div className="col-span-1">Actions</div>
+                  </div>
+
+                  {/* Table Rows */}
+                  <div className="divide-y divide-border">
                     {materialExpenses.map((transaction) => (
-                      <TableRow key={transaction.id}>
-                        <TableCell className="font-medium">{transaction.description}</TableCell>
-                        <TableCell>{getProjectName(transaction.project)}</TableCell>
-                        <TableCell className="font-semibold text-red-600">
-                          {formatCurrency(transaction.amount)}
-                        </TableCell>
-                        <TableCell>{getStatusBadge(transaction.status || 'pending')}</TableCell>
-                        <TableCell>{formatDate(transaction.date)}</TableCell>
-                        <TableCell>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setSelectedItem(transaction)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
+                      <div key={transaction.id} className="px-3 sm:px-4 py-3 sm:py-4">
+                        {/* Mobile Layout */}
+                        <div className="sm:hidden space-y-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              <h4 className="font-medium text-sm truncate">{transaction.description}</h4>
+                              <p className="text-xs text-muted-foreground truncate">
+                                {getProjectName(transaction.project)}
+                              </p>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <p className="text-sm font-semibold text-red-600">
+                                {formatCurrency(transaction.amount)}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {formatDate(transaction.date)}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <div>{getStatusBadge(transaction.status || 'pending')}</div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setSelectedItem(transaction)}
+                            >
+                              <Eye className="w-4 h-4 mr-2" />
+                              View
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Desktop Layout */}
+                        <div className="hidden sm:grid grid-cols-12 gap-3 items-center text-sm">
+                          <div className="col-span-3">
+                            <div className="font-medium truncate">{transaction.description}</div>
+                          </div>
+                          <div className="col-span-2 truncate">
+                            {getProjectName(transaction.project)}
+                          </div>
+                          <div className="col-span-2 font-semibold text-red-600">
+                            {formatCurrency(transaction.amount)}
+                          </div>
+                          <div className="col-span-2">
+                            {getStatusBadge(transaction.status || 'pending')}
+                          </div>
+                          <div className="col-span-2 text-xs">
+                            {formatDate(transaction.date)}
+                          </div>
+                          <div className="col-span-1">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setSelectedItem(transaction)}
+                              className="h-8 w-8 p-0"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
                     ))}
-                  </TableBody>
-                </Table>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -164,15 +215,15 @@ const MaterialExpensesPage = () => {
         {/* Detail View Dialog */}
         {selectedItem && (
           <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader className="pr-8">
-                <DialogTitle className="text-lg font-semibold">{selectedItem.description}</DialogTitle>
+                <DialogTitle className="text-lg font-semibold truncate">{selectedItem.description}</DialogTitle>
               </DialogHeader>
               <div className="space-y-6 pt-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm font-medium text-gray-500">Project</p>
-                    <p className="text-sm">{getProjectName(selectedItem.project)}</p>
+                    <p className="text-sm truncate">{getProjectName(selectedItem.project)}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-500">Status</p>
@@ -190,7 +241,7 @@ const MaterialExpensesPage = () => {
 
                 <div className="bg-red-50 p-4 rounded-lg">
                   <h3 className="text-lg font-semibold mb-2">Amount</h3>
-                  <p className="text-3xl font-bold text-red-600">
+                  <p className="text-2xl sm:text-3xl font-bold text-red-600">
                     {formatCurrency(selectedItem.amount)}
                   </p>
                 </div>
@@ -198,12 +249,12 @@ const MaterialExpensesPage = () => {
                 {selectedItem.attachments && selectedItem.attachments.length > 0 ? (
                   <div>
                     <h3 className="text-lg font-semibold mb-4">Attachments</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4">
                       {selectedItem.attachments.map((attachment: any, index: number) => (
                         <Card key={index} className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
-                              <span className="text-sm font-medium">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center space-x-2 min-w-0">
+                              <span className="text-sm font-medium truncate">
                                 {attachment.name || `Attachment ${index + 1}`}
                               </span>
                             </div>
@@ -218,7 +269,7 @@ const MaterialExpensesPage = () => {
                                 link.click();
                                 document.body.removeChild(link);
                               }}
-                              className="ml-2"
+                              className="shrink-0"
                             >
                               Download
                             </Button>
