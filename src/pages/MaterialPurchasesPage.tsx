@@ -34,10 +34,10 @@ const MaterialPurchasesPage = () => {
     );
   };
 
-  const getProjectName = (project: any) => {
-    if (!project) return 'Unknown Project';
-    if (typeof project === 'string') return project;
-    if (typeof project === 'object' && project.name) return project.name;
+  const getProjectName = (projectId: any) => {
+    if (!projectId) return 'Unknown Project';
+    if (typeof projectId === 'string') return projectId;
+    if (typeof projectId === 'object' && projectId.name) return projectId.name;
     return 'Unknown Project';
   };
 
@@ -56,17 +56,18 @@ const MaterialPurchasesPage = () => {
 
   if (showForm) {
     return (
-      <div className="w-full max-w-full overflow-hidden">
-        <div className="p-4 space-y-4">
-          <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={() => setShowForm(false)}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Purchases
+      <div className="min-h-screen">
+        <div className="p-3 sm:p-4 lg:p-6 space-y-4">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Button variant="outline" size="sm" onClick={() => setShowForm(false)}>
+              <ArrowLeft className="w-4 h-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Back to Purchases</span>
+              <span className="sm:hidden">Back</span>
             </Button>
-            <h1 className="text-2xl lg:text-3xl font-bold">Add Material Purchase</h1>
+            <h1 className="text-lg sm:text-xl lg:text-2xl font-bold">Add Material Purchase</h1>
           </div>
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-3 sm:p-4 lg:p-6">
               <MultiItemMaterialPurchaseForm onSubmit={() => setShowForm(false)} />
             </CardContent>
           </Card>
@@ -76,20 +77,21 @@ const MaterialPurchasesPage = () => {
   }
 
   return (
-    <div className="w-full max-w-full overflow-hidden">
-      <div className="p-4 space-y-6">
-        <div className="flex flex-col space-y-3 lg:flex-row lg:justify-between lg:items-center lg:space-y-0">
-          <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={() => navigate('/materials')}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Materials
+    <div className="min-h-screen">
+      <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
+        <div className="flex flex-col space-y-3 sm:flex-row sm:justify-between sm:items-center sm:space-y-0">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Button variant="outline" size="sm" onClick={() => navigate('/materials')}>
+              <ArrowLeft className="w-4 h-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Back to Materials</span>
+              <span className="sm:hidden">Back</span>
             </Button>
             <div>
-              <h1 className="text-2xl lg:text-3xl font-bold">Material Purchases</h1>
+              <h1 className="text-lg sm:text-xl lg:text-2xl font-bold">Material Purchases</h1>
             </div>
           </div>
-          <Button onClick={() => setShowForm(true)} className="w-full lg:w-auto">
-            <Plus className="w-4 h-4 mr-2" />
+          <Button onClick={() => setShowForm(true)} size="sm" className="w-full sm:w-auto">
+            <Plus className="w-4 h-4 mr-1 sm:mr-2" />
             Add Purchase
           </Button>
         </div>
@@ -103,61 +105,61 @@ const MaterialPurchasesPage = () => {
           </div>
         ) : purchases.length === 0 ? (
           <Card>
-            <CardHeader className="text-center py-12">
-              <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <CardTitle>No Material Purchases</CardTitle>
-              <CardDescription>No material purchases have been recorded yet.</CardDescription>
+            <CardHeader className="text-center py-8 sm:py-12">
+              <Package className="h-12 w-12 sm:h-16 sm:w-16 text-muted-foreground mx-auto mb-4" />
+              <CardTitle className="text-base sm:text-lg">No Material Purchases</CardTitle>
+              <CardDescription className="text-sm">No material purchases have been recorded yet.</CardDescription>
             </CardHeader>
           </Card>
         ) : (
           <Card>
-            <CardHeader>
-              <CardTitle>Material Purchases ({purchases.length})</CardTitle>
+            <CardHeader className="p-3 sm:p-4 lg:p-6">
+              <CardTitle className="text-base sm:text-lg">Material Purchases ({purchases.length})</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="w-full">
-                {/* Mobile Cards */}
-                <div className="lg:hidden space-y-4 p-4">
-                  {purchases.map((purchase) => (
-                    <Card key={purchase.id} className="w-full">
-                      <CardContent className="p-4">
-                        <div className="space-y-3">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-medium text-sm">{purchase.description}</h4>
-                              <p className="text-xs text-muted-foreground">
-                                {getProjectName(purchase.project)}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm font-semibold text-red-600">
-                                {formatCurrency(purchase.totalCost)}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {formatDate(purchase.purchaseDate)}
-                              </p>
-                            </div>
+              {/* Mobile Cards */}
+              <div className="lg:hidden space-y-3 p-3 sm:p-4">
+                {purchases.map((purchase) => (
+                  <Card key={purchase.id} className="w-full">
+                    <CardContent className="p-3 sm:p-4">
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-sm sm:text-base truncate">{purchase.description}</h4>
+                            <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                              {getProjectName(purchase.projectId)}
+                            </p>
                           </div>
-                          
-                          <div className="flex items-center justify-between">
-                            <div>{getStatusBadge(purchase.status || 'pending')}</div>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setSelectedItem(purchase)}
-                            >
-                              <Eye className="w-4 h-4 mr-2" />
-                              View
-                            </Button>
+                          <div className="text-right shrink-0">
+                            <p className="text-sm sm:text-base font-semibold text-red-600">
+                              {formatCurrency(purchase.cost)}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {formatDate(purchase.purchaseDate)}
+                            </p>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <div>{getStatusBadge(purchase.approvalStatus || 'pending')}</div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setSelectedItem(purchase)}
+                          >
+                            <Eye className="w-4 h-4 mr-1 sm:mr-2" />
+                            View
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
 
-                {/* Desktop Table */}
-                <div className="hidden lg:block">
+              {/* Desktop Table */}
+              <div className="hidden lg:block overflow-x-auto">
+                <div className="min-w-full">
                   <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-muted/50 text-sm font-medium text-muted-foreground border-b">
                     <div className="col-span-3">Description</div>
                     <div className="col-span-2">Project</div>
@@ -174,13 +176,13 @@ const MaterialPurchasesPage = () => {
                           <div className="font-medium">{purchase.description}</div>
                         </div>
                         <div className="col-span-2">
-                          {getProjectName(purchase.project)}
+                          {getProjectName(purchase.projectId)}
                         </div>
                         <div className="col-span-2 font-semibold text-red-600">
-                          {formatCurrency(purchase.totalCost)}
+                          {formatCurrency(purchase.cost)}
                         </div>
                         <div className="col-span-2">
-                          {getStatusBadge(purchase.status || 'pending')}
+                          {getStatusBadge(purchase.approvalStatus || 'pending')}
                         </div>
                         <div className="col-span-2">
                           {formatDate(purchase.purchaseDate)}
@@ -209,17 +211,17 @@ const MaterialPurchasesPage = () => {
           <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
             <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>{selectedItem.description}</DialogTitle>
+                <DialogTitle className="text-base sm:text-lg">{selectedItem.description}</DialogTitle>
               </DialogHeader>
-              <div className="space-y-6 pt-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-4 sm:space-y-6 pt-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <p className="text-sm font-medium text-gray-500">Project</p>
-                    <p className="text-sm">{getProjectName(selectedItem.project)}</p>
+                    <p className="text-sm">{getProjectName(selectedItem.projectId)}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-500">Status</p>
-                    <div className="text-sm">{getStatusBadge(selectedItem.status || 'pending')}</div>
+                    <div className="text-sm">{getStatusBadge(selectedItem.approvalStatus || 'pending')}</div>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-500">Quantity</p>
@@ -231,16 +233,16 @@ const MaterialPurchasesPage = () => {
                   </div>
                 </div>
 
-                <div className="bg-red-50 p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold mb-2">Total Cost</h3>
-                  <p className="text-2xl font-bold text-red-600">
-                    {formatCurrency(selectedItem.totalCost)}
+                <div className="bg-red-50 p-3 sm:p-4 rounded-lg">
+                  <h3 className="text-base sm:text-lg font-semibold mb-2">Total Cost</h3>
+                  <p className="text-xl sm:text-2xl font-bold text-red-600">
+                    {formatCurrency(selectedItem.cost)}
                   </p>
                 </div>
 
                 {selectedItem.notes && (
                   <div>
-                    <h3 className="text-lg font-semibold mb-2">Notes</h3>
+                    <h3 className="text-base sm:text-lg font-semibold mb-2">Notes</h3>
                     <p className="text-sm text-gray-600">{selectedItem.notes}</p>
                   </div>
                 )}

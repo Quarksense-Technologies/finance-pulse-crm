@@ -36,256 +36,266 @@ const Attendance = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading attendance data...</p>
+      <div className="min-h-screen">
+        <div className="flex justify-center items-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading attendance data...</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="space-y-1 sm:space-y-2">
-        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
-          Attendance Report
-        </h1>
-        <p className="text-sm sm:text-base text-muted-foreground">
-          Monthly work hours and cost analysis
-        </p>
-      </div>
+    <div className="min-h-screen">
+      <div className="p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 lg:space-y-6">
+        {/* Header */}
+        <div className="space-y-1 sm:space-y-2">
+          <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground">
+            Attendance Report
+          </h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Monthly work hours and cost analysis
+          </p>
+        </div>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader className="pb-3 sm:pb-4">
-          <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-            <Filter className="h-4 w-4" />
-            Filters
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="month" className="text-sm font-medium">Month</Label>
-              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Select month" />
-                </SelectTrigger>
-                <SelectContent>
-                  {months.map((month, index) => (
-                    <SelectItem key={index} value={index.toString()}>
-                      {month}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="year" className="text-sm font-medium">Year</Label>
-              <Select value={selectedYear} onValueChange={setSelectedYear}>
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Select year" />
-                </SelectTrigger>
-                <SelectContent>
-                  {years.map((year) => (
-                    <SelectItem key={year} value={year.toString()}>
-                      {year}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="project" className="text-sm font-medium">Project</Label>
-              <Select value={selectedProject} onValueChange={setSelectedProject}>
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Select project" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Projects</SelectItem>
-                  {projects.map((project) => (
-                    <SelectItem key={project.id} value={project.id}>
-                      {project.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-end">
-              <Button variant="outline" size="sm" className="w-full h-9">
-                Export Report
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <Card className="p-3 sm:p-4">
-          <CardContent className="p-0">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="p-1.5 sm:p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg shrink-0">
-                <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600 dark:text-blue-400" />
+        {/* Filters */}
+        <Card>
+          <CardHeader className="pb-2 sm:pb-3 lg:pb-4">
+            <CardTitle className="text-sm sm:text-base lg:text-lg flex items-center gap-2">
+              <Filter className="h-3 w-3 sm:h-4 sm:w-4" />
+              Filters
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 sm:space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
+              <div className="space-y-1 sm:space-y-2">
+                <Label htmlFor="month" className="text-xs sm:text-sm font-medium">Month</Label>
+                <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                  <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm">
+                    <SelectValue placeholder="Select month" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {months.map((month, index) => (
+                      <SelectItem key={index} value={index.toString()}>
+                        {month}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="min-w-0">
-                <h3 className="text-xs sm:text-sm font-medium text-muted-foreground">
-                  Total Hours
-                </h3>
-                <p className="text-lg sm:text-xl font-semibold">{totalHours.toFixed(1)}</p>
+
+              <div className="space-y-1 sm:space-y-2">
+                <Label htmlFor="year" className="text-xs sm:text-sm font-medium">Year</Label>
+                <Select value={selectedYear} onValueChange={setSelectedYear}>
+                  <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm">
+                    <SelectValue placeholder="Select year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {years.map((year) => (
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1 sm:space-y-2">
+                <Label htmlFor="project" className="text-xs sm:text-sm font-medium">Project</Label>
+                <Select value={selectedProject} onValueChange={setSelectedProject}>
+                  <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm">
+                    <SelectValue placeholder="Select project" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Projects</SelectItem>
+                    {projects.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-end">
+                <Button variant="outline" size="sm" className="w-full h-8 sm:h-9 text-xs sm:text-sm">
+                  Export Report
+                </Button>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="p-3 sm:p-4">
-          <CardContent className="p-0">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="p-1.5 sm:p-2 bg-green-100 dark:bg-green-900/20 rounded-lg shrink-0">
-                <IndianRupee className="h-3 w-3 sm:h-4 sm:w-4 text-green-600 dark:text-green-400" />
-              </div>
-              <div className="min-w-0">
-                <h3 className="text-xs sm:text-sm font-medium text-muted-foreground">
-                  Total Cost
-                </h3>
-                <p className="text-lg sm:text-xl font-semibold">{formatCurrency(totalCost)}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="p-3 sm:p-4">
-          <CardContent className="p-0">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="p-1.5 sm:p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg shrink-0">
-                <Users className="h-3 w-3 sm:h-4 sm:w-4 text-purple-600 dark:text-purple-400" />
-              </div>
-              <div className="min-w-0">
-                <h3 className="text-xs sm:text-sm font-medium text-muted-foreground">
-                  Resources
-                </h3>
-                <p className="text-lg sm:text-xl font-semibold">{totalResources}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="p-3 sm:p-4">
-          <CardContent className="p-0">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="p-1.5 sm:p-2 bg-orange-100 dark:bg-orange-900/20 rounded-lg shrink-0">
-                <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-orange-600 dark:text-orange-400" />
-              </div>
-              <div className="min-w-0">
-                <h3 className="text-xs sm:text-sm font-medium text-muted-foreground">
-                  Avg Hours
-                </h3>
-                <p className="text-lg sm:text-xl font-semibold">{averageHoursPerResource.toFixed(1)}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Detailed Report Table */}
-      <Card>
-        <CardHeader className="pb-3 sm:pb-4">
-          <CardTitle className="text-base sm:text-lg">
-            Detailed Report - {months[parseInt(selectedMonth)]} {selectedYear}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          {attendanceReports.length === 0 ? (
-            <div className="text-center py-8 sm:py-12 px-4">
-              <Calendar className="h-12 w-12 sm:h-16 sm:w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-base sm:text-lg font-medium mb-2">No attendance records found</h3>
-              <p className="text-sm text-muted-foreground">
-                No attendance records found for the selected filters
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <div className="min-w-[600px]">
-                {/* Desktop Table Header */}
-                <div className="hidden sm:grid grid-cols-12 gap-3 px-4 py-3 bg-muted/50 text-xs sm:text-sm font-medium text-muted-foreground border-b">
-                  <div className="col-span-3">Resource</div>
-                  <div className="col-span-2">Project</div>
-                  <div className="col-span-1">Days</div>
-                  <div className="col-span-2">Hours</div>
-                  <div className="col-span-2">Rate</div>
-                  <div className="col-span-2">Cost</div>
+        {/* Summary Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
+          <Card className="p-2 sm:p-3 lg:p-4">
+            <CardContent className="p-0">
+              <div className="flex items-center gap-1 sm:gap-2 lg:gap-3">
+                <div className="p-1 sm:p-1.5 lg:p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg shrink-0">
+                  <Clock className="h-2 w-2 sm:h-3 sm:w-3 lg:h-4 lg:w-4 text-blue-600 dark:text-blue-400" />
                 </div>
+                <div className="min-w-0">
+                  <h3 className="text-xs sm:text-sm font-medium text-muted-foreground">
+                    Total Hours
+                  </h3>
+                  <p className="text-sm sm:text-lg lg:text-xl font-semibold">{totalHours.toFixed(1)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-                {/* Table Rows */}
-                <div className="divide-y divide-border">
+          <Card className="p-2 sm:p-3 lg:p-4">
+            <CardContent className="p-0">
+              <div className="flex items-center gap-1 sm:gap-2 lg:gap-3">
+                <div className="p-1 sm:p-1.5 lg:p-2 bg-green-100 dark:bg-green-900/20 rounded-lg shrink-0">
+                  <IndianRupee className="h-2 w-2 sm:h-3 sm:w-3 lg:h-4 lg:w-4 text-green-600 dark:text-green-400" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-xs sm:text-sm font-medium text-muted-foreground">
+                    Total Cost
+                  </h3>
+                  <p className="text-sm sm:text-lg lg:text-xl font-semibold">{formatCurrency(totalCost)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="p-2 sm:p-3 lg:p-4">
+            <CardContent className="p-0">
+              <div className="flex items-center gap-1 sm:gap-2 lg:gap-3">
+                <div className="p-1 sm:p-1.5 lg:p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg shrink-0">
+                  <Users className="h-2 w-2 sm:h-3 sm:w-3 lg:h-4 lg:w-4 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-xs sm:text-sm font-medium text-muted-foreground">
+                    Resources
+                  </h3>
+                  <p className="text-sm sm:text-lg lg:text-xl font-semibold">{totalResources}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="p-2 sm:p-3 lg:p-4">
+            <CardContent className="p-0">
+              <div className="flex items-center gap-1 sm:gap-2 lg:gap-3">
+                <div className="p-1 sm:p-1.5 lg:p-2 bg-orange-100 dark:bg-orange-900/20 rounded-lg shrink-0">
+                  <Calendar className="h-2 w-2 sm:h-3 sm:w-3 lg:h-4 lg:w-4 text-orange-600 dark:text-orange-400" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-xs sm:text-sm font-medium text-muted-foreground">
+                    Avg Hours
+                  </h3>
+                  <p className="text-sm sm:text-lg lg:text-xl font-semibold">{averageHoursPerResource.toFixed(1)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Detailed Report Table */}
+        <Card>
+          <CardHeader className="pb-2 sm:pb-3 lg:pb-4">
+            <CardTitle className="text-sm sm:text-base lg:text-lg">
+              Detailed Report - {months[parseInt(selectedMonth)]} {selectedYear}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {attendanceReports.length === 0 ? (
+              <div className="text-center py-6 sm:py-8 lg:py-12 px-4">
+                <Calendar className="h-8 w-8 sm:h-12 sm:w-12 lg:h-16 lg:w-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-sm sm:text-base lg:text-lg font-medium mb-2">No attendance records found</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  No attendance records found for the selected filters
+                </p>
+              </div>
+            ) : (
+              <div className="w-full">
+                {/* Mobile Cards */}
+                <div className="lg:hidden space-y-2 sm:space-y-3 p-3 sm:p-4">
                   {attendanceReports.map((report, index) => (
-                    <div key={index} className="px-3 sm:px-4 py-3 sm:py-4">
-                      {/* Mobile Layout */}
-                      <div className="sm:hidden space-y-2">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0 flex-1">
-                            <h4 className="font-medium text-sm">{report.resourceName}</h4>
-                            <p className="text-xs text-muted-foreground">{report.resourceRole}</p>
-                            <p className="text-xs text-muted-foreground">{report.projectName}</p>
+                    <Card key={index} className="w-full">
+                      <CardContent className="p-2 sm:p-3">
+                        <div className="space-y-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              <h4 className="font-medium text-xs sm:text-sm truncate">{report.resourceName}</h4>
+                              <p className="text-xs text-muted-foreground truncate">{report.resourceRole}</p>
+                              <p className="text-xs text-muted-foreground truncate">{report.projectName}</p>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <p className="text-xs sm:text-sm font-medium text-green-600">
+                                {formatCurrency(report.totalCost)}
+                              </p>
+                            </div>
                           </div>
-                          <div className="text-right shrink-0">
-                            <p className="text-sm font-medium text-green-600">
-                              {formatCurrency(report.totalCost)}
-                            </p>
+                          
+                          <div className="grid grid-cols-3 gap-1 sm:gap-2 text-xs">
+                            <div className="text-center p-1 sm:p-2 bg-muted/50 rounded">
+                              <div className="text-muted-foreground">Days</div>
+                              <div className="font-medium">{report.totalDays}</div>
+                            </div>
+                            <div className="text-center p-1 sm:p-2 bg-muted/50 rounded">
+                              <div className="text-muted-foreground">Hours</div>
+                              <div className="font-medium">{report.totalHours}h</div>
+                            </div>
+                            <div className="text-center p-1 sm:p-2 bg-muted/50 rounded">
+                              <div className="text-muted-foreground">Rate</div>
+                              <div className="font-medium">{formatCurrency(report.hourlyRate)}</div>
+                            </div>
                           </div>
                         </div>
-                        
-                        <div className="grid grid-cols-3 gap-2 text-xs">
-                          <div className="text-center p-2 bg-muted/50 rounded">
-                            <div className="text-muted-foreground">Days</div>
-                            <div className="font-medium">{report.totalDays}</div>
-                          </div>
-                          <div className="text-center p-2 bg-muted/50 rounded">
-                            <div className="text-muted-foreground">Hours</div>
-                            <div className="font-medium">{report.totalHours}h</div>
-                          </div>
-                          <div className="text-center p-2 bg-muted/50 rounded">
-                            <div className="text-muted-foreground">Rate</div>
-                            <div className="font-medium">{formatCurrency(report.hourlyRate)}</div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Desktop Layout */}
-                      <div className="hidden sm:grid grid-cols-12 gap-3 items-center text-sm">
-                        <div className="col-span-3">
-                          <div className="font-medium">{report.resourceName}</div>
-                          <div className="text-xs text-muted-foreground">{report.resourceRole}</div>
-                        </div>
-                        <div className="col-span-2">
-                          {report.projectName}
-                        </div>
-                        <div className="col-span-1">
-                          {report.totalDays}
-                        </div>
-                        <div className="col-span-2 font-medium">
-                          {report.totalHours}h
-                        </div>
-                        <div className="col-span-2">
-                          {formatCurrency(report.hourlyRate)}
-                        </div>
-                        <div className="col-span-2 font-medium text-green-600">
-                          {formatCurrency(report.totalCost)}
-                        </div>
-                      </div>
-                    </div>
+                      </CardContent>
+                    </Card>
                   ))}
                 </div>
+
+                {/* Desktop Table */}
+                <div className="hidden lg:block overflow-x-auto">
+                  <div className="min-w-full">
+                    <div className="grid grid-cols-12 gap-3 px-4 py-3 bg-muted/50 text-xs sm:text-sm font-medium text-muted-foreground border-b">
+                      <div className="col-span-3">Resource</div>
+                      <div className="col-span-2">Project</div>
+                      <div className="col-span-1">Days</div>
+                      <div className="col-span-2">Hours</div>
+                      <div className="col-span-2">Rate</div>
+                      <div className="col-span-2">Cost</div>
+                    </div>
+
+                    <div className="divide-y divide-border">
+                      {attendanceReports.map((report, index) => (
+                        <div key={index} className="grid grid-cols-12 gap-3 items-center px-4 py-3 sm:py-4 text-sm">
+                          <div className="col-span-3">
+                            <div className="font-medium">{report.resourceName}</div>
+                            <div className="text-xs text-muted-foreground">{report.resourceRole}</div>
+                          </div>
+                          <div className="col-span-2">
+                            {report.projectName}
+                          </div>
+                          <div className="col-span-1">
+                            {report.totalDays}
+                          </div>
+                          <div className="col-span-2 font-medium">
+                            {report.totalHours}h
+                          </div>
+                          <div className="col-span-2">
+                            {formatCurrency(report.hourlyRate)}
+                          </div>
+                          <div className="col-span-2 font-medium text-green-600">
+                            {formatCurrency(report.totalCost)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
