@@ -1,5 +1,6 @@
 
 import { format } from 'date-fns';
+import { Project } from '@/data/types';
 
 export const formatCurrency = (amount: number): string => {
   return new Intl.NumberFormat('en-IN', {
@@ -63,4 +64,22 @@ export const getExpenseCategoryColor = (category: string): string => {
     'other': 'bg-gray-100 text-gray-800',
   };
   return colorMap[category] || 'bg-gray-100 text-gray-800';
+};
+
+// Project calculation functions
+export const calculateProjectRevenue = (project: Project): number => {
+  // Calculate revenue from project budget or transactions
+  return project.budget || 0;
+};
+
+export const calculateProjectExpenses = (project: Project): number => {
+  // Calculate expenses from project transactions or resources
+  // For now, return 0 as we need to implement transaction-based calculation
+  return 0;
+};
+
+export const calculateProjectNetProfit = (project: Project): number => {
+  const revenue = calculateProjectRevenue(project);
+  const expenses = calculateProjectExpenses(project);
+  return revenue - expenses;
 };
