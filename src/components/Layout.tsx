@@ -55,7 +55,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <div className="min-h-screen flex w-full bg-background">
+    <div className="min-h-screen flex w-full bg-background safe-area-container">
       <Sidebar className="border-r border-border" collapsible={isMobile ? "offcanvas" : "icon"}>
         <SidebarHeader className="border-b border-border p-6">
           <h1 className="text-xl font-bold text-primary">S-gen</h1>
@@ -112,14 +112,14 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
       </Sidebar>
 
       <SidebarInset className="flex-1 flex flex-col min-w-0">
-        <header className="flex h-16 items-center gap-2 border-b bg-background px-6 sticky top-0 z-10">
+        <header className="flex h-16 items-center gap-2 border-b bg-background px-6 sticky top-0 z-10 safe-area-top">
           <SidebarTrigger className="md:hidden">
             <Menu className="h-5 w-5" />
           </SidebarTrigger>
           <div className="flex-1" />
         </header>
         
-        <main className="flex-1 overflow-auto w-full">
+        <main className="flex-1 overflow-auto w-full safe-area-bottom">
           <div className="w-full max-w-none">
             {children}
           </div>
