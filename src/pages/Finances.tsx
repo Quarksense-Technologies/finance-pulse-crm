@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from 'recharts';
 import { Calendar, Search, Plus, ArrowDown, FileText, FileSpreadsheet, Download } from 'lucide-react';
@@ -167,10 +166,21 @@ const Finances = () => {
   }, [companies, projects, payments, expenses, tab]);
 
   // Helper functions - Fixed to properly handle project data
-  const getProjectName = (projectId: any): string => {
-    if (!projectId) return 'No Project';
+  const getProjectName = (projectField: any): string => {
+    if (!projectField) return 'No Project';
     
-    // Convert to string to ensure consistent lookup
+    // If projectField is an object with name, use it directly
+    if (typeof projectField === 'object' && projectField.name) {
+      return projectField.name;
+    }
+    
+    // Extract ID from object or use as string
+    let projectId = projectField;
+    if (typeof projectField === 'object') {
+      projectId = projectField._id || projectField.id || projectField;
+    }
+    
+    // Convert to string and lookup
     const id = String(projectId);
     const project = projectLookup.get(id);
     
@@ -180,23 +190,38 @@ const Finances = () => {
     
     // Debug logging
     console.log(`Project not found for ID: ${id}`, { 
+      original: projectField,
       available: Array.from(projectLookup.keys()),
       lookup: projectLookup 
     });
     
-    // Return a fallback with the actual ID for debugging
     return `Unknown Project (${id})`;
   };
   
-  const getProjectCompany = (projectId: any): string => {
-    if (!projectId) return 'No Company';
+  const getProjectCompany = (projectField: any): string => {
+    if (!projectField) return 'No Company';
     
-    // Convert to string to ensure consistent lookup
+    // If projectField is an object, check for direct company reference
+    if (typeof projectField === 'object' && projectField.company) {
+      if (typeof projectField.company === 'object' && projectField.company.name) {
+        return projectField.company.name;
+      }
+    }
+    
+    // Extract project ID from object or use as string
+    let projectId = projectField;
+    if (typeof projectField === 'object') {
+      projectId = projectField._id || projectField.id || projectField;
+    }
+    
+    // Convert to string and lookup project
     const id = String(projectId);
     const project = projectLookup.get(id);
     
     if (!project) {
-      console.log(`Project not found for company lookup, ID: ${id}`);
+      console.log(`Project not found for company lookup, ID: ${id}`, {
+        original: projectField
+      });
       return 'Unknown Company';
     }
     
