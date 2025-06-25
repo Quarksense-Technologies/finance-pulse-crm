@@ -170,29 +170,58 @@ const Finances = () => {
   const getProjectName = (projectId: any): string => {
     if (!projectId) return 'No Project';
     
-    // Handle if projectId is already a string
-    const id = typeof projectId === 'string' ? projectId : projectId.toString();
+    // Convert to string to ensure consistent lookup
+    const id = String(projectId);
     const project = projectLookup.get(id);
     
     if (project?.name) {
       return project.name;
     }
     
-    // Fallback to truncated ID if project not found
-    return `Project ${id.substring(0, 8)}...`;
+    // Debug logging
+    console.log(`Project not found for ID: ${id}`, { 
+      available: Array.from(projectLookup.keys()),
+      lookup: projectLookup 
+    });
+    
+    // Return a fallback with the actual ID for debugging
+    return `Unknown Project (${id})`;
   };
   
   const getProjectCompany = (projectId: any): string => {
     if (!projectId) return 'No Company';
     
-    // Handle if projectId is already a string
-    const id = typeof projectId === 'string' ? projectId : projectId.toString();
+    // Convert to string to ensure consistent lookup
+    const id = String(projectId);
     const project = projectLookup.get(id);
     
-    if (!project) return 'Unknown Company';
+    if (!project) {
+      console.log(`Project not found for company lookup, ID: ${id}`);
+      return 'Unknown Company';
+    }
     
-    const company = companyLookup.get(String(project.companyId));
-    return company?.name || 'Unknown Company';
+    // Handle different company reference formats
+    let companyId = project.companyId;
+    
+    // If companyId is an object, extract the ID
+    if (typeof companyId === 'object' && companyId) {
+      companyId = (companyId as any)._id || (companyId as any).id || companyId;
+    }
+    
+    const company = companyLookup.get(String(companyId));
+    
+    if (company?.name) {
+      return company.name;
+    }
+    
+    // Debug logging
+    console.log(`Company not found for project ${id}`, { 
+      projectCompanyId: companyId,
+      availableCompanies: Array.from(companyLookup.keys()),
+      project
+    });
+    
+    return project.companyName || 'Unknown Company';
   };
 
   // Early return if loading
