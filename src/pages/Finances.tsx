@@ -12,6 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import PaymentForm from '@/components/forms/PaymentForm';
 import ExpenseForm from '@/components/forms/ExpenseForm';
 import { useCompanies } from '@/hooks/api/useCompanies';
@@ -137,7 +138,7 @@ const Finances = () => {
         console.log(`Company ${company.name}: received=${totalPayments}, pending=${pendingPayments}`);
         
         return {
-          name: company.name.length > 6 ? company.name.substring(0, 6) + '...' : company.name,
+          name: company.name.length > 4 ? company.name.substring(0, 4) + '...' : company.name,
           fullName: company.name,
           received: totalPayments,
           pending: pendingPayments
@@ -150,7 +151,7 @@ const Finances = () => {
         console.log(`Company ${company.name}: expenses=${totalExpenses}`);
         
         return {
-          name: company.name.length > 6 ? company.name.substring(0, 6) + '...' : company.name,
+          name: company.name.length > 4 ? company.name.substring(0, 4) + '...' : company.name,
           fullName: company.name,
           expenses: totalExpenses
         };
@@ -197,13 +198,13 @@ const Finances = () => {
   // Early return if loading
   if (isLoading) {
     return (
-      <div className="min-h-screen">
-        <div className="p-4 sm:p-6 space-y-4">
+      <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
+        <div className="space-y-4">
           <h1 className="text-lg sm:text-xl lg:text-2xl font-bold">Financial Management</h1>
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-gray-500">Loading transaction data...</p>
+              <p className="text-gray-500 text-sm sm:text-base">Loading transaction data...</p>
             </div>
           </div>
         </div>
@@ -286,14 +287,15 @@ const Finances = () => {
       );
 
   return (
-    <div className="min-h-screen">
-      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
-        <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+    <div className="min-h-screen bg-gray-50">
+      <div className="p-3 sm:p-4 lg:p-6 space-y-4 lg:space-y-6">
+        {/* Header */}
+        <div className="flex flex-col space-y-3 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
           <h1 className="text-lg sm:text-xl lg:text-2xl font-bold">Financial Management</h1>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" className="bg-green-600 hover:bg-green-700 text-xs sm:text-sm flex-1 sm:flex-none">
+                <Button size="sm" className="bg-green-600 hover:bg-green-700 text-xs sm:text-sm">
                   <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                   Add Payment
                 </Button>
@@ -311,7 +313,7 @@ const Finances = () => {
             
             <Dialog open={isExpenseDialogOpen} onOpenChange={setIsExpenseDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" className="bg-red-600 hover:bg-red-700 text-xs sm:text-sm flex-1 sm:flex-none">
+                <Button size="sm" className="bg-red-600 hover:bg-red-700 text-xs sm:text-sm">
                   <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                   Add Expense
                 </Button>
@@ -336,11 +338,11 @@ const Finances = () => {
             <TabsTrigger value="transactions" className="text-xs sm:text-sm">All Transactions</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="charts" className="space-y-4 sm:space-y-6">
+          <TabsContent value="charts" className="space-y-4 lg:space-y-6">
             {/* Filter tabs */}
             <div className="flex border-b border-border overflow-x-auto">
               <button
-                className={`pb-2 sm:pb-3 px-3 sm:px-4 text-xs sm:text-sm whitespace-nowrap border-b-2 transition-colors ${
+                className={`pb-2 px-3 sm:px-4 text-xs sm:text-sm whitespace-nowrap border-b-2 transition-colors ${
                   tab === 'payments'
                     ? 'border-primary text-primary'
                     : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -350,7 +352,7 @@ const Finances = () => {
                 Payments ({payments.length})
               </button>
               <button
-                className={`pb-2 sm:pb-3 px-3 sm:px-4 text-xs sm:text-sm whitespace-nowrap border-b-2 transition-colors ${
+                className={`pb-2 px-3 sm:px-4 text-xs sm:text-sm whitespace-nowrap border-b-2 transition-colors ${
                   tab === 'expenses'
                     ? 'border-primary text-primary'
                     : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -361,159 +363,174 @@ const Finances = () => {
               </button>
             </div>
             
-            {/* Charts - Enhanced mobile responsive */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
-              <div className="bg-card shadow-sm rounded-lg p-4 sm:p-6 border border-border">
-                <h2 className="text-sm sm:text-base lg:text-lg font-semibold mb-3 sm:mb-4">
-                  {tab === 'payments' ? 'Payment Status' : 'Expense Categories'}
-                </h2>
-                <div className="h-48 sm:h-60 lg:h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={tab === 'payments' ? paymentStatusData : expenseCategoryData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        outerRadius="70%"
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {(tab === 'payments' ? paymentStatusData : expenseCategoryData).map((entry, index) => (
-                          <Cell 
-                            key={`cell-${index}`} 
-                            fill={tab === 'payments' ? PAYMENT_COLORS[index % PAYMENT_COLORS.length] : EXPENSE_COLORS[index % EXPENSE_COLORS.length]} 
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        formatter={(value) => formatCurrency(Number(value))} 
-                        contentStyle={{ fontSize: '10px' }}
-                      />
-                      <Legend 
-                        wrapperStyle={{ fontSize: '9px' }}
-                        iconSize={6}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
+            {/* Charts - Mobile responsive grid */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
+              <Card className="p-3 sm:p-4 lg:p-6">
+                <CardHeader className="p-0 pb-3 sm:pb-4">
+                  <CardTitle className="text-sm sm:text-base lg:text-lg">
+                    {tab === 'payments' ? 'Payment Status' : 'Expense Categories'}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="h-40 sm:h-48 lg:h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={tab === 'payments' ? paymentStatusData : expenseCategoryData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          outerRadius="60%"
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {(tab === 'payments' ? paymentStatusData : expenseCategoryData).map((entry, index) => (
+                            <Cell 
+                              key={`cell-${index}`} 
+                              fill={tab === 'payments' ? PAYMENT_COLORS[index % PAYMENT_COLORS.length] : EXPENSE_COLORS[index % EXPENSE_COLORS.length]} 
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          formatter={(value) => formatCurrency(Number(value))} 
+                          contentStyle={{ fontSize: '10px' }}
+                        />
+                        <Legend 
+                          wrapperStyle={{ fontSize: '8px' }}
+                          iconSize={4}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
               
-              <div className="bg-card shadow-sm rounded-lg p-4 sm:p-6 border border-border">
-                <h2 className="text-sm sm:text-base lg:text-lg font-semibold mb-3 sm:mb-4">By Company</h2>
-                <div className="h-48 sm:h-60 lg:h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={companyChartData}
-                      margin={{
-                        top: 5,
-                        right: 15,
-                        left: 10,
-                        bottom: 25,
-                      }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis 
-                        dataKey="name" 
-                        fontSize={8}
-                        tick={{ fontSize: 8 }}
-                        angle={-45}
-                        textAnchor="end"
-                        height={40}
-                      />
-                      <YAxis fontSize={8} />
-                      <Tooltip 
-                        formatter={(value) => formatCurrency(Number(value))}
-                        labelFormatter={(label, payload) => {
-                          const item = payload?.[0]?.payload;
-                          return item?.fullName || label;
+              <Card className="p-3 sm:p-4 lg:p-6">
+                <CardHeader className="p-0 pb-3 sm:pb-4">
+                  <CardTitle className="text-sm sm:text-base lg:text-lg">By Company</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="h-40 sm:h-48 lg:h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={companyChartData}
+                        margin={{
+                          top: 5,
+                          right: 10,
+                          left: 5,
+                          bottom: 20,
                         }}
-                        contentStyle={{ fontSize: '10px' }}
-                      />
-                      <Legend wrapperStyle={{ fontSize: '9px' }} />
-                      {tab === 'payments' ? (
-                        <>
-                          <Bar dataKey="received" fill="#10b981" name="Received" />
-                          <Bar dataKey="pending" fill="#f59e0b" name="Pending" />
-                        </>
-                      ) : (
-                        <Bar dataKey="expenses" fill="#ef4444" name="Expenses" />
-                      )}
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="name" 
+                          fontSize={7}
+                          tick={{ fontSize: 7 }}
+                          angle={-45}
+                          textAnchor="end"
+                          height={30}
+                        />
+                        <YAxis fontSize={7} />
+                        <Tooltip 
+                          formatter={(value) => formatCurrency(Number(value))}
+                          labelFormatter={(label, payload) => {
+                            const item = payload?.[0]?.payload;
+                            return item?.fullName || label;
+                          }}
+                          contentStyle={{ fontSize: '9px' }}
+                        />
+                        <Legend wrapperStyle={{ fontSize: '8px' }} />
+                        {tab === 'payments' ? (
+                          <>
+                            <Bar dataKey="received" fill="#10b981" name="Received" />
+                            <Bar dataKey="pending" fill="#f59e0b" name="Pending" />
+                          </>
+                        ) : (
+                          <Bar dataKey="expenses" fill="#ef4444" name="Expenses" />
+                        )}
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
             
-            {/* Recent transactions table - Enhanced mobile responsive */}
-            <div className="bg-card shadow-sm rounded-lg border border-border overflow-hidden">
-              <div className="p-4 sm:p-6 border-b border-border">
-                <h2 className="text-sm sm:text-base lg:text-lg font-semibold">
+            {/* Recent transactions - Mobile responsive cards */}
+            <Card>
+              <CardHeader className="pb-3 sm:pb-4">
+                <CardTitle className="text-sm sm:text-base lg:text-lg">
                   {tab === 'payments' ? 'Recent Payments' : 'Recent Expenses'}
-                </h2>
-              </div>
-              
-              <div className="overflow-x-auto">
-                <div className="min-w-[500px] sm:min-w-[600px]">
-                  <table className="w-full">
-                    <thead className="bg-muted text-xs uppercase text-muted-foreground">
-                      <tr>
-                        <th className="px-2 sm:px-4 py-2 sm:py-3 text-left">Project</th>
-                        <th className="px-2 sm:px-4 py-2 sm:py-3 text-left">Company</th>
-                        <th className="px-2 sm:px-4 py-2 sm:py-3 text-left">Description</th>
-                        <th className="px-2 sm:px-4 py-2 sm:py-3 text-left">Date</th>
-                        <th className="px-2 sm:px-4 py-2 sm:py-3 text-left">Amount</th>
-                        <th className="px-2 sm:px-4 py-2 sm:py-3 text-left">{tab === 'payments' ? 'Status' : 'Category'}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                      {tab === 'payments' ? (
-                        payments.slice(0, 5).map((payment: Transaction) => (
-                          <tr key={payment.id} className="hover:bg-muted/50">
-                            <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">{getProjectName(payment.project)}</td>
-                            <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">{getProjectCompany(payment.project)}</td>
-                            <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">{payment.description}</td>
-                            <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">{formatDate(payment.date)}</td>
-                            <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium">{formatCurrency(payment.amount)}</td>
-                            <td className="px-2 sm:px-4 py-2 sm:py-3">
-                              <StatusBadge 
-                                status={(payment as any).status || 'pending'} 
-                                colorClassName={getPaymentStatusColor((payment as any).status || 'pending')} 
-                              />
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        expenses.slice(0, 5).map((expense: Transaction) => (
-                          <tr key={expense.id} className="hover:bg-muted/50">
-                            <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">{getProjectName(expense.project)}</td>
-                            <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">{getProjectCompany(expense.project)}</td>
-                            <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">{expense.description}</td>
-                            <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">{formatDate(expense.date)}</td>
-                            <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium">{formatCurrency(expense.amount)}</td>
-                            <td className="px-2 sm:px-4 py-2 sm:py-3">
-                              <StatusBadge 
-                                status={(expense as any).category || 'other'} 
-                                colorClassName={getExpenseCategoryColor((expense as any).category || 'other')} 
-                              />
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                {/* Mobile Cards View */}
+                <div className="block lg:hidden">
+                  {(tab === 'payments' ? payments : expenses).slice(0, 5).map((transaction: Transaction) => (
+                    <div key={transaction.id} className="p-3 border-b border-border last:border-b-0">
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-start">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium truncate">{getProjectName(transaction.project)}</p>
+                            <p className="text-xs text-muted-foreground truncate">{getProjectCompany(transaction.project)}</p>
+                          </div>
+                          <p className="text-sm font-semibold ml-2">{formatCurrency(transaction.amount)}</p>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{transaction.description}</p>
+                        <div className="flex justify-between items-center">
+                          <p className="text-xs text-muted-foreground">{formatDate(transaction.date)}</p>
+                          <StatusBadge 
+                            status={tab === 'payments' ? ((transaction as any).status || 'pending') : ((transaction as any).category || 'other')} 
+                            colorClassName={tab === 'payments' ? getPaymentStatusColor((transaction as any).status || 'pending') : getExpenseCategoryColor((transaction as any).category || 'other')} 
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
-            </div>
+
+                {/* Desktop Table View */}
+                <div className="hidden lg:block overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[120px]">Project</TableHead>
+                        <TableHead className="w-[120px]">Company</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead className="w-[100px]">Date</TableHead>
+                        <TableHead className="w-[100px]">Amount</TableHead>
+                        <TableHead className="w-[100px]">{tab === 'payments' ? 'Status' : 'Category'}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {(tab === 'payments' ? payments : expenses).slice(0, 5).map((transaction: Transaction) => (
+                        <TableRow key={transaction.id}>
+                          <TableCell className="text-xs">{getProjectName(transaction.project)}</TableCell>
+                          <TableCell className="text-xs">{getProjectCompany(transaction.project)}</TableCell>
+                          <TableCell className="text-xs">{transaction.description}</TableCell>
+                          <TableCell className="text-xs">{formatDate(transaction.date)}</TableCell>
+                          <TableCell className="text-xs font-medium">{formatCurrency(transaction.amount)}</TableCell>
+                          <TableCell>
+                            <StatusBadge 
+                              status={tab === 'payments' ? ((transaction as any).status || 'pending') : ((transaction as any).category || 'other')} 
+                              colorClassName={tab === 'payments' ? getPaymentStatusColor((transaction as any).status || 'pending') : getExpenseCategoryColor((transaction as any).category || 'other')} 
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
           
           <TabsContent value="transactions" className="space-y-4">
-            <div className="bg-card rounded-lg shadow-sm border border-border">
-              <div className="p-4 sm:p-6 border-b border-border">
-                <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-                  <h2 className="text-base sm:text-lg font-semibold">All Transactions</h2>
-                  <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-3">
-                    <div className="relative min-w-[150px] sm:min-w-[200px]">
+            <Card>
+              <CardHeader className="pb-3 sm:pb-4">
+                <div className="flex flex-col space-y-3 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
+                  <CardTitle className="text-base sm:text-lg">All Transactions</CardTitle>
+                  <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
+                    <div className="relative min-w-0 flex-1 sm:min-w-[150px] sm:flex-none">
                       <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                         <Search className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
                       </div>
@@ -526,8 +543,8 @@ const Finances = () => {
                     </div>
                     <div className="flex gap-2">
                       <Select defaultValue="payments" onValueChange={(val) => setTab(val as 'payments' | 'expenses')}>
-                        <SelectTrigger className="w-[120px] sm:w-[150px] bg-background border-border text-xs sm:text-sm h-8 sm:h-9">
-                          <SelectValue placeholder="Transaction type" />
+                        <SelectTrigger className="w-[100px] sm:w-[120px] bg-background border-border text-xs sm:text-sm h-8 sm:h-9">
+                          <SelectValue placeholder="Type" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="payments">Payments</SelectItem>
@@ -535,12 +552,11 @@ const Finances = () => {
                         </SelectContent>
                       </Select>
                       
-                      {/* Export dropdown */}
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="outline" size="sm" disabled={isExporting} className="border-border text-xs sm:text-sm h-8 sm:h-9">
-                            <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                            {isExporting ? 'Exporting...' : 'Export'}
+                            <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                            Export
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
@@ -559,60 +575,68 @@ const Finances = () => {
                     </div>
                   </div>
                 </div>
-              </div>
+              </CardHeader>
               
-              <div className="overflow-x-auto">
-                <div className="min-w-[600px] sm:min-w-[700px]">
+              <CardContent className="p-0">
+                {/* Mobile Cards View */}
+                <div className="block lg:hidden p-3">
+                  {(tab === 'payments' ? filteredPayments : filteredExpenses).map((transaction: Transaction) => (
+                    <div key={transaction.id} className="p-3 border border-border rounded-lg mb-3 last:mb-0">
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-start">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium truncate">{getProjectName(transaction.project)}</p>
+                            <p className="text-xs text-muted-foreground truncate">{getProjectCompany(transaction.project)}</p>
+                          </div>
+                          <p className="text-sm font-semibold ml-2">{formatCurrency(transaction.amount)}</p>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{transaction.description}</p>
+                        <div className="flex justify-between items-center">
+                          <p className="text-xs text-muted-foreground">{formatDate(transaction.date)}</p>
+                          <StatusBadge 
+                            status={tab === 'payments' ? ((transaction as any).status || 'pending') : ((transaction as any).category || 'other')} 
+                            colorClassName={tab === 'payments' ? getPaymentStatusColor((transaction as any).status || 'pending') : getExpenseCategoryColor((transaction as any).category || 'other')} 
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Desktop Table View */}
+                <div className="hidden lg:block overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[80px] sm:w-[100px] text-xs sm:text-sm">Date</TableHead>
-                        <TableHead className="text-xs sm:text-sm">Project</TableHead>
-                        <TableHead className="text-xs sm:text-sm">Company</TableHead>
-                        <TableHead className="text-xs sm:text-sm">Description</TableHead>
-                        <TableHead className="w-[100px] sm:w-[120px] text-xs sm:text-sm">Amount</TableHead>
-                        <TableHead className="w-[80px] sm:w-[100px] text-xs sm:text-sm">{tab === 'payments' ? 'Status' : 'Category'}</TableHead>
+                        <TableHead className="w-[80px]">Date</TableHead>
+                        <TableHead>Project</TableHead>
+                        <TableHead>Company</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead className="w-[100px]">Amount</TableHead>
+                        <TableHead className="w-[100px]">{tab === 'payments' ? 'Status' : 'Category'}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {tab === 'payments' ? (
-                        filteredPayments.map((payment: Transaction) => (
-                          <TableRow key={payment.id}>
-                            <TableCell className="text-xs sm:text-sm">{formatDate(payment.date)}</TableCell>
-                            <TableCell className="text-xs sm:text-sm">{getProjectName(payment.project)}</TableCell>
-                            <TableCell className="text-xs sm:text-sm">{getProjectCompany(payment.project)}</TableCell>
-                            <TableCell className="text-xs sm:text-sm">{payment.description}</TableCell>
-                            <TableCell className="text-xs sm:text-sm font-medium">{formatCurrency(payment.amount)}</TableCell>
-                            <TableCell>
-                              <StatusBadge 
-                                status={(payment as any).status || 'pending'} 
-                                colorClassName={getPaymentStatusColor((payment as any).status || 'pending')} 
-                              />
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        filteredExpenses.map((expense: Transaction) => (
-                          <TableRow key={expense.id}>
-                            <TableCell className="text-xs sm:text-sm">{formatDate(expense.date)}</TableCell>
-                            <TableCell className="text-xs sm:text-sm">{getProjectName(expense.project)}</TableCell>
-                            <TableCell className="text-xs sm:text-sm">{getProjectCompany(expense.project)}</TableCell>
-                            <TableCell className="text-xs sm:text-sm">{expense.description}</TableCell>
-                            <TableCell className="text-xs sm:text-sm font-medium">{formatCurrency(expense.amount)}</TableCell>
-                            <TableCell>
-                              <StatusBadge 
-                                status={(expense as any).category || 'other'} 
-                                colorClassName={getExpenseCategoryColor((expense as any).category || 'other')} 
-                              />
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )}
+                      {(tab === 'payments' ? filteredPayments : filteredExpenses).map((transaction: Transaction) => (
+                        <TableRow key={transaction.id}>
+                          <TableCell className="text-xs">{formatDate(transaction.date)}</TableCell>
+                          <TableCell className="text-xs">{getProjectName(transaction.project)}</TableCell>
+                          <TableCell className="text-xs">{getProjectCompany(transaction.project)}</TableCell>
+                          <TableCell className="text-xs">{transaction.description}</TableCell>
+                          <TableCell className="text-xs font-medium">{formatCurrency(transaction.amount)}</TableCell>
+                          <TableCell>
+                            <StatusBadge 
+                              status={tab === 'payments' ? ((transaction as any).status || 'pending') : ((transaction as any).category || 'other')} 
+                              colorClassName={tab === 'payments' ? getPaymentStatusColor((transaction as any).status || 'pending') : getExpenseCategoryColor((transaction as any).category || 'other')} 
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))}
                     </TableBody>
                   </Table>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
