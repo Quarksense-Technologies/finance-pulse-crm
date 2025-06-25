@@ -56,20 +56,20 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="min-h-screen flex w-full bg-background">
-      <Sidebar className="border-r border-border" collapsible={isMobile ? "offcanvas" : "icon"}>
-        <SidebarHeader className="border-b border-border p-3 sm:p-4">
-          <h1 className="text-base sm:text-lg font-bold text-primary">S-gen</h1>
+      <Sidebar className="border-r border-border w-64" collapsible={isMobile ? "offcanvas" : "icon"}>
+        <SidebarHeader className="border-b border-border p-4 lg:p-6">
+          <h1 className="text-lg lg:text-xl font-bold text-primary">S-gen</h1>
         </SidebarHeader>
         
-        <SidebarContent className="px-1 sm:px-2 py-2 sm:py-4">
+        <SidebarContent className="px-3 lg:px-4 py-4 lg:py-6">
           <SidebarMenu>
             {navigation.map((item) => {
               const Icon = item.icon;
               return (
                 <SidebarMenuItem key={item.name}>
-                  <SidebarMenuButton asChild isActive={item.current} size={isMobile ? "default" : "sm"}>
-                    <Link to={item.href} className="flex items-center gap-2 sm:gap-3 w-full px-2 sm:px-3 py-2 rounded-md text-sm">
-                      <Icon className="h-4 w-4 flex-shrink-0" />
+                  <SidebarMenuButton asChild isActive={item.current} size="default">
+                    <Link to={item.href} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-md text-sm lg:text-base">
+                      <Icon className="h-5 w-5 flex-shrink-0" />
                       <span className="truncate">{item.name}</span>
                     </Link>
                   </SidebarMenuButton>
@@ -79,19 +79,19 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
           </SidebarMenu>
         </SidebarContent>
 
-        <SidebarFooter className="border-t border-border p-2 sm:p-4">
+        <SidebarFooter className="border-t border-border p-4 lg:p-6">
           <div className="flex items-center justify-between w-full">
             <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm font-medium text-foreground truncate">{user?.name}</p>
+              <p className="text-sm font-medium text-foreground truncate">{user?.name}</p>
               <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="ml-1 sm:ml-2 flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9">
-                  <User className="h-3 w-3 sm:h-4 sm:w-4" />
+                <Button variant="ghost" size="sm" className="ml-2 flex-shrink-0 h-9 w-9">
+                  <User className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 sm:w-56">
+              <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel className="text-sm">My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
@@ -112,9 +112,9 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
       </Sidebar>
 
       <SidebarInset className="flex-1 flex flex-col">
-        <header className="flex h-12 sm:h-14 items-center gap-2 border-b bg-background px-3 sm:px-4 sticky top-0 z-10">
+        <header className="flex h-14 lg:h-16 items-center gap-2 border-b bg-background px-4 lg:px-6 sticky top-0 z-10">
           <SidebarTrigger className="md:hidden">
-            <Menu className="h-4 w-4" />
+            <Menu className="h-5 w-5" />
           </SidebarTrigger>
           <div className="flex-1" />
         </header>
