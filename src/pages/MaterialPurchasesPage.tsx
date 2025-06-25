@@ -132,7 +132,7 @@ const MaterialPurchasesPage = () => {
                           </div>
                           <div className="text-right shrink-0">
                             <p className="text-sm sm:text-base font-semibold text-red-600">
-                              {formatCurrency(purchase.cost)}
+                              {formatCurrency(purchase.totalAmount)}
                             </p>
                             <p className="text-xs text-muted-foreground">
                               {formatDate(purchase.purchaseDate)}
@@ -141,7 +141,11 @@ const MaterialPurchasesPage = () => {
                         </div>
                         
                         <div className="flex items-center justify-between">
-                          <div>{getStatusBadge(purchase.approvalStatus || 'pending')}</div>
+                          <div>
+                            <Badge className="bg-blue-100 text-blue-800">
+                              Purchased
+                            </Badge>
+                          </div>
                           <Button
                             size="sm"
                             variant="outline"
@@ -179,10 +183,12 @@ const MaterialPurchasesPage = () => {
                           {getProjectName(purchase.projectId)}
                         </div>
                         <div className="col-span-2 font-semibold text-red-600">
-                          {formatCurrency(purchase.cost)}
+                          {formatCurrency(purchase.totalAmount)}
                         </div>
                         <div className="col-span-2">
-                          {getStatusBadge(purchase.approvalStatus || 'pending')}
+                          <Badge className="bg-blue-100 text-blue-800">
+                            Purchased
+                          </Badge>
                         </div>
                         <div className="col-span-2">
                           {formatDate(purchase.purchaseDate)}
@@ -221,7 +227,11 @@ const MaterialPurchasesPage = () => {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-500">Status</p>
-                    <div className="text-sm">{getStatusBadge(selectedItem.approvalStatus || 'pending')}</div>
+                    <div className="text-sm">
+                      <Badge className="bg-blue-100 text-blue-800">
+                        Purchased
+                      </Badge>
+                    </div>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-500">Quantity</p>
@@ -231,19 +241,38 @@ const MaterialPurchasesPage = () => {
                     <p className="text-sm font-medium text-gray-500">Date</p>
                     <p className="text-sm">{formatDate(selectedItem.purchaseDate)}</p>
                   </div>
+                  {selectedItem.vendor && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Vendor</p>
+                      <p className="text-sm">{selectedItem.vendor}</p>
+                    </div>
+                  )}
+                  {selectedItem.invoiceNumber && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Invoice Number</p>
+                      <p className="text-sm">{selectedItem.invoiceNumber}</p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="bg-red-50 p-3 sm:p-4 rounded-lg">
-                  <h3 className="text-base sm:text-lg font-semibold mb-2">Total Cost</h3>
+                  <h3 className="text-base sm:text-lg font-semibold mb-2">Total Amount</h3>
                   <p className="text-xl sm:text-2xl font-bold text-red-600">
-                    {formatCurrency(selectedItem.cost)}
+                    {formatCurrency(selectedItem.totalAmount)}
                   </p>
                 </div>
 
-                {selectedItem.notes && (
+                {selectedItem.attachments && selectedItem.attachments.length > 0 && (
                   <div>
-                    <h3 className="text-base sm:text-lg font-semibold mb-2">Notes</h3>
-                    <p className="text-sm text-gray-600">{selectedItem.notes}</p>
+                    <h3 className="text-base sm:text-lg font-semibold mb-2">Attachments</h3>
+                    <div className="space-y-2">
+                      {selectedItem.attachments.map((attachment: any, index: number) => (
+                        <div key={index} className="flex items-center justify-between p-2 border rounded">
+                          <span className="text-sm">{attachment.name}</span>
+                          <Button size="sm" variant="outline">Download</Button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
