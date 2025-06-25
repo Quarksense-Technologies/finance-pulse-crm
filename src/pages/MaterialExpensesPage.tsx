@@ -67,15 +67,15 @@ const MaterialExpensesPage = () => {
     return (
       <div className="w-full max-w-full overflow-hidden">
         <div className="p-4 space-y-4">
-          <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={() => setShowForm(false)}>
+          <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
+            <Button variant="outline" onClick={() => setShowForm(false)} className="w-fit">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Expenses
             </Button>
-            <h1 className="text-2xl lg:text-3xl font-bold">Add Material Expense</h1>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">Add Material Expense</h1>
           </div>
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <MultiItemMaterialExpenseForm onSubmit={() => setShowForm(false)} />
             </CardContent>
           </Card>
@@ -87,17 +87,18 @@ const MaterialExpensesPage = () => {
   return (
     <div className="w-full max-w-full overflow-hidden">
       <div className="p-4 space-y-6">
-        <div className="flex flex-col space-y-3 lg:flex-row lg:justify-between lg:items-center lg:space-y-0">
-          <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={() => navigate('/materials')}>
+        {/* Header Section with proper alignment */}
+        <div className="flex flex-col space-y-4 sm:space-y-3 lg:flex-row lg:justify-between lg:items-center lg:space-y-0">
+          <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
+            <Button variant="outline" onClick={() => navigate('/materials')} className="w-fit">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Materials
             </Button>
-            <div>
-              <h1 className="text-2xl lg:text-3xl font-bold">Material Expenses</h1>
+            <div className="text-center sm:text-left">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">Material Expenses</h1>
             </div>
           </div>
-          <Button onClick={() => setShowForm(true)} className="w-full lg:w-auto">
+          <Button onClick={() => setShowForm(true)} className="w-full sm:w-auto">
             <Plus className="w-4 h-4 mr-2" />
             Add Expense
           </Button>
@@ -132,12 +133,12 @@ const MaterialExpensesPage = () => {
                         <div className="space-y-3">
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-medium text-sm">{transaction.description}</h4>
-                              <p className="text-xs text-muted-foreground">
+                              <h4 className="font-medium text-sm line-clamp-2">{transaction.description}</h4>
+                              <p className="text-xs text-muted-foreground truncate">
                                 {getProjectName(transaction.project)}
                               </p>
                             </div>
-                            <div className="text-right">
+                            <div className="text-right flex-shrink-0">
                               <p className="text-sm font-semibold text-red-600">
                                 {formatCurrency(transaction.amount)}
                               </p>
@@ -153,8 +154,9 @@ const MaterialExpensesPage = () => {
                               size="sm"
                               variant="outline"
                               onClick={() => setSelectedItem(transaction)}
+                              className="h-8"
                             >
-                              <Eye className="w-4 h-4 mr-2" />
+                              <Eye className="w-4 h-4 mr-1" />
                               View
                             </Button>
                           </div>
@@ -177,11 +179,11 @@ const MaterialExpensesPage = () => {
 
                   <div className="divide-y divide-border">
                     {materialExpenses.map((transaction) => (
-                      <div key={transaction.id} className="grid grid-cols-12 gap-4 items-center px-4 py-4 text-sm">
+                      <div key={transaction.id} className="grid grid-cols-12 gap-4 items-center px-4 py-4 text-sm hover:bg-muted/50 transition-colors">
                         <div className="col-span-3">
-                          <div className="font-medium">{transaction.description}</div>
+                          <div className="font-medium truncate pr-2">{transaction.description}</div>
                         </div>
-                        <div className="col-span-2">
+                        <div className="col-span-2 truncate">
                           {getProjectName(transaction.project)}
                         </div>
                         <div className="col-span-2 font-semibold text-red-600">
@@ -190,7 +192,7 @@ const MaterialExpensesPage = () => {
                         <div className="col-span-2">
                           {getStatusBadge(transaction.status || 'pending')}
                         </div>
-                        <div className="col-span-2">
+                        <div className="col-span-2 text-muted-foreground">
                           {formatDate(transaction.date)}
                         </div>
                         <div className="col-span-1">
@@ -217,24 +219,24 @@ const MaterialExpensesPage = () => {
           <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
             <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>{selectedItem.description}</DialogTitle>
+                <DialogTitle className="text-left">{selectedItem.description}</DialogTitle>
               </DialogHeader>
               <div className="space-y-6 pt-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Project</p>
+                    <p className="text-sm font-medium text-gray-500 mb-1">Project</p>
                     <p className="text-sm">{getProjectName(selectedItem.project)}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Status</p>
+                    <p className="text-sm font-medium text-gray-500 mb-1">Status</p>
                     <div className="text-sm">{getStatusBadge(selectedItem.status || 'pending')}</div>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Category</p>
-                    <p className="text-sm">{selectedItem.category}</p>
+                    <p className="text-sm font-medium text-gray-500 mb-1">Category</p>
+                    <p className="text-sm capitalize">{selectedItem.category}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Date</p>
+                    <p className="text-sm font-medium text-gray-500 mb-1">Date</p>
                     <p className="text-sm">{formatDate(selectedItem.date)}</p>
                   </div>
                 </div>
