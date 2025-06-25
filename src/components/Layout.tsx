@@ -56,19 +56,19 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="min-h-screen flex w-full bg-background">
-      <Sidebar className="border-r border-border w-64" collapsible={isMobile ? "offcanvas" : "icon"}>
-        <SidebarHeader className="border-b border-border p-4 lg:p-6">
-          <h1 className="text-lg lg:text-xl font-bold text-primary">S-gen</h1>
+      <Sidebar className="border-r border-border" collapsible={isMobile ? "offcanvas" : "icon"}>
+        <SidebarHeader className="border-b border-border p-6">
+          <h1 className="text-xl font-bold text-primary">S-gen</h1>
         </SidebarHeader>
         
-        <SidebarContent className="px-3 lg:px-4 py-4 lg:py-6">
+        <SidebarContent className="px-4 py-6">
           <SidebarMenu>
             {navigation.map((item) => {
               const Icon = item.icon;
               return (
                 <SidebarMenuItem key={item.name}>
                   <SidebarMenuButton asChild isActive={item.current} size="default">
-                    <Link to={item.href} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-md text-sm lg:text-base">
+                    <Link to={item.href} className="flex items-center gap-3 w-full px-3 py-3 rounded-md text-base">
                       <Icon className="h-5 w-5 flex-shrink-0" />
                       <span className="truncate">{item.name}</span>
                     </Link>
@@ -79,7 +79,7 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
           </SidebarMenu>
         </SidebarContent>
 
-        <SidebarFooter className="border-t border-border p-4 lg:p-6">
+        <SidebarFooter className="border-t border-border p-6">
           <div className="flex items-center justify-between w-full">
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground truncate">{user?.name}</p>
@@ -111,16 +111,18 @@ const LayoutContent = ({ children }: { children: React.ReactNode }) => {
         </SidebarFooter>
       </Sidebar>
 
-      <SidebarInset className="flex-1 flex flex-col">
-        <header className="flex h-14 lg:h-16 items-center gap-2 border-b bg-background px-4 lg:px-6 sticky top-0 z-10">
+      <SidebarInset className="flex-1 flex flex-col min-w-0">
+        <header className="flex h-16 items-center gap-2 border-b bg-background px-6 sticky top-0 z-10">
           <SidebarTrigger className="md:hidden">
             <Menu className="h-5 w-5" />
           </SidebarTrigger>
           <div className="flex-1" />
         </header>
         
-        <main className="flex-1 overflow-auto">
-          {children}
+        <main className="flex-1 overflow-auto w-full">
+          <div className="w-full max-w-none">
+            {children}
+          </div>
         </main>
       </SidebarInset>
     </div>
