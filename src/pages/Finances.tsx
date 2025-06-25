@@ -198,10 +198,13 @@ const Finances = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen">
-        <div className="p-3 sm:p-4 lg:p-6">
-          <h1 className="text-lg sm:text-xl lg:text-2xl font-bold mb-4 sm:mb-6">Financial Management</h1>
+        <div className="p-4 sm:p-6 space-y-4">
+          <h1 className="text-lg sm:text-xl lg:text-2xl font-bold">Financial Management</h1>
           <div className="flex items-center justify-center h-64">
-            <div className="text-gray-500">Loading transaction data...</div>
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-gray-500">Loading transaction data...</p>
+            </div>
           </div>
         </div>
       </div>
@@ -284,7 +287,7 @@ const Finances = () => {
 
   return (
     <div className="min-h-screen">
-      <div className="p-3 sm:p-4 lg:p-6 space-y-3 sm:space-y-4 lg:space-y-6">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
         <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
           <h1 className="text-lg sm:text-xl lg:text-2xl font-bold">Financial Management</h1>
           <div className="flex gap-2 flex-wrap">
@@ -333,7 +336,7 @@ const Finances = () => {
             <TabsTrigger value="transactions" className="text-xs sm:text-sm">All Transactions</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="charts" className="space-y-3 sm:space-y-4 lg:space-y-6">
+          <TabsContent value="charts" className="space-y-4 sm:space-y-6">
             {/* Filter tabs */}
             <div className="flex border-b border-border overflow-x-auto">
               <button
@@ -358,9 +361,9 @@ const Finances = () => {
               </button>
             </div>
             
-            {/* Charts - Mobile responsive */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
-              <div className="bg-card shadow-sm rounded-lg p-3 sm:p-4 lg:p-6 border border-border">
+            {/* Charts - Enhanced mobile responsive */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
+              <div className="bg-card shadow-sm rounded-lg p-4 sm:p-6 border border-border">
                 <h2 className="text-sm sm:text-base lg:text-lg font-semibold mb-3 sm:mb-4">
                   {tab === 'payments' ? 'Payment Status' : 'Expense Categories'}
                 </h2>
@@ -385,18 +388,18 @@ const Finances = () => {
                       </Pie>
                       <Tooltip 
                         formatter={(value) => formatCurrency(Number(value))} 
-                        contentStyle={{ fontSize: '12px' }}
+                        contentStyle={{ fontSize: '10px' }}
                       />
                       <Legend 
-                        wrapperStyle={{ fontSize: '10px' }}
-                        iconSize={8}
+                        wrapperStyle={{ fontSize: '9px' }}
+                        iconSize={6}
                       />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
               </div>
               
-              <div className="bg-card shadow-sm rounded-lg p-3 sm:p-4 lg:p-6 border border-border">
+              <div className="bg-card shadow-sm rounded-lg p-4 sm:p-6 border border-border">
                 <h2 className="text-sm sm:text-base lg:text-lg font-semibold mb-3 sm:mb-4">By Company</h2>
                 <div className="h-48 sm:h-60 lg:h-80">
                   <ResponsiveContainer width="100%" height="100%">
@@ -427,7 +430,7 @@ const Finances = () => {
                         }}
                         contentStyle={{ fontSize: '10px' }}
                       />
-                      <Legend wrapperStyle={{ fontSize: '10px' }} />
+                      <Legend wrapperStyle={{ fontSize: '9px' }} />
                       {tab === 'payments' ? (
                         <>
                           <Bar dataKey="received" fill="#10b981" name="Received" />
@@ -442,9 +445,9 @@ const Finances = () => {
               </div>
             </div>
             
-            {/* Recent transactions table - Mobile responsive */}
+            {/* Recent transactions table - Enhanced mobile responsive */}
             <div className="bg-card shadow-sm rounded-lg border border-border overflow-hidden">
-              <div className="p-3 sm:p-4 lg:p-6 border-b border-border">
+              <div className="p-4 sm:p-6 border-b border-border">
                 <h2 className="text-sm sm:text-base lg:text-lg font-semibold">
                   {tab === 'payments' ? 'Recent Payments' : 'Recent Expenses'}
                 </h2>
@@ -504,9 +507,9 @@ const Finances = () => {
             </div>
           </TabsContent>
           
-          <TabsContent value="transactions" className="space-y-3 sm:space-y-4">
+          <TabsContent value="transactions" className="space-y-4">
             <div className="bg-card rounded-lg shadow-sm border border-border">
-              <div className="p-3 sm:p-4 lg:p-6 border-b border-border">
+              <div className="p-4 sm:p-6 border-b border-border">
                 <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
                   <h2 className="text-base sm:text-lg font-semibold">All Transactions</h2>
                   <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-3">

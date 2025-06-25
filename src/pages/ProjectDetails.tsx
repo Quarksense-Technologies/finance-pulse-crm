@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, IndianRupee, Building, CheckCircle, Clock, X } from 'lucide-react';
@@ -44,20 +43,31 @@ const ProjectDetails = () => {
   };
 
   if (isLoading) {
-    return <div className="flex justify-center items-center h-64">Loading project details...</div>;
+    return (
+      <div className="min-h-screen p-4 sm:p-6">
+        <div className="flex justify-center items-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading project details...</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (error || !project) {
     return (
-      <div className="text-center py-10">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
-          <X className="h-8 w-8 text-red-600" />
+      <div className="min-h-screen p-4 sm:p-6">
+        <div className="text-center py-10">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
+            <X className="h-8 w-8 text-red-600" />
+          </div>
+          <h2 className="text-xl sm:text-2xl font-bold mb-2">Project not found</h2>
+          <p className="text-gray-500 mb-6">The project you're looking for doesn't exist or has been deleted</p>
+          <Button onClick={handleGoBack}>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Projects
+          </Button>
         </div>
-        <h2 className="text-2xl font-bold mb-2">Project not found</h2>
-        <p className="text-gray-500 mb-6">The project you're looking for doesn't exist or has been deleted</p>
-        <Button onClick={handleGoBack}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Projects
-        </Button>
       </div>
     );
   }
@@ -80,66 +90,79 @@ const ProjectDetails = () => {
   };
 
   return (
-    <div className="animate-fade-in max-h-screen overflow-y-auto">
-      <div className="p-6 max-w-full">
+    <div className="min-h-screen">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-          <div>
-            <Button variant="ghost" className="mb-2 pl-0" onClick={handleGoBack}>
-              <ArrowLeft className="mr-2 h-4 w-4" /> Back to Projects
-            </Button>
-            <h1 className="text-xl sm:text-2xl font-bold text-center md:text-left">{project.name}</h1>
-            <div className="flex items-center justify-center md:justify-start mt-1 text-gray-500 dark:text-muted-foreground">
-              <Building className="h-4 w-4 mr-1" />
-              <span>{project.companyName || 'Unknown Company'}</span>
-            </div>
-          </div>
+        <div className="space-y-4">
+          <Button variant="ghost" className="pl-0" onClick={handleGoBack}>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Projects
+          </Button>
           
-          <div className="flex items-center justify-center space-x-3">
-            <StatusBadge
-              status={formatProjectStatus(project.status)}
-              colorClassName={getProjectStatusColor(project.status)}
-            />
-            <ProjectStatusUpdate 
-              projectId={project.id} 
-              currentStatus={project.status}
-              onStatusUpdated={handleStatusUpdate}
-            />
+          <div className="flex flex-col space-y-3 sm:flex-row sm:items-start sm:justify-between sm:space-y-0">
+            <div className="space-y-2">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">{project.name}</h1>
+              <div className="flex items-center text-sm text-muted-foreground">
+                <Building className="h-4 w-4 mr-2" />
+                <span>{project.companyName || 'Unknown Company'}</span>
+              </div>
+            </div>
+            
+            <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-3">
+              <StatusBadge
+                status={formatProjectStatus(project.status)}
+                colorClassName={getProjectStatusColor(project.status)}
+              />
+              <ProjectStatusUpdate 
+                projectId={project.id} 
+                currentStatus={project.status}
+                onStatusUpdated={handleStatusUpdate}
+              />
+            </div>
           </div>
         </div>
         
-        {/* Project stats - Mobile responsive grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-          <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-gray-100 dark:border-border">
-            <div className="text-sm text-gray-500 dark:text-muted-foreground mb-1 text-center">Revenue</div>
-            <div className="text-xl sm:text-2xl font-semibold text-center">{formatCurrency(totalPaidPayments)}</div>
-            <div className="mt-2 text-xs text-gray-500 dark:text-muted-foreground text-center">Total payments received</div>
-          </div>
-          
-          <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-gray-100 dark:border-border">
-            <div className="text-sm text-gray-500 dark:text-muted-foreground mb-1 text-center">Expenses</div>
-            <div className="text-xl sm:text-2xl font-semibold text-center">{formatCurrency(totalExpensesWithResources)}</div>
-            <div className="mt-2 text-xs text-gray-500 dark:text-muted-foreground text-center">Including resource costs</div>
-          </div>
-          
-          <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-gray-100 dark:border-border">
-            <div className="text-sm text-gray-500 dark:text-muted-foreground mb-1 text-center">Profit</div>
-            <div className={`text-xl sm:text-2xl font-semibold text-center ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {formatCurrency(profit)}
+        {/* Project stats - Improved mobile responsive grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+          <div className="bg-card p-4 sm:p-6 rounded-lg shadow-sm border">
+            <div className="text-center space-y-2">
+              <div className="text-xs sm:text-sm text-muted-foreground">Revenue</div>
+              <div className="text-lg sm:text-xl lg:text-2xl font-semibold">{formatCurrency(totalPaidPayments)}</div>
+              <div className="text-xs text-muted-foreground">Total payments received</div>
             </div>
-            <div className="mt-2 text-xs text-gray-500 dark:text-muted-foreground text-center">Revenue - expenses</div>
           </div>
           
-          <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-gray-100 dark:border-border">
-            <div className="text-sm text-gray-500 dark:text-muted-foreground mb-1 text-center">Pending</div>
-            <div className="text-xl sm:text-2xl font-semibold text-center">{formatCurrency(pendingPayments)}</div>
-            <div className="mt-2 text-xs text-gray-500 dark:text-muted-foreground text-center">Pending payments</div>
+          <div className="bg-card p-4 sm:p-6 rounded-lg shadow-sm border">
+            <div className="text-center space-y-2">
+              <div className="text-xs sm:text-sm text-muted-foreground">Expenses</div>
+              <div className="text-lg sm:text-xl lg:text-2xl font-semibold">{formatCurrency(totalExpensesWithResources)}</div>
+              <div className="text-xs text-muted-foreground">Including resource costs</div>
+            </div>
           </div>
           
-          <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-gray-100 dark:border-border">
-            <div className="text-sm text-gray-500 dark:text-muted-foreground mb-1 text-center">Overdue</div>
-            <div className="text-xl sm:text-2xl font-semibold text-center text-red-600">{formatCurrency(overduePayments)}</div>
-            <div className="mt-2 text-xs text-gray-500 dark:text-muted-foreground text-center">Overdue payments</div>
+          <div className="bg-card p-4 sm:p-6 rounded-lg shadow-sm border">
+            <div className="text-center space-y-2">
+              <div className="text-xs sm:text-sm text-muted-foreground">Profit</div>
+              <div className={`text-lg sm:text-xl lg:text-2xl font-semibold ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {formatCurrency(profit)}
+              </div>
+              <div className="text-xs text-muted-foreground">Revenue - expenses</div>
+            </div>
+          </div>
+          
+          <div className="bg-card p-4 sm:p-6 rounded-lg shadow-sm border">
+            <div className="text-center space-y-2">
+              <div className="text-xs sm:text-sm text-muted-foreground">Pending</div>
+              <div className="text-lg sm:text-xl lg:text-2xl font-semibold">{formatCurrency(pendingPayments)}</div>
+              <div className="text-xs text-muted-foreground">Pending payments</div>
+            </div>
+          </div>
+          
+          <div className="bg-card p-4 sm:p-6 rounded-lg shadow-sm border">
+            <div className="text-center space-y-2">
+              <div className="text-xs sm:text-sm text-muted-foreground">Overdue</div>
+              <div className="text-lg sm:text-xl lg:text-2xl font-semibold text-red-600">{formatCurrency(overduePayments)}</div>
+              <div className="text-xs text-muted-foreground">Overdue payments</div>
+            </div>
           </div>
         </div>
         
@@ -149,44 +172,44 @@ const ProjectDetails = () => {
           onValueChange={setActiveTab} 
           className="space-y-4"
         >
-          <div className="w-full overflow-x-auto">
-            <TabsList className="grid w-full grid-cols-4 min-w-max">
-              <TabsTrigger value="overview" className="text-xs sm:text-sm whitespace-nowrap px-4">Overview</TabsTrigger>
-              <TabsTrigger value="payments" className="text-xs sm:text-sm whitespace-nowrap px-4">Payments</TabsTrigger>
-              <TabsTrigger value="expenses" className="text-xs sm:text-sm whitespace-nowrap px-4">Expenses</TabsTrigger>
-              <TabsTrigger value="resources" className="text-xs sm:text-sm whitespace-nowrap px-4">Resources</TabsTrigger>
+          <div className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
+              <TabsTrigger value="payments" className="text-xs sm:text-sm">Payments</TabsTrigger>
+              <TabsTrigger value="expenses" className="text-xs sm:text-sm">Expenses</TabsTrigger>
+              <TabsTrigger value="resources" className="text-xs sm:text-sm">Resources</TabsTrigger>
             </TabsList>
           </div>
           
           {/* Overview tab */}
-          <TabsContent value="overview" className="space-y-6">
-            <div className="bg-white dark:bg-card p-6 rounded-lg shadow-sm border border-gray-100 dark:border-border">
-              <h2 className="text-lg sm:text-xl font-semibold mb-4 text-center">Project Details</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-4">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 dark:text-muted-foreground">Description</h3>
-                  <p className="mt-1">{project.description || 'No description provided'}</p>
+          <TabsContent value="overview" className="space-y-4 sm:space-y-6">
+            <div className="bg-card p-4 sm:p-6 rounded-lg shadow-sm border">
+              <h2 className="text-lg sm:text-xl font-semibold mb-4">Project Details</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium text-muted-foreground">Description</h3>
+                  <p className="text-sm sm:text-base">{project.description || 'No description provided'}</p>
                 </div>
                 
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 dark:text-muted-foreground">Budget</h3>
-                  <p className="mt-1">{project.budget ? formatCurrency(project.budget) : 'No budget set'}</p>
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium text-muted-foreground">Budget</h3>
+                  <p className="text-sm sm:text-base">{project.budget ? formatCurrency(project.budget) : 'No budget set'}</p>
                 </div>
                 
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 dark:text-muted-foreground">Dates</h3>
-                  <div className="flex items-center mt-1">
-                    <Calendar className="h-4 w-4 mr-2 text-gray-500 dark:text-muted-foreground" />
-                    <span>
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium text-muted-foreground">Dates</h3>
+                  <div className="flex items-center">
+                    <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <span className="text-sm sm:text-base">
                       {formatDate(project.startDate)} - 
                       {project.endDate ? formatDate(project.endDate) : 'Ongoing'}
                     </span>
                   </div>
                 </div>
                 
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 dark:text-muted-foreground">Status</h3>
-                  <div className="mt-1">
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium text-muted-foreground">Status</h3>
+                  <div>
                     <StatusBadge
                       status={formatProjectStatus(project.status)}
                       colorClassName={getProjectStatusColor(project.status)}
@@ -196,8 +219,10 @@ const ProjectDetails = () => {
               </div>
             </div>
             
-            <div className="bg-white dark:bg-card p-8 rounded-lg shadow-sm border border-gray-100 dark:border-border">
-              <div className="flex justify-between items-center mb-4">
+            
+            
+            <div className="bg-card p-4 sm:p-6 rounded-lg shadow-sm border">
+              <div className="flex flex-col space-y-3 sm:flex-row sm:justify-between sm:items-center sm:space-y-0 mb-4">
                 <h2 className="text-lg sm:text-xl font-semibold">Latest Payments</h2>
                 <Button variant="outline" size="sm" onClick={() => setActiveTab('payments')}>
                   View All
@@ -208,21 +233,21 @@ const ProjectDetails = () => {
                 <div className="overflow-x-auto">
                   <div className="min-w-[600px]">
                     <table className="min-w-full">
-                      <thead className="bg-gray-50 dark:bg-muted text-xs uppercase text-gray-700 dark:text-muted-foreground">
+                      <thead className="bg-muted text-xs uppercase text-muted-foreground">
                         <tr>
-                          <th className="px-6 py-3 text-left">Date</th>
-                          <th className="px-6 py-3 text-left">Description</th>
-                          <th className="px-6 py-3 text-left">Amount</th>
-                          <th className="px-6 py-3 text-left">Status</th>
+                          <th className="px-4 py-3 text-left">Date</th>
+                          <th className="px-4 py-3 text-left">Description</th>
+                          <th className="px-4 py-3 text-left">Amount</th>
+                          <th className="px-4 py-3 text-left">Status</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100 dark:divide-border">
+                      <tbody className="divide-y divide-border">
                         {payments.slice(0, 3).map((payment) => (
-                          <tr key={payment.id} className="hover:bg-gray-50 dark:hover:bg-muted/50">
-                            <td className="px-6 py-4 whitespace-nowrap">{formatDate(payment.date)}</td>
-                            <td className="px-6 py-4">{payment.description}</td>
-                            <td className="px-6 py-4 whitespace-nowrap font-medium">{formatCurrency(payment.amount)}</td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                          <tr key={payment.id} className="hover:bg-muted/50">
+                            <td className="px-4 py-3 text-sm">{formatDate(payment.date)}</td>
+                            <td className="px-4 py-3 text-sm">{payment.description}</td>
+                            <td className="px-4 py-3 text-sm font-medium">{formatCurrency(payment.amount)}</td>
+                            <td className="px-4 py-3">
                               <StatusBadge 
                                 status={(payment as any).status || 'pending'} 
                                 colorClassName={getProjectStatusColor((payment as any).status || 'pending')} 
@@ -235,14 +260,14 @@ const ProjectDetails = () => {
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-8 text-gray-500 dark:text-muted-foreground">
+                <div className="text-center py-8 text-muted-foreground">
                   No payments found for this project
                 </div>
               )}
             </div>
             
-            <div className="bg-white dark:bg-card p-8 rounded-lg shadow-sm border border-gray-100 dark:border-border">
-              <div className="flex justify-between items-center mb-4">
+            <div className="bg-card p-4 sm:p-6 rounded-lg shadow-sm border">
+              <div className="flex flex-col space-y-3 sm:flex-row sm:justify-between sm:items-center sm:space-y-0 mb-4">
                 <h2 className="text-lg sm:text-xl font-semibold">Latest Expenses</h2>
                 <Button variant="outline" size="sm" onClick={() => setActiveTab('expenses')}>
                   View All
@@ -253,26 +278,26 @@ const ProjectDetails = () => {
                 <div className="overflow-x-auto">
                   <div className="min-w-[600px]">
                     <table className="min-w-full">
-                      <thead className="bg-gray-50 dark:bg-muted text-xs uppercase text-gray-700 dark:text-muted-foreground">
+                      <thead className="bg-muted text-xs uppercase text-muted-foreground">
                         <tr>
-                          <th className="px-6 py-3 text-left">Date</th>
-                          <th className="px-6 py-3 text-left">Description</th>
-                          <th className="px-6 py-3 text-left">Category</th>
-                          <th className="px-6 py-3 text-left">Amount</th>
+                          <th className="px-4 py-3 text-left">Date</th>
+                          <th className="px-4 py-3 text-left">Description</th>
+                          <th className="px-4 py-3 text-left">Category</th>
+                          <th className="px-4 py-3 text-left">Amount</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100 dark:divide-border">
+                      <tbody className="divide-y divide-border">
                         {expenses.slice(0, 3).map((expense) => (
-                          <tr key={expense.id} className="hover:bg-gray-50 dark:hover:bg-muted/50">
-                            <td className="px-6 py-4 whitespace-nowrap">{formatDate(expense.date)}</td>
-                            <td className="px-6 py-4">{expense.description}</td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                          <tr key={expense.id} className="hover:bg-muted/50">
+                            <td className="px-4 py-3 text-sm">{formatDate(expense.date)}</td>
+                            <td className="px-4 py-3 text-sm">{expense.description}</td>
+                            <td className="px-4 py-3">
                               <StatusBadge 
                                 status={(expense as any).category || 'other'} 
                                 colorClassName="bg-gray-100 text-gray-800" 
                               />
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap font-medium">{formatCurrency(expense.amount)}</td>
+                            <td className="px-4 py-3 text-sm font-medium">{formatCurrency(expense.amount)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -280,7 +305,7 @@ const ProjectDetails = () => {
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-8 text-gray-500 dark:text-muted-foreground">
+                <div className="text-center py-8 text-muted-foreground">
                   No expenses found for this project
                 </div>
               )}
@@ -289,14 +314,14 @@ const ProjectDetails = () => {
           
           {/* Payments tab */}
           <TabsContent value="payments">
-            <div className="bg-white dark:bg-card p-8 rounded-lg shadow-sm border border-gray-100 dark:border-border">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                <h2 className="text-lg sm:text-xl font-semibold text-center sm:text-left">Payments</h2>
+            <div className="bg-card p-4 sm:p-6 rounded-lg shadow-sm border">
+              <div className="flex flex-col space-y-3 sm:flex-row sm:justify-between sm:items-center sm:space-y-0 mb-6">
+                <h2 className="text-lg sm:text-xl font-semibold">Payments</h2>
                 <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
                   <DialogTrigger asChild>
                     <Button className="w-full sm:w-auto">Add Payment</Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-[600px] mx-8 max-h-[90vh] overflow-y-auto p-8">
+                  <DialogContent className="w-[95vw] max-w-md mx-auto max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>Add New Payment</DialogTitle>
                       <DialogDescription>
@@ -311,25 +336,27 @@ const ProjectDetails = () => {
                 </Dialog>
               </div>
               
+              
+              
               {payments.length > 0 ? (
                 <div className="overflow-x-auto">
                   <div className="min-w-[600px]">
                     <table className="min-w-full">
-                      <thead className="bg-gray-50 dark:bg-muted text-xs uppercase text-gray-700 dark:text-muted-foreground">
+                      <thead className="bg-muted text-xs uppercase text-muted-foreground">
                         <tr>
-                          <th className="px-6 py-3 text-left">Date</th>
-                          <th className="px-6 py-3 text-left">Description</th>
-                          <th className="px-6 py-3 text-left">Amount</th>
-                          <th className="px-6 py-3 text-left">Status</th>
+                          <th className="px-4 py-3 text-left">Date</th>
+                          <th className="px-4 py-3 text-left">Description</th>
+                          <th className="px-4 py-3 text-left">Amount</th>
+                          <th className="px-4 py-3 text-left">Status</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100 dark:divide-border">
+                      <tbody className="divide-y divide-border">
                         {payments.map((payment) => (
-                          <tr key={payment.id} className="hover:bg-gray-50 dark:hover:bg-muted/50">
-                            <td className="px-6 py-4 whitespace-nowrap">{formatDate(payment.date)}</td>
-                            <td className="px-6 py-4">{payment.description}</td>
-                            <td className="px-6 py-4 whitespace-nowrap font-medium">{formatCurrency(payment.amount)}</td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                          <tr key={payment.id} className="hover:bg-muted/50">
+                            <td className="px-4 py-3 text-sm">{formatDate(payment.date)}</td>
+                            <td className="px-4 py-3 text-sm">{payment.description}</td>
+                            <td className="px-4 py-3 text-sm font-medium">{formatCurrency(payment.amount)}</td>
+                            <td className="px-4 py-3">
                               <StatusBadge 
                                 status={(payment as any).status || 'pending'} 
                                 colorClassName={getProjectStatusColor((payment as any).status || 'pending')} 
@@ -342,7 +369,7 @@ const ProjectDetails = () => {
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-8 text-gray-500 dark:text-muted-foreground">
+                <div className="text-center py-8 text-muted-foreground">
                   No payments found for this project
                 </div>
               )}
@@ -351,14 +378,14 @@ const ProjectDetails = () => {
           
           {/* Expenses tab */}
           <TabsContent value="expenses">
-            <div className="bg-white dark:bg-card p-8 rounded-lg shadow-sm border border-gray-100 dark:border-border">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                <h2 className="text-lg sm:text-xl font-semibold text-center sm:text-left">Expenses</h2>
+            <div className="bg-card p-4 sm:p-6 rounded-lg shadow-sm border">
+              <div className="flex flex-col space-y-3 sm:flex-row sm:justify-between sm:items-center sm:space-y-0 mb-6">
+                <h2 className="text-lg sm:text-xl font-semibold">Expenses</h2>
                 <Dialog open={isExpenseDialogOpen} onOpenChange={setIsExpenseDialogOpen}>
                   <DialogTrigger asChild>
                     <Button className="w-full sm:w-auto">Add Expense</Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-[600px] mx-8 max-h-[90vh] overflow-y-auto p-8">
+                  <DialogContent className="w-[95vw] max-w-md mx-auto max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>Add New Expense</DialogTitle>
                       <DialogDescription>
@@ -373,30 +400,32 @@ const ProjectDetails = () => {
                 </Dialog>
               </div>
               
+              
+              
               {expenses.length > 0 ? (
                 <div className="overflow-x-auto">
                   <div className="min-w-[600px]">
                     <table className="min-w-full">
-                      <thead className="bg-gray-50 dark:bg-muted text-xs uppercase text-gray-700 dark:text-muted-foreground">
+                      <thead className="bg-muted text-xs uppercase text-muted-foreground">
                         <tr>
-                          <th className="px-6 py-3 text-left">Date</th>
-                          <th className="px-6 py-3 text-left">Description</th>
-                          <th className="px-6 py-3 text-left">Category</th>
-                          <th className="px-6 py-3 text-left">Amount</th>
+                          <th className="px-4 py-3 text-left">Date</th>
+                          <th className="px-4 py-3 text-left">Description</th>
+                          <th className="px-4 py-3 text-left">Category</th>
+                          <th className="px-4 py-3 text-left">Amount</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100 dark:divide-border">
+                      <tbody className="divide-y divide-border">
                         {expenses.map((expense) => (
-                          <tr key={expense.id} className="hover:bg-gray-50 dark:hover:bg-muted/50">
-                            <td className="px-6 py-4 whitespace-nowrap">{formatDate(expense.date)}</td>
-                            <td className="px-6 py-4">{expense.description}</td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                          <tr key={expense.id} className="hover:bg-muted/50">
+                            <td className="px-4 py-3 text-sm">{formatDate(expense.date)}</td>
+                            <td className="px-4 py-3 text-sm">{expense.description}</td>
+                            <td className="px-4 py-3">
                               <StatusBadge 
                                 status={(expense as any).category || 'other'} 
                                 colorClassName="bg-gray-100 text-gray-800" 
                               />
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap font-medium">{formatCurrency(expense.amount)}</td>
+                            <td className="px-4 py-3 text-sm font-medium">{formatCurrency(expense.amount)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -404,7 +433,7 @@ const ProjectDetails = () => {
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-8 text-gray-500 dark:text-muted-foreground">
+                <div className="text-center py-8 text-muted-foreground">
                   No expenses found for this project
                 </div>
               )}
@@ -413,7 +442,7 @@ const ProjectDetails = () => {
           
           {/* Resources tab */}
           <TabsContent value="resources">
-            <div className="bg-white dark:bg-card p-8 rounded-lg shadow-sm border border-gray-100 dark:border-border">
+            <div className="bg-card p-4 sm:p-6 rounded-lg shadow-sm border">
               <AttendanceManagement 
                 projectId={project.id} 
                 resources={projectResources}

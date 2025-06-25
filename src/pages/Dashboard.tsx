@@ -26,10 +26,13 @@ const Dashboard = () => {
   if (!financialSummary) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="px-4 py-4 sm:px-6 sm:py-6">
-          <h1 className="text-xl font-bold mb-6 text-gray-900">Financial Dashboard</h1>
+        <div className="p-4 sm:p-6 space-y-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Financial Dashboard</h1>
           <div className="flex items-center justify-center h-64">
-            <div className="text-gray-500">Loading financial data...</div>
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-gray-500">Loading financial data...</p>
+            </div>
           </div>
         </div>
       </div>
@@ -75,15 +78,15 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="px-4 py-4 sm:px-6 sm:py-6 space-y-6">
-        <h1 className="text-xl font-bold text-gray-900">Financial Dashboard</h1>
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Financial Dashboard</h1>
         
-        {/* Stats overview - Mobile first responsive grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Stats overview - Enhanced mobile responsive grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <StatCard
             title="Total Revenue"
             value={formatCurrency(financialSummary.totalRevenue)}
-            icon={<DollarSign className="h-5 w-5 text-primary" />}
+            icon={<DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />}
             trend="up"
             trendValue={`${revenueChange}%`}
           />
@@ -91,7 +94,7 @@ const Dashboard = () => {
           <StatCard
             title="Total Expenses"
             value={formatCurrency(financialSummary.totalExpenses)}
-            icon={<DollarSign className="h-5 w-5 text-destructive" />}
+            icon={<DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-destructive" />}
             trend="up"
             trendValue={`${expenseChange}%`}
           />
@@ -99,7 +102,7 @@ const Dashboard = () => {
           <StatCard
             title="Profit"
             value={formatCurrency(financialSummary.profit)}
-            icon={<ArrowUp className="h-5 w-5 text-green-600" />}
+            icon={<ArrowUp className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />}
             trend={financialSummary.profit > 0 ? "up" : "down"}
             trendValue={`${Math.abs(((financialSummary.profit / financialSummary.totalRevenue) * 100) || 0).toFixed(1)}%`}
           />
@@ -107,38 +110,38 @@ const Dashboard = () => {
           <StatCard
             title="Pending Payments"
             value={formatCurrency(totalPendingAmount)}
-            icon={<ArrowDown className="h-5 w-5 text-yellow-600" />}
+            icon={<ArrowDown className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600" />}
             trend="neutral"
             trendValue={`${pendingPayments.length} items`}
           />
         </div>
         
-        {/* Secondary stats - Mobile first responsive grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Secondary stats - Enhanced mobile responsive grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           <StatCard
             title="Active Companies"
             value={companies.length}
-            icon={<Users className="h-5 w-5 text-blue-600" />}
+            icon={<Users className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />}
           />
           
           <StatCard
             title="Active Projects"
             value={projects.filter(p => p.status === 'in-progress').length}
-            icon={<Briefcase className="h-5 w-5 text-indigo-600" />}
+            icon={<Briefcase className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-600" />}
           />
           
           <StatCard
             title="Total Projects"
             value={projects.length}
-            icon={<Users className="h-5 w-5 text-purple-600" />}
+            icon={<Users className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />}
           />
         </div>
         
-        {/* Charts - Mobile first responsive layout */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          <div className="bg-white shadow-sm rounded-lg p-4 border border-gray-100">
-            <h2 className="text-lg font-semibold mb-4">Financial Overview</h2>
-            <div className="h-80">
+        {/* Charts - Enhanced mobile responsive layout */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
+          <div className="bg-white shadow-sm rounded-lg p-4 sm:p-6 border border-gray-100">
+            <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Financial Overview</h2>
+            <div className="h-64 sm:h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -160,17 +163,17 @@ const Dashboard = () => {
                     contentStyle={{ fontSize: '12px' }}
                   />
                   <Legend 
-                    wrapperStyle={{ fontSize: '12px' }}
-                    iconSize={8}
+                    wrapperStyle={{ fontSize: '10px' }}
+                    iconSize={6}
                   />
                 </PieChart>
               </ResponsiveContainer>
             </div>
           </div>
           
-          <div className="bg-white shadow-sm rounded-lg p-4 border border-gray-100">
-            <h2 className="text-lg font-semibold mb-4">Companies Overview</h2>
-            <div className="h-80">
+          <div className="bg-white shadow-sm rounded-lg p-4 sm:p-6 border border-gray-100">
+            <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Companies Overview</h2>
+            <div className="h-64 sm:h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={companies.map(company => ({
@@ -182,24 +185,27 @@ const Dashboard = () => {
                     top: 5,
                     right: 15,
                     left: 10,
-                    bottom: 5,
+                    bottom: 25,
                   }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis 
                     dataKey="name" 
-                    fontSize={10}
-                    tick={{ fontSize: 10 }}
+                    fontSize={9}
+                    tick={{ fontSize: 9 }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={40}
                   />
-                  <YAxis fontSize={10} />
+                  <YAxis fontSize={9} />
                   <Tooltip 
                     labelFormatter={(label, payload) => {
                       const item = payload?.[0]?.payload;
                       return item?.fullName || label;
                     }}
-                    contentStyle={{ fontSize: '12px' }}
+                    contentStyle={{ fontSize: '11px' }}
                   />
-                  <Legend wrapperStyle={{ fontSize: '12px' }} />
+                  <Legend wrapperStyle={{ fontSize: '10px' }} />
                   <Bar dataKey="projects" fill="#3b82f6" name="Projects" />
                 </BarChart>
               </ResponsiveContainer>

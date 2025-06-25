@@ -37,7 +37,7 @@ const Attendance = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="px-4 py-4 sm:px-6 sm:py-6">
+        <div className="p-4 sm:p-6 space-y-4">
           <div className="flex justify-center items-center h-64">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
@@ -51,10 +51,10 @@ const Attendance = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="px-4 py-4 sm:px-6 sm:py-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="space-y-2">
-          <h1 className="text-xl font-bold text-foreground">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">
             Attendance Report
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -64,14 +64,14 @@ const Attendance = () => {
 
         {/* Filters */}
         <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg flex items-center gap-2">
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="text-base sm:text-lg flex items-center gap-2">
               <Filter className="h-4 w-4" />
               Filters
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <CardContent className="space-y-3 sm:space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <div className="space-y-2">
                 <Label htmlFor="month" className="text-sm font-medium">Month</Label>
                 <Select value={selectedMonth} onValueChange={setSelectedMonth}>
@@ -131,66 +131,66 @@ const Attendance = () => {
         </Card>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="p-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <Card className="p-3 sm:p-4">
             <CardContent className="p-0">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg shrink-0">
-                  <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-sm font-medium text-muted-foreground">
+                  <h3 className="text-xs sm:text-sm font-medium text-muted-foreground">
                     Total Hours
                   </h3>
-                  <p className="text-xl font-semibold">{totalHours.toFixed(1)}</p>
+                  <p className="text-base sm:text-xl font-semibold">{totalHours.toFixed(1)}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="p-4">
+          <Card className="p-3 sm:p-4">
             <CardContent className="p-0">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg shrink-0">
-                  <IndianRupee className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  <IndianRupee className="h-3 w-3 sm:h-4 sm:w-4 text-green-600 dark:text-green-400" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-sm font-medium text-muted-foreground">
+                  <h3 className="text-xs sm:text-sm font-medium text-muted-foreground">
                     Total Cost
                   </h3>
-                  <p className="text-xl font-semibold">{formatCurrency(totalCost)}</p>
+                  <p className="text-base sm:text-xl font-semibold">{formatCurrency(totalCost)}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="p-4">
+          <Card className="p-3 sm:p-4">
             <CardContent className="p-0">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg shrink-0">
-                  <Users className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                  <Users className="h-3 w-3 sm:h-4 sm:w-4 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-sm font-medium text-muted-foreground">
+                  <h3 className="text-xs sm:text-sm font-medium text-muted-foreground">
                     Resources
                   </h3>
-                  <p className="text-xl font-semibold">{totalResources}</p>
+                  <p className="text-base sm:text-xl font-semibold">{totalResources}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="p-4">
+          <Card className="p-3 sm:p-4">
             <CardContent className="p-0">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <div className="p-2 bg-orange-100 dark:bg-orange-900/20 rounded-lg shrink-0">
-                  <Calendar className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                  <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-orange-600 dark:text-orange-400" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-sm font-medium text-muted-foreground">
+                  <h3 className="text-xs sm:text-sm font-medium text-muted-foreground">
                     Avg Hours
                   </h3>
-                  <p className="text-xl font-semibold">{averageHoursPerResource.toFixed(1)}</p>
+                  <p className="text-base sm:text-xl font-semibold">{averageHoursPerResource.toFixed(1)}</p>
                 </div>
               </div>
             </CardContent>
@@ -199,16 +199,16 @@ const Attendance = () => {
 
         {/* Detailed Report Table */}
         <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg">
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="text-base sm:text-lg">
               Detailed Report - {months[parseInt(selectedMonth)]} {selectedYear}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {attendanceReports.length === 0 ? (
-              <div className="text-center py-12 px-4">
-                <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">No attendance records found</h3>
+              <div className="text-center py-8 sm:py-12 px-4">
+                <Calendar className="h-12 w-12 sm:h-16 sm:w-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-base sm:text-lg font-medium mb-2">No attendance records found</h3>
                 <p className="text-sm text-muted-foreground">
                   No attendance records found for the selected filters
                 </p>
@@ -216,7 +216,7 @@ const Attendance = () => {
             ) : (
               <div className="w-full">
                 {/* Mobile Cards */}
-                <div className="lg:hidden space-y-3 p-4">
+                <div className="lg:hidden space-y-3 p-3 sm:p-4">
                   {attendanceReports.map((report, index) => (
                     <Card key={index} className="w-full">
                       <CardContent className="p-3">
