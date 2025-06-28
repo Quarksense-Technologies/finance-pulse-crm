@@ -22,8 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-package-lock.json
-package-lock.json
-package-lock.json
+
 android/app/capacitor.build.gradle
 android/app/build.gradle
