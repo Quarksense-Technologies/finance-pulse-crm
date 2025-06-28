@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+  <!-- Base config still blocks all cleartext by default -->
+  <base-config cleartextTrafficPermitted="false" />
+  <!-- Allow cleartext only for your backend domain -->
+  <domain-config cleartextTrafficPermitted="true">
+    <domain includeSubdomains="true">sgen.quarksense.in</domain>
+  </domain-config>
+</network-security-config>

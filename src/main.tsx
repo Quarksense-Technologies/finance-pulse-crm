@@ -3,6 +3,8 @@ import * as React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
+import { Http } from '@capacitor-community/http';
+
 import { AuthProvider } from './hooks/useAuth.tsx';
 
 // Initialize theme from localStorage with light as default
