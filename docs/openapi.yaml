@@ -1,0 +1,1381 @@
+
+openapi: 3.0.3
+info:
+  title: Business Management System API
+  description: Comprehensive API for managing companies, projects, finances, resources, and more
+  version: 1.0.0
+  contact:
+    name: BMS API Support
+    email: support@bms.quarksense.in
+servers:
+  - url: https://bms.quarksense.in/api
+    description: Production server
+  - url: https://sgen.quarksense.in/api
+    description: Development server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  
+  schemas:
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [admin, manager, user]
+        createdAt:
+          type: string
+          format: date-time
+        profileImage:
+          type: string
+        theme:
+          type: string
+          enum: [light, dark]
+    
+    Company:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        logo:
+          type: string
+        address:
+          type: object
+          properties:
+            street:
+              type: string
+            city:
+              type: string
+            state:
+              type: string
+            zipCode:
+              type: string
+            country:
+              type: string
+        contactInfo:
+          type: object
+          properties:
+            email:
+              type: string
+              format: email
+            phone:
+              type: string
+            website:
+              type: string
+        managers:
+          type: array
+          items:
+            type: string
+        projects:
+          type: array
+          items:
+            type: string
+    
+    Project:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        companyId:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [planning, in-progress, on-hold, completed, cancelled]
+        budget:
+          type: number
+        managers:
+          type: array
+          items:
+            type: string
+        team:
+          type: array
+          items:
+            type: string
+    
+    Transaction:
+      type: object
+      properties:
+        _id:
+          type: string
+        type:
+          type: string
+          enum: [expense, payment, income]
+        amount:
+          type: number
+        description:
+          type: string
+        category:
+          type: string
+          enum: [salary, equipment, software, consulting, office, travel, marketing, utilities, taxes, other]
+        project:
+          type: string
+        date:
+          type: string
+          format: date
+        approvalStatus:
+          type: string
+          enum: [pending, approved, rejected]
+        attachments:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              url:
+                type: string
+        createdBy:
+          type: string
+    
+    Resource:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        hourlyRate:
+          type: number
+        skills:
+          type: array
+          items:
+            type: string
+        department:
+          type: string
+        isActive:
+          type: boolean
+    
+    ProjectResource:
+      type: object
+      properties:
+        _id:
+          type: string
+        projectId:
+          type: string
+        resourceId:
+          type: string
+        hoursAllocated:
+          type: number
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        isActive:
+          type: boolean
+    
+    Attendance:
+      type: object
+      properties:
+        _id:
+          type: string
+        projectResourceId:
+          type: string
+        date:
+          type: string
+          format: date
+        checkInTime:
+          type: string
+        checkOutTime:
+          type: string
+        totalHours:
+          type: number
+        createdBy:
+          type: string
+    
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+        success:
+          type: boolean
+          default: false
+
+security:
+  - bearerAuth: []
+
+paths:
+  # Authentication Endpoints
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  name:
+                    type: string
+                  email:
+                    type: string
+                  role:
+                    type: string
+                  token:
+                    type: string
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register new user (Admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+                - role
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 6
+                role:
+                  type: string
+                  enum: [admin, manager, user]
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: Get current user
+      responses:
+        '200':
+          description: Current user data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  # Company Endpoints
+  /companies:
+    get:
+      tags:
+        - Companies
+      summary: Get all companies
+      responses:
+        '200':
+          description: List of companies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Company'
+    
+    post:
+      tags:
+        - Companies
+      summary: Create company (Admin/Manager)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                logo:
+                  type: string
+                address:
+                  type: object
+                contactInfo:
+                  type: object
+                managers:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: Company created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+
+  /companies/{id}:
+    get:
+      tags:
+        - Companies
+      summary: Get company by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Company details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+        '404':
+          description: Company not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    put:
+      tags:
+        - Companies
+      summary: Update company (Admin/Manager)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Company'
+      responses:
+        '200':
+          description: Company updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+    
+    delete:
+      tags:
+        - Companies
+      summary: Delete company (Admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Company deleted successfully
+
+  # Project Endpoints
+  /projects:
+    get:
+      tags:
+        - Projects
+      summary: Get all projects
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [planning, in-progress, on-hold, completed, cancelled]
+        - name: companyId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+    
+    post:
+      tags:
+        - Projects
+      summary: Create project (Admin/Manager)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - company
+                - startDate
+                - status
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                company:
+                  type: string
+                startDate:
+                  type: string
+                  format: date
+                endDate:
+                  type: string
+                  format: date
+                status:
+                  type: string
+                  enum: [planning, in-progress, on-hold, completed, cancelled]
+                budget:
+                  type: number
+                managers:
+                  type: array
+                  items:
+                    type: string
+                team:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: Project created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+
+  /projects/{id}:
+    get:
+      tags:
+        - Projects
+      summary: Get project by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Project details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+    
+    put:
+      tags:
+        - Projects
+      summary: Update project (Admin/Manager)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Project'
+      responses:
+        '200':
+          description: Project updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+    
+    delete:
+      tags:
+        - Projects
+      summary: Delete project (Admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Project deleted successfully
+
+  # Finance Endpoints
+  /finances:
+    get:
+      tags:
+        - Finances
+      summary: Get all transactions
+      parameters:
+        - name: project
+          in: query
+          schema:
+            type: string
+        - name: company
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [expense, payment, income]
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: List of transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaction'
+    
+    post:
+      tags:
+        - Finances
+      summary: Create transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+                - amount
+                - description
+                - category
+                - project
+                - date
+              properties:
+                type:
+                  type: string
+                  enum: [expense, payment, income]
+                amount:
+                  type: number
+                description:
+                  type: string
+                category:
+                  type: string
+                  enum: [salary, equipment, software, consulting, office, travel, marketing, utilities, taxes, other]
+                project:
+                  type: string
+                date:
+                  type: string
+                  format: date
+                attachments:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      url:
+                        type: string
+      responses:
+        '201':
+          description: Transaction created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+
+  /finances/{id}:
+    get:
+      tags:
+        - Finances
+      summary: Get transaction by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Transaction details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+    
+    put:
+      tags:
+        - Finances
+      summary: Update transaction
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transaction'
+      responses:
+        '200':
+          description: Transaction updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+    
+    delete:
+      tags:
+        - Finances
+      summary: Delete transaction (Admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Transaction deleted successfully
+
+  /finances/{id}/approve:
+    put:
+      tags:
+        - Finances
+      summary: Approve transaction (Admin/Manager)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Transaction approved successfully
+
+  /finances/{id}/reject:
+    put:
+      tags:
+        - Finances
+      summary: Reject transaction (Admin/Manager)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reason
+              properties:
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Transaction rejected successfully
+
+  /finances/summary:
+    get:
+      tags:
+        - Finances
+      summary: Get financial summary
+      parameters:
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: company
+          in: query
+          schema:
+            type: string
+        - name: project
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Financial summary data
+
+  # User Endpoints
+  /users:
+    get:
+      tags:
+        - Users
+      summary: Get all users (Admin only)
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+    
+    post:
+      tags:
+        - Users
+      summary: Create user (Admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+                - role
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 6
+                role:
+                  type: string
+                  enum: [admin, manager, user]
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /users/{id}:
+    get:
+      tags:
+        - Users
+      summary: Get user by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    
+    put:
+      tags:
+        - Users
+      summary: Update user (Admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    
+    delete:
+      tags:
+        - Users
+      summary: Delete user (Admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User deleted successfully
+
+  /users/profile/update:
+    put:
+      tags:
+        - Users
+      summary: Update user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                theme:
+                  type: string
+                  enum: [light, dark]
+                profileImage:
+                  type: string
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  # Resource Endpoints
+  /resources:
+    get:
+      tags:
+        - Resources
+      summary: Get all resources
+      responses:
+        '200':
+          description: List of resources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Resource'
+    
+    post:
+      tags:
+        - Resources
+      summary: Create resource (Admin/Manager)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - role
+                - email
+              properties:
+                name:
+                  type: string
+                role:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                phone:
+                  type: string
+                hourlyRate:
+                  type: number
+                skills:
+                  type: array
+                  items:
+                    type: string
+                department:
+                  type: string
+      responses:
+        '201':
+          description: Resource created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Resource'
+
+  /resources/{id}:
+    get:
+      tags:
+        - Resources
+      summary: Get resource by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Resource details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Resource'
+    
+    put:
+      tags:
+        - Resources
+      summary: Update resource (Admin/Manager)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Resource'
+      responses:
+        '200':
+          description: Resource updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Resource'
+    
+    delete:
+      tags:
+        - Resources
+      summary: Delete resource (Admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Resource deleted successfully
+
+  /resources/project/{projectId}:
+    get:
+      tags:
+        - Resources
+      summary: Get allocated resources for a project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of project resource allocations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProjectResource'
+
+  /resources/project/{projectId}/allocate:
+    post:
+      tags:
+        - Resources
+      summary: Allocate resource to project (Admin/Manager)
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - resourceId
+                - startDate
+              properties:
+                resourceId:
+                  type: string
+                hoursAllocated:
+                  type: number
+                startDate:
+                  type: string
+                  format: date
+                endDate:
+                  type: string
+                  format: date
+      responses:
+        '201':
+          description: Resource allocated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectResource'
+
+  # Attendance Endpoints
+  /attendance/project/{projectId}:
+    get:
+      tags:
+        - Attendance
+      summary: Get attendance records for a project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: month
+          in: query
+          schema:
+            type: integer
+        - name: year
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of attendance records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Attendance'
+
+  /attendance/resource/{resourceId}:
+    get:
+      tags:
+        - Attendance
+      summary: Get attendance records for a resource
+      parameters:
+        - name: resourceId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: month
+          in: query
+          schema:
+            type: integer
+        - name: year
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of attendance records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Attendance'
+
+  /attendance/report:
+    get:
+      tags:
+        - Attendance
+      summary: Get attendance report
+      parameters:
+        - name: month
+          in: query
+          schema:
+            type: integer
+        - name: year
+          in: query
+          schema:
+            type: integer
+        - name: projectId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Attendance report data
+
+  /attendance:
+    post:
+      tags:
+        - Attendance
+      summary: Create attendance record (Admin/Manager)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - projectResourceId
+                - date
+                - checkInTime
+                - checkOutTime
+              properties:
+                projectResourceId:
+                  type: string
+                date:
+                  type: string
+                  format: date
+                checkInTime:
+                  type: string
+                checkOutTime:
+                  type: string
+      responses:
+        '201':
+          description: Attendance record created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attendance'
+
+  /attendance/{id}:
+    put:
+      tags:
+        - Attendance
+      summary: Update attendance record (Admin/Manager)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                checkInTime:
+                  type: string
+                checkOutTime:
+                  type: string
+      responses:
+        '200':
+          description: Attendance record updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attendance'
+    
+    delete:
+      tags:
+        - Attendance
+      summary: Delete attendance record (Admin/Manager)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Attendance record deleted successfully
+
+  # Approval Endpoints
+  /approvals/pending:
+    get:
+      tags:
+        - Approvals
+      summary: Get pending approval items (Admin/Manager)
+      responses:
+        '200':
+          description: List of pending approval items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    type:
+                      type: string
+                      enum: [expense, material_request]
+                    description:
+                      type: string
+                    amount:
+                      type: number
+                    createdBy:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                    projectName:
+                      type: string
+                    status:
+                      type: string
+
+  /approvals/finances/{id}/approve:
+    put:
+      tags:
+        - Approvals
+      summary: Approve expense (Admin/Manager)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Expense approved successfully
+
+  /approvals/finances/{id}/reject:
+    put:
+      tags:
+        - Approvals
+      summary: Reject expense (Admin/Manager)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reason
+              properties:
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Expense rejected successfully
+
+  /approvals/materials/{id}/approve:
+    put:
+      tags:
+        - Approvals
+      summary: Approve material request (Admin/Manager)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Material request approved successfully
+
+  /approvals/materials/{id}/reject:
+    put:
+      tags:
+        - Approvals
+      summary: Reject material request (Admin/Manager)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reason
+              properties:
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Material request rejected successfully
